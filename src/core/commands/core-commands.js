@@ -154,6 +154,19 @@ export function registerCoreCommands(registry, app) {
       }
     },
 
+    {
+      name: 'toggle theme',
+      description: 'cycle through themes',
+      category: 'appearance',
+      icon: '🌙',
+      aliases: ['theme toggle', 'tt'],
+      handler: async () => {
+        app.themeManager.toggleTheme()
+        const currentTheme = app.themeManager.getCurrentTheme()
+        return { success: true, message: `Switched to ${currentTheme} theme` }
+      }
+    },
+
     // Information Commands
     {
       name: 'info',
@@ -387,7 +400,78 @@ export function registerCoreCommands(registry, app) {
       }
     },
 
+    {
+      name: 'toggle sidebar',
+      description: 'show/hide sidebar',
+      category: 'navigation',
+      icon: '📚',
+      aliases: ['sidebar', 'ts'],
+      handler: async () => {
+        const sidebar = document.querySelector('.sidebar')
+        const appMain = document.querySelector('.app-main')
+        
+        if (sidebar && appMain) {
+          const isHidden = sidebar.classList.contains('sidebar-hidden')
+          if (isHidden) {
+            sidebar.classList.remove('sidebar-hidden')
+            appMain.classList.remove('sidebar-hidden')
+            return { success: true, message: 'Sidebar shown' }
+          } else {
+            sidebar.classList.add('sidebar-hidden')
+            appMain.classList.add('sidebar-hidden')
+            return { success: true, message: 'Sidebar hidden' }
+          }
+        }
+        
+        return { success: false, message: 'Sidebar not found' }
+      }
+    },
+
     // System Commands
+    {
+      name: 'settings',
+      description: 'open settings',
+      category: 'system',
+      icon: '⚙️',
+      aliases: ['preferences', 'config', 'prefs'],
+      handler: async () => {
+        // Placeholder for future settings implementation
+        return {
+          success: true,
+          message: 'Settings (coming soon)',
+          data: [
+            'Theme settings: Use "theme" command',
+            'Document settings: Use "info" command',
+            'More settings coming in future updates'
+          ]
+        }
+      }
+    },
+
+    {
+      name: 'sync',
+      description: 'show sync status',
+      category: 'system',
+      icon: '🔄',
+      aliases: ['sync status', 'refresh'],
+      handler: async () => {
+        const syncStatus = document.getElementById('sync-status')
+        const status = syncStatus ? syncStatus.textContent : 'Unknown'
+        const docCount = await app.storageManager.getAllDocuments().then(docs => docs.length)
+        
+        return {
+          success: true,
+          message: 'Sync Status',
+          data: [
+            `Current status: ${status}`,
+            `Local documents: ${docCount}`,
+            'Auto-save: Enabled (2s delay)',
+            'Storage: IndexedDB (offline-first)'
+          ]
+        }
+      }
+    },
+
     {
       name: 'reload',
       description: 'reload app',

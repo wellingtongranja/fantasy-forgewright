@@ -149,17 +149,20 @@ export class CommandBar {
     this.selectedIndex = 0
     this.currentQuery = ''
     
-    // Sync with global command input if it has content
-    const globalInput = document.getElementById('global-command-input')
-    if (globalInput && globalInput.value.trim()) {
-      this.currentQuery = globalInput.value.trim()
-      this.input.value = this.currentQuery
-    } else {
-      this.input.value = ''
-    }
+    this.input.value = ''
     
     // Show element
     this.element.classList.add('show')
+    
+    // Show sidebar when command bar opens
+    const sidebar = document.querySelector('.sidebar')
+    const appMain = document.querySelector('.app-main')
+    if (sidebar) {
+      sidebar.classList.remove('sidebar-hidden')
+    }
+    if (appMain) {
+      appMain.classList.remove('sidebar-hidden')
+    }
     
     // Focus input and update results
     setTimeout(() => {
@@ -179,14 +182,19 @@ export class CommandBar {
 
     this.isVisible = false
     
-    // Sync remaining content to global input
-    const globalInput = document.getElementById('global-command-input')
-    if (globalInput && this.input.value.trim()) {
-      globalInput.value = this.input.value.trim()
-    }
     
     // Hide element
     this.element.classList.remove('show')
+    
+    // Hide sidebar when command bar closes
+    const sidebar = document.querySelector('.sidebar')
+    const appMain = document.querySelector('.app-main')
+    if (sidebar) {
+      sidebar.classList.add('sidebar-hidden')
+    }
+    if (appMain) {
+      appMain.classList.add('sidebar-hidden')
+    }
     
     // Return focus to editor quickly
     setTimeout(() => {

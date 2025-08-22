@@ -29,6 +29,16 @@ class FantasyEditorApp {
       await this.loadInitialDocument()
       this.updateUI()
       
+      // Hide sidebar initially for distraction-free writing
+      const sidebar = document.querySelector('.sidebar')
+      const appMain = document.querySelector('.app-main')
+      if (sidebar) {
+        sidebar.classList.add('sidebar-hidden')
+      }
+      if (appMain) {
+        appMain.classList.add('sidebar-hidden')
+      }
+      
       console.log('Fantasy Editor initialized successfully')
     } catch (error) {
       console.error('Failed to initialize app:', error)
@@ -70,10 +80,7 @@ class FantasyEditorApp {
 
   attachEventListeners() {
     // No direct keyboard shortcuts - everything goes through Ctrl+Space command palette
-
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      this.themeManager.toggleTheme()
-    })
+    // No icon buttons - everything goes through command palette
 
     document.getElementById('doc-title').addEventListener('input', (e) => {
       if (this.currentDocument) {
@@ -118,53 +125,6 @@ class FantasyEditorApp {
       })
     }
 
-    // Setup global command input
-    const globalCommandInput = document.getElementById('global-command-input')
-    if (globalCommandInput) {
-      globalCommandInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          const command = e.target.value.trim()
-          if (command) {
-            this.executeCommand(command)
-            e.target.value = ''
-            e.target.blur()
-          }
-        } else if (e.key === 'Escape') {
-          e.target.value = ''
-          e.target.blur()
-          // Return focus to editor
-          if (this.editor && this.editor.focus) {
-            this.editor.focus()
-          }
-        }
-      })
-
-      // Show command palette on focus
-      globalCommandInput.addEventListener('focus', (e) => {
-        if (this.commandBar) {
-          this.commandBar.show()
-        }
-      })
-
-      // Show command palette when typing
-      globalCommandInput.addEventListener('input', (e) => {
-        if (this.commandBar && e.target.value.trim()) {
-          this.commandBar.show()
-        }
-      })
-
-      // Hide command palette on blur if no command is being typed
-      globalCommandInput.addEventListener('blur', (e) => {
-        setTimeout(() => {
-          const commandBarElement = document.querySelector('.command-bar')
-          if (commandBarElement && !commandBarElement.matches(':hover') && 
-              !e.target.value.trim() && this.commandBar) {
-            this.commandBar.hide()
-          }
-        }, 150)
-      })
-    }
   }
 
   async loadInitialDocument() {
