@@ -351,18 +351,34 @@ export class CommandBar {
       // No user input, just execute the selected command
       commandInput = selectedCommand.name
     } else {
-      // Check if user input starts with the command name or alias
+      // Check if user input exactly matches the full command name or alias
       const commandNames = [selectedCommand.name, ...selectedCommand.aliases]
-      const matchingCommand = commandNames.find(name => 
-        userInput.toLowerCase().startsWith(name.toLowerCase())
+      const exactMatch = commandNames.find(name => 
+        userInput.toLowerCase() === name.toLowerCase()
       )
       
-      if (matchingCommand) {
+      // Check if user input starts with the command name or alias (with space after)
+      const prefixMatch = commandNames.find(name => 
+        userInput.toLowerCase().startsWith(name.toLowerCase() + ' ')
+      )
+      
+      if (exactMatch) {
+        // User typed exact command name, execute it
+        commandInput = exactMatch
+      } else if (prefixMatch) {
         // User typed command name + arguments, use their full input
         commandInput = userInput
       } else {
-        // User typed partial/fuzzy match, execute selected command with user input as arguments
-        commandInput = `${selectedCommand.name} ${userInput}`
+        // User typed partial/fuzzy match or just selected from dropdown
+        // Check if the user input is a substring of the selected command
+        if (selectedCommand.name.toLowerCase().includes(userInput.toLowerCase()) || 
+            selectedCommand.aliases.some(alias => alias.toLowerCase().includes(userInput.toLowerCase()))) {
+          // User typed a partial match, execute the selected command without extra args
+          commandInput = selectedCommand.name
+        } else {
+          // User typed something else, use as arguments
+          commandInput = `${selectedCommand.name} ${userInput}`
+        }
       }
     }
     

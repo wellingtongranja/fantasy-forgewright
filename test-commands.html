@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Command System Test</title>
+</head>
+<body>
+    <h1>Command System Test</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { CommandRegistry } from './src/core/commands/command-registry.js';
+        
+        const registry = new CommandRegistry();
+        
+        // Register test commands
+        registry.registerCommands([
+            {
+                name: 'migration status',
+                description: 'check migration status',
+                aliases: ['migrate status', 'ms'],
+                handler: async () => ({ success: true, message: 'Migration status command works!' })
+            },
+            {
+                name: 'storage stats',
+                description: 'show storage statistics',
+                aliases: ['stats'],
+                handler: async () => ({ success: true, message: 'Storage stats command works!' })
+            },
+            {
+                name: 'new',
+                description: 'create new document',
+                aliases: ['n'],
+                handler: async (args) => ({ success: true, message: `New document: ${args.join(' ')}` })
+            }
+        ]);
+        
+        const results = document.getElementById('results');
+        
+        // Test cases
+        const testCases = [
+            'migration status',
+            'migrate status',
+            'ms',
+            'storage stats',
+            'stats',
+            'new My Document',
+            'migration',
+            'storage'
+        ];
+        
+        results.innerHTML = '<h2>Test Results:</h2>';
+        
+        for (const testInput of testCases) {
+            const parsed = registry.parseCommand(testInput);
+            const command = registry.getCommand(parsed.name);
+            
+            results.innerHTML += `
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
+                    <strong>Input:</strong> "${testInput}"<br>
+                    <strong>Parsed Name:</strong> "${parsed.name}"<br>
+                    <strong>Args:</strong> [${parsed.args.join(', ')}]<br>
+                    <strong>Command Found:</strong> ${command ? 'Yes' : 'No'}<br>
+                    ${command ? `<strong>Description:</strong> ${command.description}` : ''}
+                </div>
+            `;
+        }
+        
+        // Test search
+        results.innerHTML += '<h2>Search Test:</h2>';
+        const searchResults = registry.searchCommands('migration');
+        results.innerHTML += `<p>Search for "migration" found ${searchResults.length} commands:</p>`;
+        searchResults.forEach(cmd => {
+            results.innerHTML += `<div>- ${cmd.name}: ${cmd.description}</div>`;
+        });
+    </script>
+</body>
+</html>

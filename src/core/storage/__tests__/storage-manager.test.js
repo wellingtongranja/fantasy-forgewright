@@ -1,7 +1,8 @@
 /**
- * Storage Manager Tests - Enhanced TDD approach for document persistence
+ * Storage Manager Tests - Enhanced TDD approach for document persistence with GUID support
  */
 import { StorageManager } from '../storage-manager.js'
+import { guidManager } from '../../../utils/guid.js'
 
 describe('StorageManager', () => {
   let storageManager
@@ -42,43 +43,67 @@ describe('StorageManager', () => {
     })
   })
 
-  describe('UID Generation', () => {
-    it('should generate unique document IDs with correct format', () => {
-      const uid1 = storageManager.generateUID()
-      const uid2 = storageManager.generateUID()
+  describe('GUID Generation', () => {
+    it('should generate unique document GUIDs with RFC 4122 format', () => {
+      const guid1 = storageManager.generateGUID()
+      const guid2 = storageManager.generateGUID()
       
-      expect(uid1).toMatch(/^doc_\d+_[a-f0-9]{8}$/)
-      expect(uid2).toMatch(/^doc_\d+_[a-f0-9]{8}$/)
-      expect(uid1).not.toBe(uid2)
+      expect(guidManager.isValidGuid(guid1)).toBe(true)
+      expect(guidManager.isValidGuid(guid2)).toBe(true)
+      expect(guid1).not.toBe(guid2)
     })
 
-    it('should generate UIDs with timestamp and random component', () => {
-      const beforeTime = Date.now()
-      const uid = storageManager.generateUID()
-      const afterTime = Date.now()
+    it('should generate GUIDs that pass validation', () => {
+      const guid = storageManager.generateGUID()
       
-      const parts = uid.split('_')
-      expect(parts).toHaveLength(3)
-      expect(parts[0]).toBe('doc')
-      
-      const timestamp = Number(parts[1])
-      expect(timestamp).toBeGreaterThanOrEqual(beforeTime)
-      expect(timestamp).toBeLessThanOrEqual(afterTime)
-      
-      expect(parts[2]).toHaveLength(8)
-      expect(/^[a-f0-9]+$/.test(parts[2])).toBe(true)
+      expect(guid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+      expect(guidManager.isValidGuid(guid)).toBe(true)
+      expect(guidManager.isOldUidFormat(guid)).toBe(false)
     })
   })
 
   describe('Document Validation', () => {
-    it('should validate correct document structure', () => {
+    it('should validate correct document structure with GUID', () => {
       const validDoc = {
+        id: guidManager.generateGuid(),
         title: 'Valid Document',
         content: '# Hello World\n\nThis is content.',
         tags: ['test', 'valid']
       }
 
       expect(() => storageManager.validateDocument(validDoc)).not.toThrow()
+    })
+
+    it('should validate documents with old UID format for backward compatibility', () => {
+      const validDoc = {
+        id: 'doc_1648125632_a1b2c3d4',
+        title: 'Valid Document',
+        content: 'Content',
+        tags: []
+      }
+
+      expect(() => storageManager.validateDocument(validDoc)).not.toThrow()
+    })
+
+    it('should reject documents with invalid ID format', () => {
+      const invalidDoc = {
+        id: 'invalid-id-format',
+        title: 'Valid Title',
+        content: 'Content'
+      }
+
+      expect(() => storageManager.validateDocument(invalidDoc))
+        .toThrow('Document ID must be valid GUID or UID format')
+    })
+
+    it('should reject documents without ID', () => {
+      const invalidDoc = {
+        title: 'Valid Title',
+        content: 'Content'
+      }
+
+      expect(() => storageManager.validateDocument(invalidDoc))
+        .toThrow('Document ID is required')
     })
 
     it('should reject documents without title', () => {
@@ -213,7 +238,7 @@ describe('StorageManager', () => {
   })
 
   describe('Document CRUD Operations', () => {
-    it('should save new document with generated UID', async () => {
+    it('should save new document with generated GUID', async () => {
       const doc = {
         title: 'New Document',
         content: '# Welcome\n\nThis is a new document.',
@@ -222,15 +247,18 @@ describe('StorageManager', () => {
 
       const savedDoc = await storageManager.saveDocument(doc)
       
-      expect(savedDoc.id).toMatch(/^doc_\d+_[a-f0-9]{8}$/)
+      expect(guidManager.isValidGuid(savedDoc.id)).toBe(true)
       expect(savedDoc.title).toBe(doc.title)
       expect(savedDoc.content).toBe(doc.content)
-      expect(savedDoc.createdAt).toBeDefined()
-      expect(savedDoc.updatedAt).toBeDefined()
-      expect(savedDoc.checksum).toBeDefined()
+      expect(savedDoc.filename).toMatch(/^new-document-[0-9a-f]{8}\.md$/)
+      expect(savedDoc.metadata.created).toBeDefined()
+      expect(savedDoc.metadata.modified).toBeDefined()
+      expect(savedDoc.metadata.guid).toBe(savedDoc.id)
+      expect(savedDoc.sync.checksum).toBeDefined()
+      expect(savedDoc.sync.status).toBe('local')
     })
 
-    it('should update existing document preserving UID and createdAt', async () => {
+    it('should update existing document preserving GUID and created timestamp', async () => {
       const doc = {
         title: 'Original Document',
         content: 'Original content',
@@ -239,9 +267,9 @@ describe('StorageManager', () => {
 
       const savedDoc = await storageManager.saveDocument(doc)
       const originalId = savedDoc.id
-      const originalCreatedAt = savedDoc.createdAt
+      const originalCreated = savedDoc.metadata.created
       
-      // Wait a bit to ensure different updatedAt
+      // Wait a bit to ensure different modified timestamp
       await new Promise(resolve => setTimeout(resolve, 10))
       
       // Update document
@@ -251,9 +279,10 @@ describe('StorageManager', () => {
       const updatedDoc = await storageManager.saveDocument(savedDoc)
       
       expect(updatedDoc.id).toBe(originalId)
-      expect(updatedDoc.createdAt).toBe(originalCreatedAt)
-      expect(updatedDoc.updatedAt).not.toBe(savedDoc.updatedAt)
+      expect(updatedDoc.metadata.created).toBe(originalCreated)
+      expect(updatedDoc.metadata.modified).not.toBe(savedDoc.metadata.modified)
       expect(updatedDoc.title).toBe('Updated Document')
+      expect(updatedDoc.filename).toMatch(/^updated-document-[0-9a-f]{8}\.md$/)
     })
 
     it('should retrieve document by ID', async () => {
@@ -345,6 +374,116 @@ describe('StorageManager', () => {
     })
   })
 
+  describe('GUID-specific Functionality', () => {
+    it('should check document existence by GUID', async () => {
+      const doc = {
+        title: 'Existence Test',
+        content: 'Test content',
+        tags: []
+      }
+
+      const savedDoc = await storageManager.saveDocument(doc)
+      
+      const exists = await storageManager.documentExists(savedDoc.id)
+      expect(exists).toBe(true)
+      
+      const nonExistentGuid = guidManager.generateGuid()
+      const notExists = await storageManager.documentExists(nonExistentGuid)
+      expect(notExists).toBe(false)
+    })
+
+    it('should find document by filename', async () => {
+      const doc = {
+        title: 'Filename Test Document',
+        content: 'Test content',
+        tags: []
+      }
+
+      const savedDoc = await storageManager.saveDocument(doc)
+      
+      const foundDoc = await storageManager.getDocumentByFilename(savedDoc.filename)
+      expect(foundDoc).toEqual(savedDoc)
+      
+      const notFound = await storageManager.getDocumentByFilename('nonexistent.md')
+      expect(notFound).toBeNull()
+    })
+
+    it('should detect potential duplicates', async () => {
+      // Create original document
+      const originalDoc = {
+        title: 'Unique Document Title',
+        content: 'This is unique content for testing duplicates',
+        tags: ['unique', 'test']
+      }
+      await storageManager.saveDocument(originalDoc)
+
+      // Create potential duplicate
+      const duplicateCandidate = {
+        title: 'Unique Document Title', // Same title
+        content: 'Different content but same title',
+        tags: ['test']
+      }
+
+      const duplicates = await storageManager.findPotentialDuplicates(duplicateCandidate)
+      
+      expect(duplicates).toHaveLength(1)
+      expect(duplicates[0].similarity).toBeGreaterThan(60)
+      expect(duplicates[0].reasons).toContain('Identical titles')
+    })
+
+    it('should provide storage statistics with GUID info', async () => {
+      // Create test documents
+      const docs = [
+        { title: 'GUID Doc 1', content: 'Content 1', tags: [] },
+        { title: 'GUID Doc 2', content: 'Content 2', tags: [] }
+      ]
+
+      for (const doc of docs) {
+        await storageManager.saveDocument(doc)
+      }
+
+      const stats = await storageManager.getStorageStats()
+      
+      expect(stats.totalDocuments).toBe(2)
+      expect(stats.guidDocuments).toBe(2)
+      expect(stats.uidDocuments).toBe(0)
+      expect(stats.invalidDocuments).toBe(0)
+      expect(stats.needsMigration).toBe(false)
+      expect(stats.databaseVersion).toBe(2)
+      expect(stats.totalSizeBytes).toBeGreaterThan(0)
+      expect(stats.guidManagerStats).toBeDefined()
+    })
+
+    it('should handle backward compatibility with old UID documents', async () => {
+      // Manually insert old UID format document
+      const oldDoc = {
+        id: 'doc_1648125632_a1b2c3d4',
+        title: 'Old UID Document',
+        content: 'Legacy content',
+        tags: [],
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        checksum: '12345678'
+      }
+
+      const transaction = storageManager.db.transaction([storageManager.storeName], 'readwrite')
+      const store = transaction.objectStore(storageManager.storeName)
+      await new Promise((resolve, reject) => {
+        const request = store.add(oldDoc)
+        request.onsuccess = () => resolve()
+        request.onerror = () => reject(request.error)
+      })
+
+      const stats = await storageManager.getStorageStats()
+      expect(stats.uidDocuments).toBe(1)
+      expect(stats.needsMigration).toBe(true)
+
+      // Should be able to retrieve old document
+      const retrieved = await storageManager.getDocument(oldDoc.id)
+      expect(retrieved).toEqual(oldDoc)
+    })
+  })
+
   describe('Error Handling', () => {
     it('should handle invalid document gracefully', async () => {
       await expect(storageManager.saveDocument(null))
@@ -354,6 +493,24 @@ describe('StorageManager', () => {
     it('should handle non-existent document retrieval', async () => {
       const result = await storageManager.getDocument('non-existent-id')
       expect(result).toBeUndefined()
+    })
+
+    it('should handle invalid GUID in documentExists', async () => {
+      const result = await storageManager.documentExists('invalid-guid')
+      expect(result).toBe(false)
+    })
+
+    it('should handle errors in storage statistics gracefully', async () => {
+      // Mock database error
+      const originalGetAllDocuments = storageManager.getAllDocuments
+      storageManager.getAllDocuments = jest.fn().mockRejectedValue(new Error('DB Error'))
+      
+      const stats = await storageManager.getStorageStats()
+      expect(stats.error).toBe('DB Error')
+      expect(stats.totalDocuments).toBe(0)
+      
+      // Restore original method
+      storageManager.getAllDocuments = originalGetAllDocuments
     })
   })
 })

@@ -1,44 +1,45 @@
+import { guidManager } from '../../utils/guid.js'
+
 export class StorageManager {
   constructor() {
     this.dbName = 'FantasyEditorDB'
-    this.dbVersion = 1
+    this.dbVersion = 2 // Increment for GUID migration
     this.storeName = 'documents'
     this.db = null
+    this.guidManager = guidManager
     this.initDatabase()
   }
 
   /**
-   * Generate unique document identifier
-   * Format: doc_timestamp_random8chars
+   * Generate GUID for new documents
+   * @returns {string} RFC 4122 v4 UUID
    */
-  generateUID() {
-    const timestamp = Date.now()
-    const random = Math.random().toString(16).substr(2, 8)
-    return `doc_${timestamp}_${random}`
+  generateGUID() {
+    return this.guidManager.generateGuid()
   }
 
   /**
    * Generate checksum for content integrity
    */
   generateChecksum(content) {
-    let hash = 0
-    if (!content || content.length === 0) return '00000000'
-    
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash // Convert to 32-bit integer
-    }
-    
-    return Math.abs(hash).toString(16).padStart(8, '0').substr(0, 8)
+    return this.guidManager.generateChecksum(content)
   }
 
   /**
-   * Validate document structure
+   * Validate document structure with GUID support
    */
   validateDocument(doc) {
     if (!doc || typeof doc !== 'object') {
       throw new Error('Invalid document: document must be an object')
+    }
+    
+    // Validate ID (GUID or old UID for backward compatibility)
+    if (!doc.id || typeof doc.id !== 'string') {
+      throw new Error('Document ID is required')
+    }
+    
+    if (!this.guidManager.isValidGuid(doc.id) && !this.guidManager.isOldUidFormat(doc.id)) {
+      throw new Error('Document ID must be valid GUID or UID format')
     }
     
     if (!doc.title || typeof doc.title !== 'string' || doc.title.trim().length === 0) {
@@ -134,35 +135,47 @@ export class StorageManager {
       throw new Error('Invalid document')
     }
     
-    // Validate and sanitize document
-    this.validateDocument(document)
-    const sanitizedDoc = this.sanitizeDocument(document)
-    
-    // Generate UID for new documents
-    if (!sanitizedDoc.id) {
-      sanitizedDoc.id = this.generateUID()
-      sanitizedDoc.createdAt = new Date().toISOString()
-    }
-    
-    // Update timestamp
-    sanitizedDoc.updatedAt = new Date().toISOString()
-    
-    // Generate checksum for integrity
-    if (sanitizedDoc.content) {
-      sanitizedDoc.checksum = this.generateChecksum(sanitizedDoc.content)
-    }
-    
-    // Ensure tags array exists
-    if (!sanitizedDoc.tags) {
-      sanitizedDoc.tags = []
+    let processedDoc
+
+    // Check if this is a new document or existing one
+    if (!document.id) {
+      // Create new document with GUID structure
+      processedDoc = this.guidManager.createDocumentWithGuid(
+        document.title,
+        document.content,
+        document.tags
+      )
+    } else {
+      // Update existing document
+      this.validateDocument(document)
+      const sanitizedDoc = this.sanitizeDocument(document)
+      
+      if (this.guidManager.isValidGuid(document.id)) {
+        // Update GUID document
+        processedDoc = this.guidManager.updateDocument(sanitizedDoc, {
+          title: sanitizedDoc.title,
+          content: sanitizedDoc.content,
+          tags: sanitizedDoc.tags
+        })
+      } else {
+        // Handle old UID format (backward compatibility)
+        processedDoc = { ...sanitizedDoc }
+        processedDoc.updatedAt = new Date().toISOString()
+        if (processedDoc.content) {
+          processedDoc.checksum = this.generateChecksum(processedDoc.content)
+        }
+        if (!processedDoc.tags) {
+          processedDoc.tags = []
+        }
+      }
     }
     
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
-      const request = store.put(sanitizedDoc)
+      const request = store.put(processedDoc)
       
-      transaction.oncomplete = () => resolve(sanitizedDoc)
+      transaction.oncomplete = () => resolve(processedDoc)
       transaction.onerror = () => reject(new Error('Failed to save document'))
     })
   }
@@ -226,6 +239,183 @@ export class StorageManager {
   async ensureDatabase() {
     if (!this.db) {
       await this.initDatabase()
+    }
+  }
+
+  /**
+   * Check if document with GUID already exists
+   * @param {string} guid - GUID to check
+   * @returns {Promise<boolean>} Whether document exists
+   */
+  async documentExists(guid) {
+    await this.ensureDatabase()
+    
+    if (!this.guidManager.isValidGuid(guid)) {
+      return false
+    }
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readonly')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.get(guid)
+      
+      request.onsuccess = () => resolve(!!request.result)
+      request.onerror = () => reject(new Error('Failed to check document existence'))
+    })
+  }
+
+  /**
+   * Find documents by filename (for Git integration)
+   * @param {string} filename - Git filename to search for
+   * @returns {Promise<Object|null>} Document with matching filename
+   */
+  async getDocumentByFilename(filename) {
+    await this.ensureDatabase()
+    
+    const documents = await this.getAllDocuments()
+    return documents.find(doc => doc.filename === filename) || null
+  }
+
+  /**
+   * Find potential duplicate documents by title and content similarity
+   * @param {Object} document - Document to check for duplicates
+   * @returns {Promise<Array>} Array of potential duplicate documents
+   */
+  async findPotentialDuplicates(document) {
+    await this.ensureDatabase()
+    
+    if (!document.title && !document.content) {
+      return []
+    }
+    
+    const allDocuments = await this.getAllDocuments()
+    const potentialDuplicates = []
+    
+    for (const existingDoc of allDocuments) {
+      if (existingDoc.id === document.id) {
+        continue // Skip self
+      }
+      
+      let similarity = 0
+      
+      // Check title similarity
+      if (document.title && existingDoc.title) {
+        if (document.title.toLowerCase() === existingDoc.title.toLowerCase()) {
+          similarity += 50 // 50% weight for exact title match
+        } else if (existingDoc.title.toLowerCase().includes(document.title.toLowerCase()) ||
+                   document.title.toLowerCase().includes(existingDoc.title.toLowerCase())) {
+          similarity += 25 // 25% weight for partial title match
+        }
+      }
+      
+      // Check content similarity (basic)
+      if (document.content && existingDoc.content) {
+        const docChecksum = this.generateChecksum(document.content)
+        const existingChecksum = this.generateChecksum(existingDoc.content)
+        
+        if (docChecksum === existingChecksum) {
+          similarity += 40 // 40% weight for identical content
+        } else {
+          // Simple content similarity check
+          const docWords = document.content.toLowerCase().split(/\s+/)
+          const existingWords = existingDoc.content.toLowerCase().split(/\s+/)
+          const commonWords = docWords.filter(word => existingWords.includes(word))
+          
+          if (commonWords.length > Math.min(docWords.length, existingWords.length) * 0.5) {
+            similarity += 20 // 20% weight for significant word overlap
+          }
+        }
+      }
+      
+      // Check tag similarity
+      if (document.tags && existingDoc.tags && document.tags.length > 0 && existingDoc.tags.length > 0) {
+        const commonTags = document.tags.filter(tag => existingDoc.tags.includes(tag))
+        if (commonTags.length > 0) {
+          similarity += (commonTags.length / Math.max(document.tags.length, existingDoc.tags.length)) * 10
+        }
+      }
+      
+      // Consider it a potential duplicate if similarity > 60%
+      if (similarity >= 60) {
+        potentialDuplicates.push({
+          document: existingDoc,
+          similarity: Math.round(similarity),
+          reasons: this.getDuplicateReasons(document, existingDoc, similarity)
+        })
+      }
+    }
+    
+    return potentialDuplicates.sort((a, b) => b.similarity - a.similarity)
+  }
+
+  /**
+   * Get reasons why documents might be duplicates
+   * @private
+   */
+  getDuplicateReasons(doc1, doc2, similarity) {
+    const reasons = []
+    
+    if (doc1.title && doc2.title && doc1.title.toLowerCase() === doc2.title.toLowerCase()) {
+      reasons.push('Identical titles')
+    }
+    
+    if (doc1.content && doc2.content) {
+      const checksum1 = this.generateChecksum(doc1.content)
+      const checksum2 = this.generateChecksum(doc2.content)
+      if (checksum1 === checksum2) {
+        reasons.push('Identical content')
+      }
+    }
+    
+    if (doc1.tags && doc2.tags) {
+      const commonTags = doc1.tags.filter(tag => doc2.tags.includes(tag))
+      if (commonTags.length > 0) {
+        reasons.push(`${commonTags.length} common tags`)
+      }
+    }
+    
+    return reasons
+  }
+
+  /**
+   * Get storage statistics including GUID information
+   * @returns {Promise<Object>} Storage statistics
+   */
+  async getStorageStats() {
+    await this.ensureDatabase()
+    
+    try {
+      const documents = await this.getAllDocuments()
+      const guidDocs = documents.filter(doc => this.guidManager.isValidGuid(doc.id))
+      const uidDocs = documents.filter(doc => this.guidManager.isOldUidFormat(doc.id))
+      const invalidDocs = documents.filter(doc => 
+        !this.guidManager.isValidGuid(doc.id) && !this.guidManager.isOldUidFormat(doc.id)
+      )
+      
+      const totalSize = documents.reduce((sum, doc) => 
+        sum + (doc.content || '').length + (doc.title || '').length, 0
+      )
+      
+      return {
+        totalDocuments: documents.length,
+        guidDocuments: guidDocs.length,
+        uidDocuments: uidDocs.length,
+        invalidDocuments: invalidDocs.length,
+        totalSizeBytes: totalSize,
+        averageSizeBytes: documents.length > 0 ? Math.round(totalSize / documents.length) : 0,
+        needsMigration: uidDocs.length > 0,
+        databaseVersion: this.dbVersion,
+        guidManagerStats: this.guidManager.getStats()
+      }
+    } catch (error) {
+      return {
+        error: error.message,
+        totalDocuments: 0,
+        guidDocuments: 0,
+        uidDocuments: 0,
+        invalidDocuments: 0,
+        needsMigration: false
+      }
     }
   }
 }

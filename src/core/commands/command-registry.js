@@ -182,6 +182,28 @@ export class CommandRegistry {
     else if (name.includes(query)) {
       score += 600
     }
+    
+    // Check if query matches individual words in multi-word commands
+    const nameWords = name.split(/\s+/)
+    const queryWords = query.split(/\s+/)
+    
+    // Boost score for matching multiple words
+    if (queryWords.length > 1 && nameWords.length > 1) {
+      const matchingWords = queryWords.filter(qWord => 
+        nameWords.some(nWord => nWord.startsWith(qWord))
+      )
+      if (matchingWords.length === queryWords.length) {
+        score += 750 // High score for matching all query words
+      } else if (matchingWords.length > 0) {
+        score += 400 + (matchingWords.length * 100)
+      }
+    }
+    
+    // Check for partial word matches in command name
+    const firstWord = nameWords[0]
+    if (firstWord && firstWord.startsWith(query)) {
+      score += 550
+    }
 
     // Check aliases
     for (const alias of command.aliases) {
@@ -248,10 +270,33 @@ export class CommandRegistry {
     // Remove leading colon if present
     const cleaned = trimmed.startsWith(':') ? trimmed.slice(1) : trimmed
     
-    // Split command and arguments
-    const parts = cleaned.split(/\s+/)
-    const commandName = parts[0] || ''
-    const args = parts.slice(1)
+    // Try to find the longest matching command name (including multi-word commands)
+    const allCommandNames = [
+      ...Array.from(this.commands.keys()),
+      ...Array.from(this.aliases.keys())
+    ].sort((a, b) => b.length - a.length) // Sort by length desc to match longest first
+    
+    let commandName = ''
+    let args = []
+    
+    // Find the longest command name that matches the beginning of input
+    for (const cmdName of allCommandNames) {
+      if (cleaned.toLowerCase().startsWith(cmdName.toLowerCase())) {
+        const remainder = cleaned.slice(cmdName.length).trim()
+        if (remainder === '' || remainder.startsWith(' ')) {
+          commandName = cmdName
+          args = remainder ? remainder.split(/\s+/) : []
+          break
+        }
+      }
+    }
+    
+    // Fallback to original parsing if no multi-word command found
+    if (!commandName) {
+      const parts = cleaned.split(/\s+/)
+      commandName = parts[0] || ''
+      args = parts.slice(1)
+    }
 
     return {
       name: commandName,

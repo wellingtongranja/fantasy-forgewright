@@ -6,6 +6,8 @@ import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar/command-bar.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
+import { MigrationManager } from './utils/migration.js'
+import { guidManager } from './utils/guid.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -16,15 +18,22 @@ class FantasyEditorApp {
     this.commandRegistry = null
     this.commandBar = null
     this.fileTree = null
+    this.migrationManager = null
     this.currentDocument = null
     this.autoSaveTimeout = null
     this.autoSaveDelay = 2000 // 2 seconds
+    this.guidManager = guidManager
+    this.documentChangeTracking = {
+      lastContentChecksum: null,
+      lastTitleHash: null,
+      hasUnsavedChanges: false
+    }
   }
 
   async init() {
     try {
       this.registerServiceWorker()
-      this.initializeManagers()
+      await this.initializeManagers()
       this.attachEventListeners()
       await this.loadInitialDocument()
       this.updateUI()
@@ -57,12 +66,16 @@ class FantasyEditorApp {
     }
   }
 
-  initializeManagers() {
+  async initializeManagers() {
     const editorElement = document.getElementById('editor')
     this.editor = new EditorManager(editorElement)
     this.themeManager = new ThemeManager()
     this.storageManager = new StorageManager()
+    this.migrationManager = new MigrationManager(this.storageManager)
     this.searchEngine = new SearchEngine(this.storageManager)
+    
+    // Check for migration needs
+    await this.checkAndOfferMigration()
     
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
@@ -147,8 +160,12 @@ class FantasyEditorApp {
     }
     
     try {
+      // Create document with GUID system
       this.currentDocument = await this.storageManager.saveDocument(newDoc)
       this.loadDocument(this.currentDocument)
+      
+      // Initialize change tracking
+      this.initializeChangeTracking()
       
       // Update file tree
       if (this.fileTree) {
@@ -156,6 +173,7 @@ class FantasyEditorApp {
         this.fileTree.setSelectedDocument(this.currentDocument.id)
       }
       
+      console.log(`Created new document with GUID: ${this.currentDocument.id}`)
       return this.currentDocument
     } catch (error) {
       console.error('Failed to create document:', error)
@@ -173,9 +191,19 @@ class FantasyEditorApp {
     this.updateWordCount()
     this.updateSyncStatus('Ready')
     
+    // Initialize change tracking for the loaded document
+    this.initializeChangeTracking()
+    
     // Update file tree selection
     if (this.fileTree) {
       this.fileTree.setSelectedDocument(doc.id)
+    }
+    
+    // Log GUID info for debugging
+    if (this.guidManager.isValidGuid(doc.id)) {
+      console.log(`Loaded GUID document: ${doc.filename || doc.title} (${doc.id})`)
+    } else if (this.guidManager.isOldUidFormat(doc.id)) {
+      console.log(`Loaded legacy UID document: ${doc.title} (${doc.id}) - consider migration`)
     }
   }
 
@@ -189,6 +217,16 @@ class FantasyEditorApp {
       const title = document.getElementById('doc-title').value || 'Untitled Document'
       const content = this.editor.getContent()
       
+      // Check for actual changes before saving
+      const hasContentChanges = this.hasContentChanged(content)
+      const hasTitleChanges = this.hasTitleChanged(title)
+      
+      if (!hasContentChanges && !hasTitleChanges) {
+        this.updateSyncStatus('No changes')
+        setTimeout(() => this.updateSyncStatus('Ready'), 1000)
+        return
+      }
+      
       // Update document
       this.currentDocument.title = title
       this.currentDocument.content = content
@@ -196,9 +234,17 @@ class FantasyEditorApp {
       const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
       this.currentDocument = savedDoc
       
+      // Update change tracking
+      this.initializeChangeTracking()
+      
       // Update file tree
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
+      }
+      
+      // Show GUID info if this is a newly created GUID document
+      if (this.guidManager.isValidGuid(savedDoc.id) && savedDoc.metadata?.created === savedDoc.metadata?.modified) {
+        console.log(`Saved new GUID document: ${savedDoc.filename} (${savedDoc.id})`)
       }
       
       this.updateSyncStatus('Saved')
@@ -344,9 +390,13 @@ class FantasyEditorApp {
       const title = document.getElementById('doc-title').value || 'Untitled Document'
       const content = this.editor.getContent()
       
-      // Check if there are changes
-      if (this.currentDocument.title === title && this.currentDocument.content === content) {
+      // Use GUID-aware change detection
+      const hasContentChanges = this.hasContentChanged(content)
+      const hasTitleChanges = this.hasTitleChanged(title)
+      
+      if (!hasContentChanges && !hasTitleChanges) {
         this.updateSyncStatus('Ready')
+        this.documentChangeTracking.hasUnsavedChanges = false
         return
       }
       
@@ -358,6 +408,9 @@ class FantasyEditorApp {
       
       const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
       this.currentDocument = savedDoc
+      
+      // Update change tracking
+      this.initializeChangeTracking()
       
       // Update file tree silently
       if (this.fileTree) {
@@ -548,6 +601,95 @@ class FantasyEditorApp {
     } catch (error) {
       console.error('Command execution failed:', error)
       this.showError(`Command failed: ${error.message}`)
+    }
+  }
+
+  /**
+   * Check if migration from UID to GUID is needed and offer it to user
+   */
+  async checkAndOfferMigration() {
+    try {
+      const isNeeded = await this.migrationManager.isMigrationNeeded()
+      if (isNeeded) {
+        const stats = await this.migrationManager.getMigrationStats()
+        console.log(`Migration available: ${stats.needsMigration} documents can be migrated to GUID format`)
+        
+        // You could add a command or UI to trigger migration
+        // For now, just log the information
+        setTimeout(() => {
+          this.showNotification(
+            `${stats.needsMigration} documents can be migrated to the new GUID format. Use the migration commands to upgrade.`,
+            'info',
+            5000
+          )
+        }, 3000)
+      }
+    } catch (error) {
+      console.error('Migration check failed:', error)
+    }
+  }
+
+  /**
+   * Initialize change tracking for the current document
+   */
+  initializeChangeTracking() {
+    if (!this.currentDocument) return
+    
+    const content = this.currentDocument.content || ''
+    const title = this.currentDocument.title || ''
+    
+    this.documentChangeTracking = {
+      lastContentChecksum: this.guidManager.generateChecksum(content),
+      lastTitleHash: this.simpleHash(title),
+      hasUnsavedChanges: false
+    }
+  }
+
+  /**
+   * Check if content has changed using checksum comparison
+   */
+  hasContentChanged(currentContent) {
+    const currentChecksum = this.guidManager.generateChecksum(currentContent || '')
+    return currentChecksum !== this.documentChangeTracking.lastContentChecksum
+  }
+
+  /**
+   * Check if title has changed using simple hash comparison
+   */
+  hasTitleChanged(currentTitle) {
+    const currentHash = this.simpleHash(currentTitle || '')
+    return currentHash !== this.documentChangeTracking.lastTitleHash
+  }
+
+  /**
+   * Simple hash function for title comparison
+   */
+  simpleHash(str) {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return hash.toString(16)
+  }
+
+  /**
+   * Get document information including GUID details
+   */
+  getDocumentInfo() {
+    if (!this.currentDocument) return null
+    
+    const doc = this.currentDocument
+    const isGuid = this.guidManager.isValidGuid(doc.id)
+    const isOldUid = this.guidManager.isOldUidFormat(doc.id)
+    
+    return {
+      ...doc,
+      idType: isGuid ? 'GUID' : isOldUid ? 'Legacy UID' : 'Unknown',
+      canMigrate: isOldUid,
+      filename: doc.filename || (isGuid ? this.guidManager.generateFilename(doc.title, doc.id) : null),
+      hasUnsavedChanges: this.documentChangeTracking.hasUnsavedChanges
     }
   }
 
