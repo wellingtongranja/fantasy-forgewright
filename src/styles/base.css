@@ -29,7 +29,7 @@ body {
 
 .app-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 0 var(--spacing-lg);
   height: var(--header-height);
@@ -44,15 +44,6 @@ body {
   white-space: nowrap;
 }
 
-.header-hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-mono);
-  background: var(--color-bg-tertiary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--color-border-light);
-}
 
 /* Navigation buttons removed - all functionality through command palette */
 
@@ -134,7 +125,7 @@ body {
 }
 
 .doc-title {
-  width: 100%;
+  width: 65ch;
   max-width: 65ch;
   padding: var(--spacing-sm);
   border: 1px solid transparent;
@@ -186,8 +177,8 @@ body {
 }
 
 .app-footer {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 0 var(--spacing-lg);
   height: var(--footer-height);
@@ -195,6 +186,21 @@ body {
   border-top: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+}
+
+.app-footer > span:first-child {
+  justify-self: start;
+}
+
+.app-footer > span:last-child {
+  justify-self: end;
+}
+
+.command-hint-footer {
+  justify-self: center;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
 }
 
 .noscript-warning {
