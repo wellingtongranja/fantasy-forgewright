@@ -1,12 +1,17 @@
 import { EditorManager } from './core/editor/editor.js'
 import { ThemeManager } from './core/themes/theme-manager.js'
 import { StorageManager } from './core/storage/storage-manager.js'
+import { CommandRegistry } from './core/commands/command-registry.js'
+import { CommandBar } from './components/command-bar/command-bar.js'
+import { registerCoreCommands } from './core/commands/core-commands.js'
 
 class FantasyEditorApp {
   constructor() {
     this.editor = null
     this.themeManager = null
     this.storageManager = null
+    this.commandRegistry = null
+    this.commandBar = null
     this.currentDocument = null
   }
 
@@ -41,6 +46,13 @@ class FantasyEditorApp {
     this.editor = new EditorManager(editorElement)
     this.themeManager = new ThemeManager()
     this.storageManager = new StorageManager()
+    
+    // Initialize command system
+    this.commandRegistry = new CommandRegistry()
+    this.commandBar = new CommandBar(this.commandRegistry)
+    
+    // Register core commands
+    registerCoreCommands(this.commandRegistry, this)
   }
 
   attachEventListeners() {
@@ -48,28 +60,9 @@ class FantasyEditorApp {
       this.themeManager.toggleTheme()
     })
 
-    document.getElementById('save-btn').addEventListener('click', () => {
-      this.saveDocument()
-    })
-
-    document.getElementById('new-btn').addEventListener('click', () => {
-      this.createNewDocument()
-    })
-
     document.getElementById('doc-title').addEventListener('input', (e) => {
       if (this.currentDocument) {
         this.currentDocument.title = e.target.value
-      }
-    })
-
-    document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        this.saveDocument()
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-        e.preventDefault()
-        this.createNewDocument()
       }
     })
 
@@ -150,26 +143,92 @@ class FantasyEditorApp {
     this.updateSyncStatus('Ready')
   }
 
-  showError(message) {
+  showNotification(message, type = 'info', duration = 3000) {
     const notification = document.createElement('div')
-    notification.className = 'error-notification'
+    notification.className = `notification notification-${type}`
     notification.textContent = message
+    
+    // Theme-aware colors using CSS variables
+    const typeClasses = {
+      success: 'notification-success',
+      error: 'notification-error',
+      warning: 'notification-warning',
+      info: 'notification-info'
+    }
+    
+    notification.className += ` ${typeClasses[type] || typeClasses.info}`
+    
     notification.style.cssText = `
       position: fixed;
-      top: 20px;
+      bottom: 20px;
       right: 20px;
-      background: var(--color-danger);
-      color: white;
-      padding: var(--spacing-md);
+      background: var(--color-bg);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      padding: var(--spacing-sm) var(--spacing-md);
       border-radius: var(--border-radius-md);
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-md);
       z-index: var(--z-index-toast);
+      max-width: 320px;
+      font-size: var(--font-size-sm);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 200ms ease-out;
+      border-left: 3px solid var(--notification-accent-color, var(--color-primary));
     `
+    
+    // Add notification styles if not already present
+    if (!document.getElementById('notification-styles')) {
+      const styleSheet = document.createElement('style')
+      styleSheet.id = 'notification-styles'
+      styleSheet.textContent = `
+        .notification-success {
+          --notification-accent-color: var(--color-success);
+        }
+        .notification-error {
+          --notification-accent-color: var(--color-danger);
+        }
+        .notification-warning {
+          --notification-accent-color: var(--color-warning);
+        }
+        .notification-info {
+          --notification-accent-color: var(--color-primary);
+        }
+        
+        /* Dark theme adjustments */
+        [data-theme="dark"] .notification {
+          background: var(--color-bg-secondary);
+          border-color: var(--color-border);
+        }
+        
+        /* Fantasy theme adjustments */
+        [data-theme="fantasy"] .notification {
+          background: rgba(61, 40, 97, 0.95);
+          border-color: var(--color-primary);
+          color: var(--color-text);
+        }
+      `
+      document.head.appendChild(styleSheet)
+    }
+    
     document.body.appendChild(notification)
     
+    // Animate in
+    requestAnimationFrame(() => {
+      notification.style.opacity = '1'
+      notification.style.transform = 'translateY(0)'
+    })
+    
+    // Auto-hide
     setTimeout(() => {
-      notification.remove()
-    }, 5000)
+      notification.style.opacity = '0'
+      notification.style.transform = 'translateY(20px)'
+      setTimeout(() => notification.remove(), 200)
+    }, duration)
+  }
+
+  showError(message) {
+    this.showNotification(message, 'error')
   }
 }
 
