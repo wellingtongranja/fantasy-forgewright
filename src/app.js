@@ -1,8 +1,10 @@
 import { EditorManager } from './core/editor/editor.js'
 import { ThemeManager } from './core/themes/theme-manager.js'
 import { StorageManager } from './core/storage/storage-manager.js'
+import { SearchEngine } from './core/search/search-engine.js'
 import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar/command-bar.js'
+import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
 
 class FantasyEditorApp {
@@ -10,9 +12,13 @@ class FantasyEditorApp {
     this.editor = null
     this.themeManager = null
     this.storageManager = null
+    this.searchEngine = null
     this.commandRegistry = null
     this.commandBar = null
+    this.fileTree = null
     this.currentDocument = null
+    this.autoSaveTimeout = null
+    this.autoSaveDelay = 2000 // 2 seconds
   }
 
   async init() {
@@ -46,16 +52,25 @@ class FantasyEditorApp {
     this.editor = new EditorManager(editorElement)
     this.themeManager = new ThemeManager()
     this.storageManager = new StorageManager()
+    this.searchEngine = new SearchEngine(this.storageManager)
     
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
     this.commandBar = new CommandBar(this.commandRegistry)
+    
+    // Initialize file tree
+    const fileTreeContainer = document.getElementById('file-tree')
+    this.fileTree = new FileTree(fileTreeContainer, this.storageManager, (document) => {
+      this.loadDocument(document)
+    })
     
     // Register core commands
     registerCoreCommands(this.commandRegistry, this)
   }
 
   attachEventListeners() {
+    // No direct keyboard shortcuts - everything goes through Ctrl+Space command palette
+
     document.getElementById('theme-toggle').addEventListener('click', () => {
       this.themeManager.toggleTheme()
     })
@@ -69,6 +84,85 @@ class FantasyEditorApp {
     if (this.editor.view) {
       this.editor.view.dom.addEventListener('input', () => {
         this.updateWordCount()
+        this.scheduleAutoSave()
+      })
+    }
+
+    document.getElementById('doc-title').addEventListener('input', () => {
+      if (this.currentDocument) {
+        this.currentDocument.title = document.getElementById('doc-title').value
+        this.scheduleAutoSave()
+      }
+    })
+
+    // Setup search input
+    const searchInput = document.getElementById('search-input')
+    if (searchInput) {
+      let searchTimeout
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout)
+        searchTimeout = setTimeout(() => {
+          this.performSearch(e.target.value)
+        }, 300) // Debounce search by 300ms
+      })
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchInput.value = ''
+          this.clearSearchResults()
+          // Return focus to editor
+          if (this.editor && this.editor.focus) {
+            this.editor.focus()
+          }
+        }
+      })
+    }
+
+    // Setup global command input
+    const globalCommandInput = document.getElementById('global-command-input')
+    if (globalCommandInput) {
+      globalCommandInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          const command = e.target.value.trim()
+          if (command) {
+            this.executeCommand(command)
+            e.target.value = ''
+            e.target.blur()
+          }
+        } else if (e.key === 'Escape') {
+          e.target.value = ''
+          e.target.blur()
+          // Return focus to editor
+          if (this.editor && this.editor.focus) {
+            this.editor.focus()
+          }
+        }
+      })
+
+      // Show command palette on focus
+      globalCommandInput.addEventListener('focus', (e) => {
+        if (this.commandBar) {
+          this.commandBar.show()
+        }
+      })
+
+      // Show command palette when typing
+      globalCommandInput.addEventListener('input', (e) => {
+        if (this.commandBar && e.target.value.trim()) {
+          this.commandBar.show()
+        }
+      })
+
+      // Hide command palette on blur if no command is being typed
+      globalCommandInput.addEventListener('blur', (e) => {
+        setTimeout(() => {
+          const commandBarElement = document.querySelector('.command-bar')
+          if (commandBarElement && !commandBarElement.matches(':hover') && 
+              !e.target.value.trim() && this.commandBar) {
+            this.commandBar.hide()
+          }
+        }, 150)
       })
     }
   }
@@ -85,27 +179,44 @@ class FantasyEditorApp {
     this.loadDocument(this.currentDocument)
   }
 
-  createNewDocument() {
-    this.currentDocument = {
-      id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      title: 'Untitled Document',
+  async createNewDocument(title = 'Untitled Document') {
+    const newDoc = {
+      title: title,
       content: '# Welcome to Fantasy Editor\n\nStart writing your epic tale...',
-      tags: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      tags: []
     }
     
-    this.loadDocument(this.currentDocument)
-    return this.currentDocument
+    try {
+      this.currentDocument = await this.storageManager.saveDocument(newDoc)
+      this.loadDocument(this.currentDocument)
+      
+      // Update file tree
+      if (this.fileTree) {
+        this.fileTree.addDocument(this.currentDocument)
+        this.fileTree.setSelectedDocument(this.currentDocument.id)
+      }
+      
+      return this.currentDocument
+    } catch (error) {
+      console.error('Failed to create document:', error)
+      this.showError('Failed to create document')
+      return null
+    }
   }
 
   loadDocument(doc) {
     if (!doc) return
     
+    this.currentDocument = doc
     document.getElementById('doc-title').value = doc.title || 'Untitled Document'
     this.editor.setContent(doc.content || '')
     this.updateWordCount()
     this.updateSyncStatus('Ready')
+    
+    // Update file tree selection
+    if (this.fileTree) {
+      this.fileTree.setSelectedDocument(doc.id)
+    }
   }
 
   async saveDocument() {
@@ -114,10 +225,21 @@ class FantasyEditorApp {
     try {
       this.updateSyncStatus('Saving...')
       
-      this.currentDocument.content = this.editor.getContent()
-      this.currentDocument.updatedAt = new Date().toISOString()
+      // Get current title and content
+      const title = document.getElementById('doc-title').value || 'Untitled Document'
+      const content = this.editor.getContent()
       
-      await this.storageManager.saveDocument(this.currentDocument)
+      // Update document
+      this.currentDocument.title = title
+      this.currentDocument.content = content
+      
+      const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
+      this.currentDocument = savedDoc
+      
+      // Update file tree
+      if (this.fileTree) {
+        this.fileTree.updateDocument(savedDoc)
+      }
       
       this.updateSyncStatus('Saved')
       setTimeout(() => this.updateSyncStatus('Ready'), 2000)
@@ -230,6 +352,245 @@ class FantasyEditorApp {
   showError(message) {
     this.showNotification(message, 'error')
   }
+
+  /**
+   * Schedule auto-save after user stops typing
+   */
+  scheduleAutoSave() {
+    if (!this.currentDocument) return
+    
+    // Clear existing timeout
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout)
+    }
+    
+    // Schedule new auto-save
+    this.autoSaveTimeout = setTimeout(() => {
+      this.performAutoSave()
+    }, this.autoSaveDelay)
+    
+    // Show pending save indicator
+    this.updateSyncStatus('Pending...')
+  }
+
+  /**
+   * Perform auto-save without user notification
+   */
+  async performAutoSave() {
+    if (!this.currentDocument) return
+    
+    try {
+      // Get current title and content
+      const title = document.getElementById('doc-title').value || 'Untitled Document'
+      const content = this.editor.getContent()
+      
+      // Check if there are changes
+      if (this.currentDocument.title === title && this.currentDocument.content === content) {
+        this.updateSyncStatus('Ready')
+        return
+      }
+      
+      this.updateSyncStatus('Auto-saving...')
+      
+      // Update document
+      this.currentDocument.title = title
+      this.currentDocument.content = content
+      
+      const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
+      this.currentDocument = savedDoc
+      
+      // Update file tree silently
+      if (this.fileTree) {
+        this.fileTree.updateDocument(savedDoc)
+      }
+      
+      this.updateSyncStatus('Auto-saved')
+      setTimeout(() => this.updateSyncStatus('Ready'), 1000)
+      
+    } catch (error) {
+      console.error('Auto-save failed:', error)
+      this.updateSyncStatus('Auto-save failed')
+      setTimeout(() => this.updateSyncStatus('Ready'), 2000)
+    }
+  }
+
+  /**
+   * Perform search using the search engine
+   */
+  async performSearch(query) {
+    const searchResultsContainer = document.getElementById('search-results')
+    if (!searchResultsContainer) return
+    
+    if (!query || query.trim().length === 0) {
+      this.clearSearchResults()
+      return
+    }
+
+    try {
+      // Show loading state
+      searchResultsContainer.innerHTML = '<div class="search-loading">Searching...</div>'
+      
+      // Perform search
+      const results = await this.searchEngine.search(query.trim(), { limit: 10 })
+      
+      if (results.length === 0) {
+        searchResultsContainer.innerHTML = `
+          <div class="search-empty">
+            <div class="empty-icon">🔍</div>
+            <p>No documents found for "${query}"</p>
+          </div>
+        `
+        return
+      }
+
+      // Display results
+      let html = '<div class="search-results-list">'
+      
+      results.forEach(result => {
+        const { document, matches, relevance } = result
+        const timeAgo = this.formatTimeAgo(document.updatedAt)
+        
+        html += `
+          <div class="search-result-item" data-doc-id="${document.id}">
+            <div class="search-result-header">
+              <h3 class="search-result-title">${this.escapeHtml(document.title)}</h3>
+              <span class="search-result-meta">${timeAgo}</span>
+            </div>
+        `
+        
+        // Add snippets from matches
+        if (matches && matches.length > 0) {
+          matches.forEach(match => {
+            if (match.field === 'content' && match.snippets.length > 0) {
+              const snippet = match.snippets[0]
+              const highlightedText = this.highlightSearchTerm(snippet.text, snippet.highlight)
+              html += `<div class="search-result-snippet">${highlightedText}</div>`
+            }
+          })
+        }
+        
+        // Add tags if available
+        if (document.tags && document.tags.length > 0) {
+          html += `
+            <div class="search-result-tags">
+              ${document.tags.slice(0, 3).map(tag => 
+                `<span class="search-tag">${this.escapeHtml(tag)}</span>`
+              ).join('')}
+            </div>
+          `
+        }
+        
+        html += '</div>'
+      })
+      
+      html += '</div>'
+      searchResultsContainer.innerHTML = html
+      
+      // Add click handlers for search results
+      searchResultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', async () => {
+          const docId = item.dataset.docId
+          try {
+            const doc = await this.storageManager.getDocument(docId)
+            if (doc) {
+              this.loadDocument(doc)
+              // Clear search on selection
+              document.getElementById('search-input').value = ''
+              this.clearSearchResults()
+            }
+          } catch (error) {
+            console.error('Failed to load document:', error)
+            this.showError('Failed to load document')
+          }
+        })
+      })
+      
+    } catch (error) {
+      console.error('Search failed:', error)
+      searchResultsContainer.innerHTML = `
+        <div class="search-error">
+          <p>Search failed. Please try again.</p>
+        </div>
+      `
+    }
+  }
+
+  /**
+   * Clear search results display
+   */
+  clearSearchResults() {
+    const searchResultsContainer = document.getElementById('search-results')
+    if (searchResultsContainer) {
+      searchResultsContainer.innerHTML = ''
+    }
+  }
+
+  /**
+   * Highlight search terms in text
+   */
+  highlightSearchTerm(text, term) {
+    if (!term || !text) return this.escapeHtml(text)
+    
+    const escaped = this.escapeHtml(text)
+    const regex = new RegExp(`(${this.escapeRegex(term)})`, 'gi')
+    return escaped.replace(regex, '<mark>$1</mark>')
+  }
+
+  /**
+   * Escape regex special characters
+   */
+  escapeRegex(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  }
+
+  /**
+   * Escape HTML characters
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+
+  /**
+   * Format time ago string
+   */
+  formatTimeAgo(dateString) {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMinutes = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMinutes / 60)
+    const diffDays = Math.floor(diffHours / 24)
+    
+    if (diffMinutes < 1) {
+      return 'Just now'
+    } else if (diffMinutes < 60) {
+      return `${diffMinutes}m ago`
+    } else if (diffHours < 24) {
+      return `${diffHours}h ago`
+    } else if (diffDays < 7) {
+      return `${diffDays}d ago`
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric'
+      })
+    }
+  }
+
+  /**
+   * Execute a command directly
+   */
+  async executeCommand(commandInput) {
+    try {
+      await this.commandRegistry.executeCommand(commandInput)
+    } catch (error) {
+      console.error('Command execution failed:', error)
+      this.showError(`Command failed: ${error.message}`)
+    }
+  }
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {

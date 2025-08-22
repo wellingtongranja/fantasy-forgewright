@@ -1,6 +1,13 @@
 // Mock IndexedDB for testing
 import 'fake-indexeddb/auto'
 
+// Polyfill structuredClone for Node.js environments
+if (!global.structuredClone) {
+  global.structuredClone = (obj) => {
+    return JSON.parse(JSON.stringify(obj))
+  }
+}
+
 // Mock DOM APIs
 global.localStorage = {
   data: {},

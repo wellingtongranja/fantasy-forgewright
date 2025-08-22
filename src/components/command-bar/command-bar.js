@@ -148,7 +148,15 @@ export class CommandBar {
     this.isVisible = true
     this.selectedIndex = 0
     this.currentQuery = ''
-    this.input.value = ''
+    
+    // Sync with global command input if it has content
+    const globalInput = document.getElementById('global-command-input')
+    if (globalInput && globalInput.value.trim()) {
+      this.currentQuery = globalInput.value.trim()
+      this.input.value = this.currentQuery
+    } else {
+      this.input.value = ''
+    }
     
     // Show element
     this.element.classList.add('show')
@@ -171,16 +179,28 @@ export class CommandBar {
 
     this.isVisible = false
     
+    // Sync remaining content to global input
+    const globalInput = document.getElementById('global-command-input')
+    if (globalInput && this.input.value.trim()) {
+      globalInput.value = this.input.value.trim()
+    }
+    
     // Hide element
     this.element.classList.remove('show')
     
     // Return focus to editor quickly
     setTimeout(() => {
-      const editor = document.querySelector('.editor')
-      if (editor) {
-        editor.focus()
+      const app = window.fantasyEditor
+      if (app && app.editor && app.editor.focus) {
+        app.editor.focus()
+      } else {
+        // Fallback to DOM focus
+        const editor = document.querySelector('#editor')
+        if (editor) {
+          editor.focus()
+        }
       }
-    }, 100)
+    }, 0)
 
     // Dispatch event
     this.dispatchEvent('hide')
@@ -316,7 +336,28 @@ export class CommandBar {
     this.hide()
     
     // Parse command and arguments
-    const commandInput = this.input.value.trim() || selectedCommand.name
+    let commandInput
+    const userInput = this.input.value.trim()
+    
+    if (!userInput) {
+      // No user input, just execute the selected command
+      commandInput = selectedCommand.name
+    } else {
+      // Check if user input starts with the command name or alias
+      const commandNames = [selectedCommand.name, ...selectedCommand.aliases]
+      const matchingCommand = commandNames.find(name => 
+        userInput.toLowerCase().startsWith(name.toLowerCase())
+      )
+      
+      if (matchingCommand) {
+        // User typed command name + arguments, use their full input
+        commandInput = userInput
+      } else {
+        // User typed partial/fuzzy match, execute selected command with user input as arguments
+        commandInput = `${selectedCommand.name} ${userInput}`
+      }
+    }
+    
     this.commandRegistry.executeCommand(commandInput)
     
     // Dispatch execution event

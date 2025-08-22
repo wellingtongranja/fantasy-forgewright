@@ -19,6 +19,8 @@
   
   <link rel="stylesheet" href="/src/styles/base.css">
   <link rel="stylesheet" href="/src/styles/variables.css">
+  <link rel="stylesheet" href="/src/components/sidebar/file-tree.css">
+  <link rel="stylesheet" href="/src/components/search/search-results.css">
   
   <script type="module" src="/src/app.js"></script>
 </head>
@@ -26,6 +28,17 @@
   <div id="app" class="app-container">
     <header class="app-header">
       <h1 class="app-title">Fantasy Editor</h1>
+      <div class="command-input-container">
+        <input 
+          type="text" 
+          id="global-command-input"
+          class="global-command-input" 
+          placeholder="Type command or press Ctrl+Space..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <div class="command-hint">Ctrl+Space</div>
+      </div>
       <nav class="app-nav">
         <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme">🌙</button>
         <button id="settings-btn" class="btn-icon" aria-label="Settings">⚙️</button>

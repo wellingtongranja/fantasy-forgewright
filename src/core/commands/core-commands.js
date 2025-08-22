@@ -16,15 +16,13 @@ export function registerCoreCommands(registry, app) {
       ],
       handler: async (args) => {
         const title = args.join(' ') || 'Untitled Document'
-        const doc = app.createNewDocument()
-        doc.title = title
+        const doc = await app.createNewDocument(title)
         
-        // Update UI
-        document.getElementById('doc-title').value = title
-        app.loadDocument(doc)
-        app.updateUI()
-        
-        return { success: true, message: `Created new document: ${title}` }
+        if (doc) {
+          return { success: true, message: `Created new document: ${title}` }
+        } else {
+          return { success: false, message: 'Failed to create document' }
+        }
       }
     },
 
@@ -66,9 +64,9 @@ export function registerCoreCommands(registry, app) {
             return { success: false, message: `No documents found matching "${filter}"` }
           } else {
             return { 
-              success: false, 
-              message: `Multiple documents found (${filtered.length}). Be more specific.`,
-              data: filtered.map(d => d.title)
+              success: true, 
+              message: `Found ${filtered.length} documents matching "${filter}":`,
+              data: filtered.map(d => `${d.title} (${d.id})`)
             }
           }
         }
@@ -93,16 +91,31 @@ export function registerCoreCommands(registry, app) {
       ],
       handler: async (args) => {
         const query = args.join(' ')
-        const results = await app.storageManager.searchDocuments(query)
         
-        return {
-          success: true,
-          message: `Found ${results.length} documents matching "${query}"`,
-          data: results.map(doc => ({
-            title: doc.title,
-            id: doc.id,
-            snippet: doc.content.substring(0, 100) + '...'
-          }))
+        if (!query) {
+          return { success: false, message: 'Please provide a search query' }
+        }
+
+        try {
+          const results = await app.searchEngine.search(query, { limit: 5 })
+          
+          if (results.length === 0) {
+            return { success: false, message: `No documents found matching "${query}"` }
+          }
+
+          return {
+            success: true,
+            message: `Found ${results.length} documents matching "${query}"`,
+            data: results.map(result => ({
+              title: result.document.title,
+              id: result.document.id,
+              relevance: Math.round(result.relevance * 100) + '%',
+              snippet: result.matches.find(m => m.field === 'content')?.snippets[0]?.text?.substring(0, 80) + '...' || ''
+            }))
+          }
+        } catch (error) {
+          console.error('Search command failed:', error)
+          return { success: false, message: 'Search failed. Please try again.' }
         }
       }
     },
@@ -226,8 +239,11 @@ export function registerCoreCommands(registry, app) {
             totalCommands: stats.totalCommands,
             examples: [
               'new My Epic Tale - create new document',
-              'save - save current document',
+              'save - save current document', 
               'search dragon - find documents containing "dragon"',
+              'focus search - focus the search input',
+              'focus documents - navigate document list',
+              'documents - show all documents',
               'theme dark - switch to dark theme',
               'help search - get help for search command'
             ]
@@ -295,6 +311,78 @@ export function registerCoreCommands(registry, app) {
               success: false,
               message: 'Unknown action. Use: add, remove, or list'
             }
+        }
+      }
+    },
+
+    // Navigation Commands
+    {
+      name: 'focus search',
+      description: 'focus search input',
+      category: 'navigation',
+      icon: '🔍',
+      aliases: ['fs', 'search focus'],
+      handler: async () => {
+        const searchInput = document.getElementById('search-input')
+        if (searchInput) {
+          searchInput.focus()
+          searchInput.select()
+          return { success: true, message: 'Focused search input' }
+        } else {
+          return { success: false, message: 'Search input not found' }
+        }
+      }
+    },
+
+    {
+      name: 'focus documents',
+      description: 'focus document list',
+      category: 'navigation',
+      icon: '📁',
+      aliases: ['fd', 'docs focus', 'documents focus'],
+      handler: async () => {
+        const fileTree = document.getElementById('file-tree')
+        if (fileTree) {
+          fileTree.focus()
+          // Ensure a document is selected for navigation
+          const firstItem = fileTree.querySelector('.file-tree-item')
+          if (firstItem && !fileTree.querySelector('.file-tree-item.selected')) {
+            firstItem.classList.add('selected')
+            if (app.fileTree) {
+              app.fileTree.selectedDocumentId = firstItem.dataset.docId
+            }
+          }
+          return { success: true, message: 'Focused document list' }
+        } else {
+          return { success: false, message: 'Document list not found' }
+        }
+      }
+    },
+
+    {
+      name: 'documents',
+      description: 'show document list',
+      category: 'document',
+      icon: '📂',
+      aliases: ['docs', 'list', 'ls'],
+      handler: async () => {
+        const documents = await app.storageManager.getAllDocuments()
+        
+        if (documents.length === 0) {
+          return {
+            success: true,
+            message: 'No documents found',
+            data: ['Use "new" command to create your first document']
+          }
+        }
+        
+        return {
+          success: true,
+          message: `Found ${documents.length} documents:`,
+          data: documents.map((doc, index) => {
+            const timeAgo = app.formatTimeAgo ? app.formatTimeAgo(doc.updatedAt) : new Date(doc.updatedAt).toLocaleDateString()
+            return `${index + 1}. ${doc.title} (${timeAgo})`
+          })
         }
       }
     },

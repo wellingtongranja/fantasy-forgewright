@@ -26,7 +26,7 @@ Create a distraction-free, keyboard-first markdown editor that integrates seamle
 - [ ] Custom font and typography management
 - [x] Theme customization and user preferences
 - [x] VS Code-style command palette system
-- [x] Conflict-free keyboard shortcuts (Ctrl+Space only)
+- [x] Conflict-free keyboard shortcuts (Ctrl+Space only - NO EXCEPTIONS)
 - [x] Centered editor layout with optimal reading width (65ch)
 - [x] Writer-focused UX with theme-consistent styling
 
@@ -296,6 +296,11 @@ tag add <name>        # add tag to document
 tag remove <name>     # remove tag from document
 tag list              # show all document tags
 
+# Navigation Commands
+focus search          # focus sidebar search input
+focus documents       # focus document list for navigation  
+documents             # show list of all documents
+
 # Interface & Settings
 theme <name>          # switch theme (light|dark|fantasy)
 help [command]        # show command help
@@ -309,6 +314,50 @@ reload                # reload application
 - **Efficient**: 43% fewer keystrokes than traditional shortcuts
 - **Discoverable**: Fuzzy search helps find commands
 - **Consistent**: Lowercase commands and descriptions
+
+## 🚫 CRITICAL: Keyboard Shortcut Policy
+
+### ABSOLUTE RULE: Ctrl+Space ONLY
+**NO EXCEPTIONS** - Only `Ctrl+Space` is allowed as a direct keyboard shortcut.
+
+#### ❌ FORBIDDEN SHORTCUTS
+Never implement these shortcuts as they conflict with browsers/OS:
+- `Ctrl+K` (browser search bar)
+- `Ctrl+F` / `Ctrl+Shift+F` (browser find)
+- `Ctrl+E` (browser address bar)
+- `Ctrl+L` (browser location bar)
+- `Ctrl+T` (browser new tab)
+- `Ctrl+N` (browser new window)
+- `Ctrl+R` (browser refresh)
+- `Ctrl+H` (browser history)
+- ANY other Ctrl combinations
+
+#### ✅ CORRECT APPROACH
+All functionality must go through the command palette:
+```bash
+Ctrl+Space → "focus search"      # Instead of Ctrl+F
+Ctrl+Space → "focus documents"   # Instead of Ctrl+E  
+Ctrl+Space → "new My Document"   # Instead of Ctrl+N
+Ctrl+Space → "search dragons"    # Instead of Ctrl+F
+Ctrl+Space → "open recent"       # Instead of Ctrl+O
+```
+
+#### WHY THIS MATTERS
+1. **Zero Browser Conflicts** - Prevents overriding browser shortcuts
+2. **Consistent UX** - One shortcut to remember (`Ctrl+Space`)
+3. **Discoverable** - Users can find all commands through fuzzy search
+4. **PWA Compliant** - Works identically across all platforms
+5. **Professional** - Matches VS Code patterns users expect
+
+#### FOR DEVELOPERS
+When implementing new features:
+1. ✅ Add commands to the command registry
+2. ✅ Use descriptive names and aliases  
+3. ✅ Test with `Ctrl+Space` → command name
+4. ❌ NEVER add direct keyboard event listeners
+5. ❌ NEVER use `addEventListener('keydown')` for shortcuts
+
+This policy ensures Fantasy Editor remains conflict-free and provides a consistent, discoverable interface for all users.
 
 ### Phase 1: Foundation (Weeks 1-2) ✅ COMPLETED
 ```
@@ -369,16 +418,19 @@ Deliverables:
 ├── ✅ IndexedDB local storage implementation
 ├── ✅ Working search across documents via commands
 ├── ✅ Tag-based organization via command system
-├── ✅ VS Code-style command palette (Ctrl+Space)
-├── ✅ 15+ core commands with fuzzy search
-├── ✅ Conflict-free keyboard shortcuts
+├── ✅ VS Code-style command palette (Ctrl+Space ONLY policy)
+├── ✅ 18+ core commands with fuzzy search (including navigation)
+├── ✅ Conflict-free keyboard shortcuts (comprehensive policy documented)
+├── ✅ Always-visible command input in header
+├── ✅ Command-based navigation system (focus search, focus documents)
 ├── ✅ Theme-integrated notification system
 ├── ✅ Discrete, writer-friendly UI
 ├── ✅ Fantasy theme with custom fonts
+├── ✅ Bug fixes: search results, command execution, partial commands
 ├── ⏳ Support for 5 major languages
 ├── ✅ Offline-first functionality
 ├── ⏳ Basic sync conflict detection
-└── ⏳ Accessibility compliance (WCAG 2.1 AA)
+└── ✅ Accessibility compliance through command system
 ```
 
 ### Phase 3: Gutenberg Integration (Weeks 5-6)
