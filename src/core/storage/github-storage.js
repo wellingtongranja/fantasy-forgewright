@@ -355,6 +355,27 @@ export class GitHubStorage {
   }
 
   /**
+   * Generate checksum for content integrity
+   * @param {string} content - Content to checksum
+   * @returns {string} Simple hash checksum
+   */
+  generateChecksum(content) {
+    if (!content || typeof content !== 'string') {
+      return '00000000'
+    }
+
+    // Simple hash for content integrity
+    let hash = 0
+    for (let i = 0; i < content.length; i++) {
+      const char = content.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    
+    return Math.abs(hash).toString(16).padStart(8, '0')
+  }
+
+  /**
    * Generate YAML front matter for document
    * @param {Object} document - Document object
    * @returns {string} YAML front matter
@@ -363,10 +384,10 @@ export class GitHubStorage {
     const frontMatter = {
       id: document.id,
       title: document.title,
-      created: document.createdAt,
-      updated: document.updatedAt,
+      created: document.metadata?.created || document.createdAt || new Date().toISOString(),
+      updated: document.metadata?.modified || document.updatedAt || new Date().toISOString(),
       tags: document.tags || [],
-      checksum: document.checksum
+      checksum: document.checksum || this.generateChecksum(document.content || '')
     }
 
     const yaml = Object.entries(frontMatter)
@@ -484,5 +505,169 @@ export class GitHubStorage {
     if (config.repo !== undefined) this.repo = config.repo
     if (config.branch !== undefined) this.branch = config.branch
     if (config.documentsPath !== undefined) this.documentsPath = config.documentsPath
+  }
+
+  /**
+   * Create default Fantasy Editor repository
+   * @param {string} username - GitHub username
+   * @returns {Promise<boolean>} Success status
+   */
+  async createDefaultRepository(username) {
+    try {
+      // First check if repository already exists
+      try {
+        const checkResponse = await this.auth.makeAuthenticatedRequest(`/repos/${username}/fantasy-editor`)
+        if (checkResponse.ok) {
+          console.log('Repository fantasy-editor already exists, configuring...')
+          this.updateConfig({
+            owner: username,
+            repo: 'fantasy-editor',
+            branch: 'main'
+          })
+          
+          // Try to ensure documents directory exists
+          try {
+            await this.ensureDocumentsDirectory()
+          } catch (error) {
+            console.log('Could not initialize documents directory, but repository is configured')
+          }
+          
+          return true
+        }
+      } catch (error) {
+        // Repository doesn't exist, continue with creation
+        console.log('Repository does not exist, creating...')
+      }
+
+      const repoData = {
+        name: 'fantasy-editor',
+        description: 'Documents created with Fantasy Editor - A distraction-free markdown editor for creative writers',
+        private: true,
+        auto_init: false, // We'll initialize it ourselves
+        gitignore_template: null,
+        license_template: null
+      }
+
+      const response = await this.auth.makeAuthenticatedRequest('/user/repos', {
+        method: 'POST',
+        body: JSON.stringify(repoData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        const repo = await response.json()
+        console.log('Default repository created:', repo.full_name)
+        
+        // Configure Fantasy Editor to use this repository
+        this.updateConfig({
+          owner: username,
+          repo: 'fantasy-editor',
+          branch: 'main'
+        })
+
+        // Wait a moment for GitHub to set up the repository
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
+        // Initialize the repository with documents directory
+        await this.ensureDocumentsDirectory()
+
+        return true
+      } else if (response.status === 422) {
+        // Repository already exists, check the error message
+        const errorData = await response.json()
+        if (errorData.errors && errorData.errors.some(err => err.message && err.message.includes('already exists'))) {
+          console.log('Repository fantasy-editor already exists, configuring...')
+          this.updateConfig({
+            owner: username,
+            repo: 'fantasy-editor',
+            branch: 'main'
+          })
+          
+          // Still try to ensure documents directory exists
+          try {
+            await this.ensureDocumentsDirectory()
+          } catch (error) {
+            console.log('Could not initialize documents directory, but repository is configured')
+          }
+          
+          return true
+        } else {
+          throw new Error(`Repository creation failed: ${JSON.stringify(errorData)}`)
+        }
+      } else {
+        const errorText = await response.text()
+        throw new Error(`Failed to create repository: ${response.status} - ${errorText}`)
+      }
+    } catch (error) {
+      console.error('Failed to create default repository:', error)
+      return false
+    }
+  }
+
+  /**
+   * Ensure documents directory exists in repository
+   * @returns {Promise<void>}
+   */
+  async ensureDocumentsDirectory() {
+    if (!this.isConfigured()) {
+      throw new Error('GitHub storage not configured')
+    }
+
+    try {
+      // Check if documents directory exists
+      const response = await this.auth.makeAuthenticatedRequest(
+        `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}`,
+        { method: 'GET' }
+      )
+
+      if (response.ok) {
+        console.log('Documents directory already exists')
+        return
+      }
+    } catch (error) {
+      // Directory doesn't exist, we'll create it
+    }
+
+    // Create documents directory with a README
+    const readmeContent = `# Fantasy Editor Documents
+
+This directory contains documents created with Fantasy Editor.
+
+## About Fantasy Editor
+
+Fantasy Editor is a distraction-free markdown editor designed for creative writers.
+
+- **Offline-first**: Your documents are stored locally and synced to GitHub
+- **Keyboard-focused**: Complete control via command palette (Ctrl+Space)
+- **Writer-friendly**: Optimized for long-form writing and creativity
+
+## Document Format
+
+Documents are stored as markdown files with YAML front matter containing metadata.
+
+## Getting Started
+
+1. Start writing in Fantasy Editor
+2. Use \`:ghp\` to push your documents to this repository
+3. Use \`:ghs\` to sync all documents
+4. Use \`:ghls\` to list documents in this repository
+
+Created: ${new Date().toISOString()}
+`
+
+    try {
+      await this.saveFile(
+        `${this.documentsPath}/README.md`,
+        readmeContent,
+        'Initialize Fantasy Editor documents directory',
+        null // No existing SHA for new file
+      )
+      console.log('Documents directory created successfully')
+    } catch (error) {
+      console.error('Failed to create documents directory:', error)
+      throw error
+    }
   }
 }

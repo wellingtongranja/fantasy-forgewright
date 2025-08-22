@@ -3,9 +3,15 @@
  * Implements OAuth authentication and document synchronization
  */
 export function registerGitHubCommands(registry, app) {
+  // Helper function to create GitHub commands with consistent structure
+  const createGitHubCommand = (commandDef) => ({
+    condition: () => true,
+    parameters: [],
+    ...commandDef
+  })
   const commands = [
     // GitHub Authentication Commands
-    {
+    createGitHubCommand({
       name: 'github status',
       description: 'show GitHub connection status',
       category: 'github',
@@ -50,9 +56,9 @@ export function registerGitHubCommands(registry, app) {
           }
         }
       }
-    },
+    }),
 
-    {
+    createGitHubCommand({
       name: 'github login',
       description: 'log in to GitHub',
       category: 'github',
@@ -528,13 +534,6 @@ export function registerGitHubCommands(registry, app) {
     }
   ]
 
-  // Add required properties to all commands
-  const processedCommands = commands.map(command => ({
-    condition: () => true,
-    parameters: command.parameters || [],
-    ...command
-  }))
-
   // Register all GitHub commands
-  registry.registerCommands(processedCommands)
+  registry.registerCommands(commands)
 }

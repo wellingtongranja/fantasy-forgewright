@@ -16,7 +16,7 @@
 - [x] Offline-first PWA functionality
 - [x] Full-text search and document tagging
 - [x] Writer-focused UI with optimal 65ch layout
-- [ ] GitHub OAuth integration
+- [x] GitHub OAuth integration with automatic repository setup
 - [ ] Project Gutenberg integration
 - [ ] Internationalization support
 
@@ -32,11 +32,12 @@
 
 ### Recent Improvements
 
-- Unified command interface (removed dual inputs)
-- Perfect document title/editor alignment
-- Status bar with three-column layout
-- Theme-aware notifications
-- Mobile responsive design
+- **GitHub OAuth Integration** - Secure authentication with automatic private repository creation
+- **Backend API Proxy** - CORS-free GitHub API access with Express server
+- **Document Synchronization** - Bidirectional sync between local IndexedDB and GitHub
+- **Command System Enhancement** - All GitHub operations via colon shortcuts
+- **YAML Front Matter** - Proper document metadata in GitHub storage
+- **Automatic Repository Setup** - Zero-configuration GitHub integration upon login
 
 ## 🛠️ Development Standards
 
@@ -86,6 +87,18 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:fd`** | `focus documents` | `:fd` |
 | **`:ts`** | `toggle sidebar` | `:ts` |
 | **`:tag`** | `tag` | `:tag add fantasy` |
+
+#### GitHub Integration Commands
+| **`:gh`** | `github status` | `:gh` |
+| **`:ghl`** | `github login` | `:ghl` |
+| **`:gho`** | `github logout` | `:gho` |
+| **`:ghc`** | `github config` | `:ghc owner repo` |
+| **`:ghp`** | `github push` | `:ghp` |
+| **`:ghs`** | `github sync` | `:ghs` |
+| **`:ghls`** | `github list` | `:ghls` |
+| **`:ghpl`** | `github pull` | `:ghpl filename` |
+| **`:ghi`** | `github import` | `:ghi https://github.com/...` |
+| **`:ghini`** | `github init` | `:ghini` |
 
 ### Command System Rules (MANDATORY)
 

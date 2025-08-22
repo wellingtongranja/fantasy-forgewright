@@ -188,9 +188,38 @@ class FantasyEditorApp {
       
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
       console.log('GitHub authentication successful:', user)
+
+      // Automatically create and configure default repository
+      this.setupDefaultRepository(user)
     } catch (error) {
       console.error('OAuth completion failed:', error)
       this.showNotification(`Login failed: ${error.message}`, 'error')
+    }
+  }
+
+  /**
+   * Setup default Fantasy Editor repository after login
+   */
+  async setupDefaultRepository(user) {
+    try {
+      if (!this.githubStorage) {
+        console.log('GitHub storage not initialized, skipping repository setup')
+        return
+      }
+
+      this.showNotification('Setting up your Fantasy Editor repository...', 'info')
+      
+      const success = await this.githubStorage.createDefaultRepository(user.login)
+      
+      if (success) {
+        this.showNotification(`Repository "${user.login}/fantasy-editor" configured! Use :ghp to push documents.`, 'success')
+        console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
+      } else {
+        this.showNotification('Repository setup failed, but you can configure manually with :ghc', 'warning')
+      }
+    } catch (error) {
+      console.error('Failed to setup default repository:', error)
+      this.showNotification('Repository setup failed, but you can configure manually with :ghc', 'warning')
     }
   }
 
