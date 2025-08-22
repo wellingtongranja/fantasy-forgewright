@@ -50,21 +50,54 @@ Create a distraction-free, keyboard-first markdown editor that integrates seamle
 
 ### Phase 2: Command System - COMPLETED ✅
 - [x] VS Code-style command palette (Ctrl+Space)
+- [x] Unified command interface (removed duplicate inputs)
+- [x] Command bar positioned at top of browser (16px from edge)
 - [x] Fuzzy search algorithm for commands
-- [x] Command registry with 15+ core commands
-- [x] Keyboard-first navigation
+- [x] Command registry with 20+ core commands
+- [x] Keyboard-first navigation (focus search, focus documents, etc.)
 - [x] Zero browser shortcut conflicts
 - [x] Parameter validation system
+- [x] Auto-hide sidebar integration
+- [x] Command result keyboard navigation
 
 ### Phase 3: UI/UX Polish - COMPLETED ✅
-- [x] Discrete command bar styling
+- [x] Unified command bar design (600px width, consistent styling)
+- [x] Perfect document title and editor width alignment
+- [x] Structural layout improvements (title inside editor container)
+- [x] Command hint moved to status bar center
 - [x] Theme-aware toast notifications
-- [x] Removed redundant UI buttons
+- [x] Removed redundant UI buttons and inputs
 - [x] Centered editor layout (65ch optimal width)
 - [x] Writer-focused interface design
 - [x] Subtle borders and shadows
 - [x] Focus state enhancements
 - [x] Mobile responsive adjustments
+- [x] Clean header with just application title
+
+### Recent Architectural Improvements ✅
+
+#### Command System Redesign (Latest)
+- **Problem**: Dual command interface (header input + dropdown) caused UX confusion and alignment issues
+- **Solution**: Unified single command palette triggered by Ctrl+Space only
+- **Implementation**:
+  - Removed always-visible global command input from header
+  - Positioned command bar at top of browser (16px from edge) for prominence
+  - Created 600px wide command interface with integrated input and results
+  - Eliminated complex synchronization between multiple components
+
+#### Layout Alignment Fixes (Latest)
+- **Problem**: Document title width didn't align with editor content boundaries
+- **Solution**: Structural approach by placing title inside editor container
+- **Implementation**:
+  - Removed separate editor-toolbar component entirely
+  - Moved document title as first child of editor-content container
+  - Both elements now share identical width constraints (65ch) and padding context
+  - Perfect visual alignment achieved through container sharing vs. complex CSS calculations
+
+#### Status Bar Enhancement
+- **Moved command hint** from header to center of status bar
+- **Three-column layout**: word count | "Press Ctrl+Space for commands" | sync status
+- **CSS Grid implementation** for consistent positioning
 
 ### Current Sprint: Core Features 🔄
 - [ ] IndexedDB storage implementation
