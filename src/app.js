@@ -6,8 +6,12 @@ import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar/command-bar.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
+import { registerGitHubCommands } from './core/commands/github-commands.js'
 import { guidManager } from './utils/guid.js'
 import { devHelpers } from './utils/dev-helpers.js'
+import { GitHubAuth } from './core/auth/github-auth.js'
+import { GitHubStorage } from './core/storage/github-storage.js'
+import { SyncManager } from './core/storage/sync-manager.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -27,6 +31,11 @@ class FantasyEditorApp {
       lastTitleHash: null,
       hasUnsavedChanges: false
     }
+    
+    // GitHub integration
+    this.githubAuth = null
+    this.githubStorage = null
+    this.syncManager = null
   }
 
   async init() {
@@ -72,6 +81,9 @@ class FantasyEditorApp {
     this.storageManager = new StorageManager()
     this.searchEngine = new SearchEngine(this.storageManager)
     
+    // Initialize GitHub integration
+    await this.initializeGitHubIntegration()
+    
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
     this.commandBar = new CommandBar(this.commandRegistry)
@@ -85,9 +97,135 @@ class FantasyEditorApp {
     // Register core commands
     registerCoreCommands(this.commandRegistry, this)
     
+    // Register GitHub commands
+    registerGitHubCommands(this.commandRegistry, this)
+    
     // Initialize dev helpers for console access
     devHelpers.init(this)
+    
+    // Handle GitHub OAuth callback
+    this.handleOAuthCallback()
+    
+    // Handle command execution results
+    this.setupCommandEventHandlers()
   }
+
+  /**
+   * Setup command event handlers
+   */
+  setupCommandEventHandlers() {
+    // Listen for command execution results
+    document.addEventListener('commandregistry:execute', (event) => {
+      const { result } = event.detail
+      if (result) {
+        this.displayCommandResult(result)
+      }
+    })
+
+    // Listen for command execution errors
+    document.addEventListener('commandregistry:error', (event) => {
+      const { error } = event.detail
+      this.showNotification(`Command failed: ${error}`, 'error')
+    })
+  }
+
+  /**
+   * Display command execution result
+   */
+  displayCommandResult(result) {
+    if (result.success === false) {
+      this.showNotification(result.message, 'error')
+    } else if (result.data) {
+      // Format data for display
+      let message = result.message || 'Command completed'
+      if (Array.isArray(result.data)) {
+        message += '\n• ' + result.data.join('\n• ')
+      } else if (typeof result.data === 'object') {
+        const lines = Object.entries(result.data).map(([key, value]) => `${key}: ${value}`)
+        message += '\n• ' + lines.join('\n• ')
+      }
+      this.showNotification(message, result.success ? 'success' : 'info')
+    } else {
+      this.showNotification(result.message, result.success ? 'success' : 'info')
+    }
+  }
+
+  /**
+   * Handle GitHub OAuth callback
+   */
+  handleOAuthCallback() {
+    // Check if current URL contains OAuth callback parameters
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    const state = urlParams.get('state')
+    const error = urlParams.get('error')
+
+    if (code || error) {
+      // This is an OAuth callback
+      if (error) {
+        console.error('OAuth error:', error)
+        this.showNotification(`GitHub login failed: ${error}`, 'error')
+      } else if (code) {
+        this.completeOAuthFlow(code, state)
+      }
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }
+
+  /**
+   * Complete OAuth authentication flow
+   */
+  async completeOAuthFlow(code, state) {
+    try {
+      if (!this.githubAuth) {
+        throw new Error('GitHub integration not initialized')
+      }
+
+      // Handle the OAuth callback
+      const user = await this.githubAuth.handleCallback(window.location.href)
+      
+      this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
+      console.log('GitHub authentication successful:', user)
+    } catch (error) {
+      console.error('OAuth completion failed:', error)
+      this.showNotification(`Login failed: ${error.message}`, 'error')
+    }
+  }
+
+  async initializeGitHubIntegration() {
+    try {
+      // Get GitHub client ID from environment variables
+      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
+      
+      if (!githubClientId) {
+        console.warn('GitHub OAuth not configured: VITE_GITHUB_CLIENT_ID not found in .env file')
+        return
+      }
+
+      // Initialize GitHub authentication using Device Flow
+      this.githubAuth = new GitHubAuth()
+      this.githubAuth.init({ clientId: githubClientId })
+
+      // Initialize GitHub storage
+      this.githubStorage = new GitHubStorage(this.githubAuth)
+
+      // Initialize sync manager
+      this.syncManager = new SyncManager(this.storageManager, this.githubStorage, this.githubAuth)
+      this.syncManager.init({
+        autoSync: false, // Can be enabled by user
+        autoSyncInterval: 5 * 60 * 1000 // 5 minutes
+      })
+
+      console.log('✅ GitHub Device Flow integration initialized')
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize GitHub integration:', error)
+      this.showNotification('GitHub integration failed to initialize', 'warning')
+    }
+  }
+
 
   attachEventListeners() {
     // No direct keyboard shortcuts - everything goes through Ctrl+Space command palette

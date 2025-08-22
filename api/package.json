@@ -1,0 +1,20 @@
+{
+  "name": "fantasy-editor-api",
+  "version": "1.0.0",
+  "description": "Backend API for Fantasy Editor GitHub OAuth",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "body-parser": "^1.20.3"
+  },
+  "keywords": ["fantasy-editor", "github", "oauth", "api"],
+  "author": "Fantasy Editor",
+  "license": "MIT"
+}

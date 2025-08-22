@@ -2,6 +2,8 @@
  * Core Commands - Essential editor commands for Fantasy Editor
  * Integrates with existing EditorManager, StorageManager, and ThemeManager
  */
+import { registerGitHubCommands } from './github-commands.js'
+
 export function registerCoreCommands(registry, app) {
   const commands = [
     // Document Management Commands
@@ -545,6 +547,9 @@ export function registerCoreCommands(registry, app) {
 
   // Register all commands
   registry.registerCommands(commands)
+
+  // Register GitHub commands
+  registerGitHubCommands(registry, app)
 
   // Add command execution event listener for feedback
   document.addEventListener('commandregistry:execute', (event) => {

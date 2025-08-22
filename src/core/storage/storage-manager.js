@@ -378,7 +378,7 @@ export class StorageManager {
   }
 
   /**
-   * Get storage statistics including GUID information
+   * Get storage statistics including GUID and GitHub information
    * @returns {Promise<Object>} Storage statistics
    */
   async getStorageStats() {
@@ -387,6 +387,8 @@ export class StorageManager {
     try {
       const documents = await this.getAllDocuments()
       const guidDocs = documents.filter(doc => this.guidManager.isValidGuid(doc.id))
+      const githubDocs = documents.filter(doc => doc.githubSha || doc.githubPath)
+      const syncedDocs = documents.filter(doc => doc.lastSyncedAt)
       
       const totalSize = documents.reduce((sum, doc) => 
         sum + (doc.content || '').length + (doc.title || '').length, 0
@@ -395,6 +397,8 @@ export class StorageManager {
       return {
         totalDocuments: documents.length,
         guidDocuments: guidDocs.length,
+        githubDocuments: githubDocs.length,
+        syncedDocuments: syncedDocs.length,
         totalSizeBytes: totalSize,
         averageSizeBytes: documents.length > 0 ? Math.round(totalSize / documents.length) : 0,
         databaseVersion: this.dbVersion
@@ -403,8 +407,136 @@ export class StorageManager {
       return {
         error: error.message,
         totalDocuments: 0,
-        guidDocuments: 0
+        guidDocuments: 0,
+        githubDocuments: 0,
+        syncedDocuments: 0
       }
     }
+  }
+
+  /**
+   * Update document with GitHub sync metadata
+   * @param {string} documentId - Document ID
+   * @param {Object} githubMetadata - GitHub metadata
+   * @returns {Promise<Object>} Updated document
+   */
+  async updateGitHubMetadata(documentId, githubMetadata) {
+    await this.ensureDatabase()
+    
+    const document = await this.getDocument(documentId)
+    if (!document) {
+      throw new Error('Document not found')
+    }
+    
+    const updatedDoc = {
+      ...document,
+      githubSha: githubMetadata.sha,
+      githubPath: githubMetadata.path,
+      lastSyncedAt: githubMetadata.lastSyncedAt || new Date().toISOString()
+    }
+    
+    return await this.saveDocument(updatedDoc)
+  }
+
+  /**
+   * Get documents that need syncing to GitHub
+   * @param {Date} since - Only return documents modified since this date
+   * @returns {Promise<Array>} Documents needing sync
+   */
+  async getDocumentsNeedingSync(since = null) {
+    await this.ensureDatabase()
+    
+    const documents = await this.getAllDocuments()
+    
+    return documents.filter(doc => {
+      // Skip if document has never been modified
+      if (!doc.updatedAt) return false
+      
+      const updatedAt = new Date(doc.updatedAt)
+      
+      // If since date provided, only include documents modified after that
+      if (since && updatedAt <= since) return false
+      
+      // Include if never synced or modified after last sync
+      if (!doc.lastSyncedAt) return true
+      
+      const lastSynced = new Date(doc.lastSyncedAt)
+      return updatedAt > lastSynced
+    })
+  }
+
+  /**
+   * Mark document as synced
+   * @param {string} documentId - Document ID
+   * @returns {Promise<void>}
+   */
+  async markAsSynced(documentId) {
+    await this.ensureDatabase()
+    
+    const document = await this.getDocument(documentId)
+    if (!document) {
+      throw new Error('Document not found')
+    }
+    
+    document.lastSyncedAt = new Date().toISOString()
+    await this.saveDocument(document)
+  }
+
+  /**
+   * Get sync status for a document
+   * @param {string} documentId - Document ID
+   * @returns {Promise<Object>} Sync status
+   */
+  async getDocumentSyncStatus(documentId) {
+    await this.ensureDatabase()
+    
+    const document = await this.getDocument(documentId)
+    if (!document) {
+      throw new Error('Document not found')
+    }
+    
+    const hasGitHubMetadata = !!(document.githubSha && document.githubPath)
+    const lastSynced = document.lastSyncedAt ? new Date(document.lastSyncedAt) : null
+    const lastModified = document.updatedAt ? new Date(document.updatedAt) : null
+    
+    let status = 'unknown'
+    if (!hasGitHubMetadata) {
+      status = 'not_synced'
+    } else if (!lastSynced) {
+      status = 'pending_sync'
+    } else if (lastModified && lastModified > lastSynced) {
+      status = 'needs_sync'
+    } else {
+      status = 'synced'
+    }
+    
+    return {
+      status,
+      hasGitHubMetadata,
+      lastSynced,
+      lastModified,
+      githubSha: document.githubSha,
+      githubPath: document.githubPath
+    }
+  }
+
+  /**
+   * Remove GitHub metadata from document
+   * @param {string} documentId - Document ID
+   * @returns {Promise<void>}
+   */
+  async removeGitHubMetadata(documentId) {
+    await this.ensureDatabase()
+    
+    const document = await this.getDocument(documentId)
+    if (!document) {
+      throw new Error('Document not found')
+    }
+    
+    delete document.githubSha
+    delete document.githubPath
+    delete document.lastSyncedAt
+    
+    await this.saveDocument(document)
   }
 }

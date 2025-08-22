@@ -1,0 +1,316 @@
+/* GitHub Sync Status Component Styles */
+.github-sync-status {
+  position: relative;
+  display: inline-block;
+  user-select: none;
+}
+
+.sync-status-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  min-width: 120px;
+}
+
+.sync-status-main:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-color);
+}
+
+.sync-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.status-indicator {
+  font-size: 14px;
+  animation: none;
+}
+
+.sync-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.status-message {
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-details {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Status-specific styles */
+.github-sync-status.status-syncing .status-indicator {
+  animation: spin 1.5s linear infinite;
+}
+
+.github-sync-status.status-error .sync-status-main {
+  border-color: var(--error-color);
+  background: var(--error-bg, rgba(220, 53, 69, 0.1));
+}
+
+.github-sync-status.status-conflicts .sync-status-main {
+  border-color: var(--warning-color);
+  background: var(--warning-bg, rgba(255, 193, 7, 0.1));
+}
+
+.github-sync-status.status-synced .sync-status-main {
+  border-color: var(--success-color);
+  background: var(--success-bg, rgba(40, 167, 69, 0.1));
+}
+
+.github-sync-status.status-pending .sync-status-main {
+  border-color: var(--info-color);
+  background: var(--info-bg, rgba(23, 162, 184, 0.1));
+}
+
+/* Dropdown styles */
+.sync-status-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 300px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.sync-status-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.sync-dropdown-content {
+  padding: 16px;
+}
+
+.sync-section {
+  margin-bottom: 16px;
+}
+
+.sync-section:last-child {
+  margin-bottom: 0;
+}
+
+.sync-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Connection section */
+.connection-info {
+  font-size: 0.85rem;
+}
+
+.connection-status {
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.connection-user {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* Sync info section */
+.sync-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sync-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+}
+
+.last-sync-time,
+.queued-count,
+.conflict-count {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.sync-stat.has-conflicts .conflict-count {
+  color: var(--warning-color);
+  background: var(--warning-bg, rgba(255, 193, 7, 0.1));
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sync-stat.has-queued .queued-count {
+  color: var(--info-color);
+  background: var(--info-bg, rgba(23, 162, 184, 0.1));
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Actions section */
+.sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sync-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.sync-action-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--accent-color);
+}
+
+.sync-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sync-action-btn .btn-icon {
+  font-size: 1rem;
+}
+
+/* Error section */
+.error-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+}
+
+.error-message {
+  background: var(--error-bg, rgba(220, 53, 69, 0.1));
+  border: 1px solid var(--error-color);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 0.85rem;
+  color: var(--error-color);
+  margin-bottom: 12px;
+  word-wrap: break-word;
+}
+
+.retry-btn {
+  background: var(--error-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: var(--error-hover);
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .sync-status-dropdown {
+    left: 0;
+    right: 0;
+    min-width: auto;
+    width: calc(100vw - 32px);
+    max-width: 300px;
+  }
+  
+  .sync-status-main {
+    min-width: 100px;
+  }
+  
+  .status-message,
+  .status-details {
+    font-size: 0.8rem;
+  }
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .sync-status-dropdown {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .sync-status-main {
+    border-width: 2px;
+  }
+  
+  .sync-action-btn {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .status-indicator {
+    animation: none !important;
+  }
+  
+  .sync-status-dropdown {
+    transition: none;
+  }
+  
+  .sync-status-main {
+    transition: none;
+  }
+}
