@@ -276,6 +276,22 @@ export function registerGitHubCommands(registry, app) {
           
           const result = await app.githubStorage.saveDocument(doc)
           
+          // Update local document with GitHub metadata
+          const updatedDoc = {
+            ...doc,
+            githubSha: result.document.githubSha,
+            githubPath: result.document.githubPath,
+            lastSyncedAt: result.document.lastSyncedAt
+          }
+          
+          // Save updated document locally with GitHub metadata
+          await app.storageManager.saveDocument(updatedDoc)
+          
+          // Update current document if it's the same one
+          if (app.currentDocument && app.currentDocument.id === doc.id) {
+            app.currentDocument = updatedDoc
+          }
+          
           return {
             success: true,
             message: `Document "${doc.title}" pushed to GitHub successfully`

@@ -57,7 +57,7 @@ export class GitHubStorage {
       const filepath = `${this.documentsPath}/${filename}`
       const content = this.formatDocumentContent(document)
       
-      // Check if file already exists
+      // Check if file already exists (using GUID-based filename)
       const existingFile = await this.getFileInfo(filepath)
       
       const requestBody = {
@@ -332,14 +332,8 @@ export class GitHubStorage {
    * @returns {string} Filename
    */
   generateFilename(document) {
-    // Use document ID as base filename to ensure uniqueness
-    const safeName = document.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .substring(0, 50) // Limit length
-    
-    return `${document.id}-${safeName}.md`
+    // Use ONLY the GUID as filename - title changes don't affect file identity
+    return `${document.id}.md`
   }
 
   /**
@@ -373,6 +367,38 @@ export class GitHubStorage {
     }
     
     return Math.abs(hash).toString(16).padStart(8, '0')
+  }
+
+  /**
+   * Delete file from GitHub repository
+   * @param {string} filepath - Path to file to delete
+   * @param {string} sha - SHA of file to delete
+   * @param {string} message - Commit message
+   * @returns {Promise<void>}
+   */
+  async deleteFile(filepath, sha, message) {
+    if (!this.isConfigured()) {
+      throw new Error('GitHub storage not configured or not authenticated')
+    }
+
+    const response = await this.auth.makeAuthenticatedRequest(
+      `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: message || `Delete ${filepath}`,
+          sha: sha,
+          branch: this.branch
+        })
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete file: ${response.status}`)
+    }
   }
 
   /**
