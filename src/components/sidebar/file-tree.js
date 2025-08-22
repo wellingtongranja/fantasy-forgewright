@@ -87,7 +87,7 @@ export class FileTree {
         <div class="file-tree-group">
           <div class="file-tree-group-header">
             <span class="group-title">${dateGroup}</span>
-            <span class="group-count">${docs.length}</span>
+            <span class="group-count">${Array.isArray(docs) ? docs.length : 0}</span>
           </div>
           <div class="file-tree-group-items">
       `
@@ -134,11 +134,20 @@ export class FileTree {
     const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
     
+    // Ensure documents is an array
+    if (!Array.isArray(documents)) {
+      console.warn('groupDocumentsByDate received non-array:', documents)
+      return { 'No Documents': [] }
+    }
+    
     for (const doc of documents) {
       const docDate = new Date(doc.updatedAt || doc.metadata?.modified)
       let groupKey
       
-      if (this.isSameDate(docDate, today)) {
+      // Handle invalid dates
+      if (isNaN(docDate.getTime())) {
+        groupKey = 'Unknown Date'
+      } else if (this.isSameDate(docDate, today)) {
         groupKey = 'Today'
       } else if (this.isSameDate(docDate, yesterday)) {
         groupKey = 'Yesterday'

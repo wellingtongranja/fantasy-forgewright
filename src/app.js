@@ -255,9 +255,21 @@ class FantasyEditorApp {
   }
 
   updateWordCount() {
-    const content = this.editor?.getContent() || ''
-    const words = content.trim().split(/\s+/).filter(word => word.length > 0).length
-    document.getElementById('word-count').textContent = `${words} words`
+    try {
+      const content = this.editor?.getContent() || ''
+      if (typeof content !== 'string') {
+        console.warn('Editor content is not a string:', content)
+        document.getElementById('word-count').textContent = '0 words'
+        return
+      }
+      
+      const words = content.trim().split(/\s+/).filter(word => word.length > 0).length
+      const wordCount = isNaN(words) ? 0 : words
+      document.getElementById('word-count').textContent = `${wordCount} words`
+    } catch (error) {
+      console.error('Error updating word count:', error)
+      document.getElementById('word-count').textContent = '0 words'
+    }
   }
 
   updateSyncStatus(status) {
