@@ -1,0 +1,284 @@
+/**
+ * Fantasy Theme - Immersive medieval atmosphere for fantasy writing
+ */
+
+[data-theme="fantasy"] {
+  /* Primary colors - earthy and mystical */
+  --primary-color: #8b4513;
+  --secondary-color: #daa520;
+  --accent-color: #ffd700;
+  
+  /* Background colors - parchment and leather */
+  --background-color: #0f0f0f;
+  --surface-color: #1a1a0f;
+  --surface-hover: #2a2a1f;
+  
+  /* Text colors - aged parchment */
+  --text-color: #ddc79e;
+  --text-secondary: #b8a082;
+  --text-muted: #9a8670;
+  
+  /* Border colors - worn edges */
+  --border-color: #4a3c1d;
+  --border-light: #2a2a1f;
+  --border-dark: #6b5b3a;
+  
+  /* Status colors - natural elements */
+  --success-color: #228b22;
+  --warning-color: #ff6347;
+  --error-color: #b22222;
+  --info-color: #4682b4;
+  
+  /* Shadows - deep and mystical */
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 15px 25px -5px rgba(0, 0, 0, 0.6), 
+              0 8px 12px -4px rgba(0, 0, 0, 0.4);
+  
+  /* Typography - serif for medieval feel */
+  --font-family: "Cinzel", Georgia, "Times New Roman", serif;
+  --font-family-mono: "Courier New", Courier, monospace;
+  
+  /* Enhanced line height for readability with serif fonts */
+  --line-height: 1.6;
+  --line-height-loose: 1.8;
+  
+  /* Editor specific - parchment feel */
+  --editor-background: #0f0f0f;
+  --editor-gutter: #1a1a0f;
+  --editor-selection: rgba(255, 215, 0, 0.2);
+  --editor-cursor: var(--accent-color);
+  --editor-line-number: var(--text-secondary);
+  
+  /* Code highlighting - mystical colors */
+  --code-keyword: #daa520;
+  --code-string: #90ee90;
+  --code-comment: #8b7355;
+  --code-number: #ffa500;
+  --code-operator: #ffd700;
+  --code-function: #87ceeb;
+  --code-variable: #dda0dd;
+  
+  /* Markdown highlighting - enchanted text */
+  --markdown-heading: var(--accent-color);
+  --markdown-link: #87ceeb;
+  --markdown-emphasis: #ffa500;
+  --markdown-strong: var(--text-color);
+  --markdown-code: #dda0dd;
+  --markdown-quote: var(--text-secondary);
+  --markdown-hr: var(--border-color);
+  
+  /* Fantasy-specific additions */
+  --parchment-texture: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><filter id="noise"><feTurbulence baseFrequency="0.9" numOctaves="1" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0.1 0"/></filter></defs><rect width="100%" height="100%" filter="url(%23noise)"/></svg>');
+  --scroll-decoration: linear-gradient(135deg, #8b4513 0%, #daa520 50%, #8b4513 100%);
+}
+
+/* Fantasy theme specific styles */
+[data-theme="fantasy"] .app-header {
+  background: var(--scroll-decoration);
+  background-size: 200% 200%;
+  animation: shimmer 3s ease-in-out infinite;
+  box-shadow: var(--shadow-lg);
+  border-bottom: 2px solid var(--accent-color);
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+[data-theme="fantasy"] .app-title {
+  color: var(--accent-color);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+[data-theme="fantasy"] .sidebar,
+[data-theme="fantasy"] .gutenberg-panel {
+  background: linear-gradient(180deg, var(--surface-color) 0%, rgba(26, 26, 15, 0.95) 100%);
+  background-image: var(--parchment-texture);
+  border-color: var(--accent-color);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="fantasy"] .editor-container {
+  background: var(--background-color);
+  background-image: var(--parchment-texture);
+  position: relative;
+}
+
+/* Add subtle paper texture overlay */
+[data-theme="fantasy"] .editor-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(255, 215, 0, 0.02) 1px,
+    rgba(255, 215, 0, 0.02) 2px
+  );
+  pointer-events: none;
+}
+
+[data-theme="fantasy"] .editor {
+  background: transparent;
+  color: var(--text-color);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced button styling for fantasy theme */
+[data-theme="fantasy"] button {
+  background: linear-gradient(145deg, var(--surface-color), var(--surface-hover));
+  border: 1px solid var(--accent-color);
+  color: var(--text-color);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-normal);
+}
+
+[data-theme="fantasy"] button:hover {
+  background: linear-gradient(145deg, var(--accent-color), var(--secondary-color));
+  color: var(--background-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="fantasy"] button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Input styling with parchment feel */
+[data-theme="fantasy"] input,
+[data-theme="fantasy"] textarea {
+  background: rgba(26, 26, 15, 0.8);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="fantasy"] input:focus,
+[data-theme="fantasy"] textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3), 
+              inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar styling for fantasy theme */
+[data-theme="fantasy"] ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+[data-theme="fantasy"] ::-webkit-scrollbar-track {
+  background: var(--surface-color);
+  border-radius: 6px;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="fantasy"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent-color), var(--secondary-color));
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="fantasy"] ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--secondary-color), var(--accent-color));
+}
+
+/* Selection styling with golden glow */
+[data-theme="fantasy"] ::selection {
+  background-color: rgba(255, 215, 0, 0.3);
+  color: var(--text-color);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Enhanced headings with decorative elements */
+[data-theme="fantasy"] h1,
+[data-theme="fantasy"] h2,
+[data-theme="fantasy"] h3 {
+  color: var(--accent-color);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  position: relative;
+}
+
+[data-theme="fantasy"] h1::after,
+[data-theme="fantasy"] h2::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-color), transparent);
+  border-radius: 1px;
+}
+
+/* Links with magical glow effect */
+[data-theme="fantasy"] a {
+  color: var(--accent-color);
+  text-shadow: 0 0 4px rgba(255, 215, 0, 0.3);
+  transition: all var(--transition-normal);
+}
+
+[data-theme="fantasy"] a:hover {
+  color: #ffed4e;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+  text-decoration: none;
+}
+
+/* Code blocks with mystical styling */
+[data-theme="fantasy"] pre,
+[data-theme="fantasy"] code {
+  background: rgba(15, 15, 15, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal overlay with magical backdrop */
+[data-theme="fantasy"] .modal-overlay {
+  background: radial-gradient(circle, rgba(139, 69, 19, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%);
+  backdrop-filter: blur(2px);
+}
+
+/* Focus indicators with golden glow */
+[data-theme="fantasy"] *:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+/* Loading spinner with fantasy styling */
+[data-theme="fantasy"] .loading-spinner {
+  border-color: var(--border-color);
+  border-top-color: var(--accent-color);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* Enhanced text contrast for better readability */
+[data-theme="fantasy"] .text-secondary {
+  color: var(--text-secondary);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="fantasy"] .text-muted {
+  color: var(--text-muted);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Reduce animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="fantasy"] .app-header {
+    animation: none;
+  }
+  
+  [data-theme="fantasy"] button:hover {
+    transform: none;
+  }
+}

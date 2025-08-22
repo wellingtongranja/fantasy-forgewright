@@ -1,0 +1,106 @@
+{
+  "name": "Fantasy Forgewright",
+  "short_name": "Forgewright",
+  "description": "A distraction-free markdown editor for fantasy writers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#2d1b69",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "education", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Document",
+      "short_name": "New",
+      "description": "Create a new document",
+      "url": "/new",
+      "icons": [
+        {
+          "src": "/icons/new-document.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Search Documents",
+      "short_name": "Search",
+      "description": "Search your documents",
+      "url": "/search",
+      "icons": [
+        {
+          "src": "/icons/search.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Fantasy Forgewright on desktop"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Fantasy Forgewright on mobile"
+    }
+  ]
+}

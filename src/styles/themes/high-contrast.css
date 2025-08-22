@@ -1,0 +1,362 @@
+/**
+ * High Contrast Theme - Maximum accessibility for visually impaired users
+ * WCAG 2.1 AAA compliance focused
+ */
+
+[data-theme="high-contrast"] {
+  /* Primary colors - maximum contrast */
+  --primary-color: #ffffff;
+  --secondary-color: #ffff00;
+  --accent-color: #00ffff;
+  
+  /* Background colors - pure black for maximum contrast */
+  --background-color: #000000;
+  --surface-color: #1a1a1a;
+  --surface-hover: #333333;
+  
+  /* Text colors - pure white for maximum readability */
+  --text-color: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #aaaaaa;
+  
+  /* Border colors - bright white for visibility */
+  --border-color: #ffffff;
+  --border-light: #666666;
+  --border-dark: #ffffff;
+  
+  /* Status colors - highly saturated for visibility */
+  --success-color: #00ff00;
+  --warning-color: #ffff00;
+  --error-color: #ff0000;
+  --info-color: #00ffff;
+  
+  /* Shadows - bright for high contrast */
+  --shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(255, 255, 255, 0.3), 
+              0 4px 6px -2px rgba(255, 255, 255, 0.1);
+  
+  /* Typography - OpenDyslexic for accessibility */
+  --font-family: "OpenDyslexic", Arial, sans-serif;
+  --font-family-mono: "OpenDyslexic Mono", "Courier New", monospace;
+  --font-size-base: 18px; /* Larger base font size */
+  --line-height: 1.8; /* Increased line height for readability */
+  
+  /* Editor specific - maximum contrast */
+  --editor-background: #000000;
+  --editor-gutter: #1a1a1a;
+  --editor-selection: rgba(0, 255, 255, 0.4);
+  --editor-cursor: #ffffff;
+  --editor-line-number: #ffffff;
+  
+  /* Code highlighting - high contrast colors */
+  --code-keyword: #ffff00;
+  --code-string: #00ff00;
+  --code-comment: #cccccc;
+  --code-number: #ff6600;
+  --code-operator: #ffffff;
+  --code-function: #00ffff;
+  --code-variable: #ff00ff;
+  
+  /* Markdown highlighting - bright and clear */
+  --markdown-heading: #ffffff;
+  --markdown-link: #00ffff;
+  --markdown-emphasis: #ffff00;
+  --markdown-strong: #ffffff;
+  --markdown-code: #ff00ff;
+  --markdown-quote: #cccccc;
+  --markdown-hr: #ffffff;
+  
+  /* Enhanced spacing for accessibility */
+  --spacing-md: 1.5rem; /* Increased default spacing */
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+}
+
+/* High contrast theme specific styles */
+[data-theme="high-contrast"] .app-header {
+  background-color: var(--surface-color);
+  border-bottom: 3px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+[data-theme="high-contrast"] .app-title {
+  color: var(--text-color);
+  font-weight: 700; /* Bolder font weight */
+  font-size: 1.5rem; /* Larger title */
+}
+
+[data-theme="high-contrast"] .sidebar,
+[data-theme="high-contrast"] .gutenberg-panel {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  border-width: 2px; /* Thicker borders */
+}
+
+[data-theme="high-contrast"] .editor-container {
+  background-color: var(--background-color);
+}
+
+/* Enhanced button styling for high contrast */
+[data-theme="high-contrast"] button {
+  background-color: var(--surface-color);
+  border: 3px solid var(--border-color);
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 1rem; /* Larger button text */
+  padding: 0.75rem 1.5rem; /* Larger touch targets */
+  min-height: 44px; /* WCAG minimum touch target size */
+  min-width: 44px;
+}
+
+[data-theme="high-contrast"] button:hover {
+  background-color: var(--text-color);
+  color: var(--background-color);
+  border-color: var(--text-color);
+}
+
+[data-theme="high-contrast"] button:focus {
+  outline: 4px solid var(--accent-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 8px rgba(0, 255, 255, 0.3);
+}
+
+[data-theme="high-contrast"] button:disabled {
+  background-color: #333333;
+  border-color: #666666;
+  color: #666666;
+}
+
+/* Input styling with maximum contrast */
+[data-theme="high-contrast"] input,
+[data-theme="high-contrast"] textarea,
+[data-theme="high-contrast"] select {
+  background-color: var(--background-color);
+  border: 3px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 1.125rem; /* Larger input text */
+  padding: 0.75rem;
+  min-height: 44px; /* WCAG minimum touch target size */
+}
+
+[data-theme="high-contrast"] input:focus,
+[data-theme="high-contrast"] textarea:focus,
+[data-theme="high-contrast"] select:focus {
+  outline: 4px solid var(--accent-color);
+  outline-offset: 2px;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 8px rgba(0, 255, 255, 0.3);
+}
+
+/* Enhanced link styling */
+[data-theme="high-contrast"] a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  font-weight: 600;
+}
+
+[data-theme="high-contrast"] a:hover {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+[data-theme="high-contrast"] a:focus {
+  outline: 4px solid var(--warning-color);
+  outline-offset: 2px;
+  background-color: var(--warning-color);
+  color: var(--background-color);
+}
+
+/* Scrollbar styling for high contrast */
+[data-theme="high-contrast"] ::-webkit-scrollbar {
+  width: 16px; /* Larger scrollbar */
+  height: 16px;
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-track {
+  background: var(--surface-color);
+  border: 2px solid var(--border-color);
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
+  background: var(--text-color);
+  border: 2px solid var(--background-color);
+  border-radius: 2px;
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+/* Selection styling with high contrast */
+[data-theme="high-contrast"] ::selection {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+}
+
+/* Enhanced heading styles */
+[data-theme="high-contrast"] h1,
+[data-theme="high-contrast"] h2,
+[data-theme="high-contrast"] h3,
+[data-theme="high-contrast"] h4,
+[data-theme="high-contrast"] h5,
+[data-theme="high-contrast"] h6 {
+  color: var(--text-color);
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+[data-theme="high-contrast"] h1 { font-size: 2.5rem; }
+[data-theme="high-contrast"] h2 { font-size: 2rem; }
+[data-theme="high-contrast"] h3 { font-size: 1.75rem; }
+[data-theme="high-contrast"] h4 { font-size: 1.5rem; }
+[data-theme="high-contrast"] h5 { font-size: 1.25rem; }
+[data-theme="high-contrast"] h6 { font-size: 1.125rem; }
+
+/* Code blocks with high contrast */
+[data-theme="high-contrast"] pre,
+[data-theme="high-contrast"] code {
+  background-color: #1a1a1a;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-color);
+  font-size: 1.125rem;
+}
+
+/* Modal overlay with high contrast */
+[data-theme="high-contrast"] .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.95);
+  border: 4px solid var(--border-color);
+}
+
+/* Skip link with high visibility */
+[data-theme="high-contrast"] .skip-link {
+  background: var(--warning-color);
+  color: var(--background-color);
+  font-weight: 700;
+  font-size: 1.125rem;
+  padding: 0.75rem 1.5rem;
+  border: 3px solid var(--background-color);
+}
+
+[data-theme="high-contrast"] .skip-link:focus {
+  outline: 4px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Enhanced focus indicators for all interactive elements */
+[data-theme="high-contrast"] *:focus {
+  outline: 4px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Special focus for menu items */
+[data-theme="high-contrast"] .menu-toggle:focus,
+[data-theme="high-contrast"] .theme-toggle:focus,
+[data-theme="high-contrast"] .settings-toggle:focus {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+}
+
+/* Loading spinner with high contrast */
+[data-theme="high-contrast"] .loading-spinner {
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--accent-color);
+  width: 60px;
+  height: 60px;
+}
+
+/* Enhanced status colors with better contrast */
+[data-theme="high-contrast"] .success {
+  background-color: var(--success-color);
+  color: var(--background-color);
+  border: 2px solid var(--background-color);
+}
+
+[data-theme="high-contrast"] .warning {
+  background-color: var(--warning-color);
+  color: var(--background-color);
+  border: 2px solid var(--background-color);
+}
+
+[data-theme="high-contrast"] .error {
+  background-color: var(--error-color);
+  color: var(--background-color);
+  border: 2px solid var(--background-color);
+}
+
+[data-theme="high-contrast"] .info {
+  background-color: var(--info-color);
+  color: var(--background-color);
+  border: 2px solid var(--background-color);
+}
+
+/* Table styling for high contrast */
+[data-theme="high-contrast"] table {
+  border: 3px solid var(--border-color);
+  border-collapse: collapse;
+}
+
+[data-theme="high-contrast"] th,
+[data-theme="high-contrast"] td {
+  border: 2px solid var(--border-color);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+[data-theme="high-contrast"] th {
+  background-color: var(--surface-color);
+  font-weight: 700;
+}
+
+/* Form labels with enhanced visibility */
+[data-theme="high-contrast"] label {
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Required field indicators */
+[data-theme="high-contrast"] .required::after {
+  content: " *";
+  color: var(--error-color);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+/* Tooltips with high contrast */
+[data-theme="high-contrast"] .tooltip {
+  background-color: var(--warning-color);
+  color: var(--background-color);
+  border: 2px solid var(--background-color);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Ensure all text meets WCAG AAA contrast ratios */
+[data-theme="high-contrast"] .text-small {
+  font-size: 1rem; /* Minimum 16px for readability */
+}
+
+/* Print styles for high contrast theme */
+@media print {
+  [data-theme="high-contrast"] {
+    --background-color: white;
+    --text-color: black;
+    --border-color: black;
+  }
+  
+  [data-theme="high-contrast"] * {
+    background: white !important;
+    color: black !important;
+    border-color: black !important;
+  }
+}

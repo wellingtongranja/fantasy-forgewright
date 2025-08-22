@@ -1,0 +1,14 @@
+{
+  "app.title": "Fantasy Forgewright",
+  "editor.new_document": "Nuevo Documento",
+  "user.welcome": "¡Bienvenido, {name}!",
+  "items.count": {
+    "one": "{count} elemento",
+    "other": "{count} elementos"
+  },
+  "menu": {
+    "file": {
+      "new": "Nuevo Archivo"
+    }
+  }
+}

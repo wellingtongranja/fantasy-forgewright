@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fantasy Editor - A distraction-free markdown editor for fantasy writers">
+  <meta name="theme-color" content="#2c3e50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <title>Fantasy Editor</title>
+  
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  
+  <link rel="preconnect" href="https://api.github.com">
+  <link rel="preconnect" href="https://gutendex.com">
+  
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/variables.css">
+  
+  <script type="module" src="/src/app.js"></script>
+</head>
+<body>
+  <div id="app" class="app-container">
+    <header class="app-header">
+      <h1 class="app-title">Fantasy Editor</h1>
+      <nav class="app-nav">
+        <button id="theme-toggle" class="btn-icon" aria-label="Toggle theme">🌙</button>
+        <button id="settings-btn" class="btn-icon" aria-label="Settings">⚙️</button>
+        <button id="sync-btn" class="btn-icon" aria-label="Sync status">🔄</button>
+      </nav>
+    </header>
+    
+    <main class="app-main">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-section">
+          <h2>Documents</h2>
+          <div id="file-tree"></div>
+        </div>
+        <div class="sidebar-section">
+          <h2>Search</h2>
+          <input type="search" id="search-input" placeholder="Search documents..." />
+          <div id="search-results"></div>
+        </div>
+      </aside>
+      
+      <section class="editor-container">
+        <div class="editor-toolbar">
+          <input type="text" id="doc-title" class="doc-title" placeholder="Untitled Document" />
+          <div class="editor-actions">
+            <button id="save-btn" class="btn-primary">Save (Ctrl+S)</button>
+            <button id="new-btn" class="btn-secondary">New (Ctrl+N)</button>
+          </div>
+        </div>
+        <div id="editor" class="editor"></div>
+      </section>
+    </main>
+    
+    <footer class="app-footer">
+      <span id="word-count">0 words</span>
+      <span id="sync-status">Ready</span>
+    </footer>
+  </div>
+  
+  <noscript>
+    <div class="noscript-warning">
+      Fantasy Editor requires JavaScript to work. Please enable JavaScript in your browser.
+    </div>
+  </noscript>
+</body>
+</html>

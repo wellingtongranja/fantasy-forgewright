@@ -1,0 +1,129 @@
+/**
+ * Light Theme - Clean and bright for daytime writing
+ */
+
+[data-theme="light"] {
+  /* Primary colors */
+  --primary-color: #2d1b69;
+  --secondary-color: #8b5a5a;
+  --accent-color: #007bff;
+  
+  /* Background colors */
+  --background-color: #ffffff;
+  --surface-color: #f8f9fa;
+  --surface-hover: #e9ecef;
+  
+  /* Text colors */
+  --text-color: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #868e96;
+  
+  /* Border colors */
+  --border-color: #dee2e6;
+  --border-light: #f1f3f4;
+  --border-dark: #adb5bd;
+  
+  /* Status colors */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+  --info-color: #17a2b8;
+  
+  /* Shadows */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Typography */
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  
+  /* Editor specific */
+  --editor-background: #ffffff;
+  --editor-gutter: #f8f9fa;
+  --editor-selection: rgba(0, 123, 255, 0.1);
+  --editor-cursor: var(--text-color);
+  --editor-line-number: var(--text-secondary);
+  
+  /* Code highlighting */
+  --code-keyword: #d73a49;
+  --code-string: #032f62;
+  --code-comment: #6a737d;
+  --code-number: #005cc5;
+  --code-operator: #d73a49;
+  --code-function: #6f42c1;
+  --code-variable: #e36209;
+  
+  /* Markdown highlighting */
+  --markdown-heading: var(--primary-color);
+  --markdown-link: var(--accent-color);
+  --markdown-emphasis: var(--text-color);
+  --markdown-strong: var(--text-color);
+  --markdown-code: #e83e8c;
+  --markdown-quote: var(--text-secondary);
+  --markdown-hr: var(--border-color);
+}
+
+/* Light theme specific styles */
+[data-theme="light"] .app-header {
+  background-color: var(--surface-color);
+  box-shadow: var(--shadow);
+}
+
+[data-theme="light"] .sidebar,
+[data-theme="light"] .gutenberg-panel {
+  background-color: var(--surface-color);
+}
+
+[data-theme="light"] .editor-container {
+  background-color: var(--background-color);
+}
+
+[data-theme="light"] button:hover {
+  background-color: var(--surface-hover);
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Scrollbar styling for light theme */
+[data-theme="light"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--surface-color);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-dark);
+}
+
+/* Selection styling */
+[data-theme="light"] ::selection {
+  background-color: rgba(0, 123, 255, 0.2);
+  color: var(--text-color);
+}
+
+/* Focus indicators */
+[data-theme="light"] *:focus {
+  outline-color: var(--accent-color);
+}
+
+/* Print optimizations for light theme */
+@media print {
+  [data-theme="light"] {
+    --background-color: white;
+    --text-color: black;
+    --surface-color: white;
+    --border-color: #ccc;
+  }
+}
