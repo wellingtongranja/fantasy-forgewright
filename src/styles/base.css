@@ -115,34 +115,6 @@ body {
   overflow: hidden;
 }
 
-.editor-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-md);
-  background-color: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.doc-title {
-  width: 65ch;
-  max-width: 65ch;
-  padding: var(--spacing-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
-  text-align: center;
-}
-
-.doc-title:focus {
-  outline: none;
-  border-color: var(--color-border);
-  background-color: var(--color-bg-secondary);
-  border-radius: var(--border-radius-md);
-}
-
 .editor {
   flex: 1;
   display: flex;
@@ -169,6 +141,28 @@ body {
   transition: border-color var(--transition-fast);
   resize: none;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.doc-title {
+  width: 100%;
+  padding: var(--spacing-sm) 0;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  text-align: center;
+  font-family: inherit;
+  flex-shrink: 0;
+  outline: none;
+}
+
+.doc-title:focus {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--border-radius-sm);
 }
 
 .editor-content:focus-within {
