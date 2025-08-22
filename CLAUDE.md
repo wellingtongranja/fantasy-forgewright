@@ -63,63 +63,101 @@ src/
 └── utils/                 # Validation, security, logging
 ```
 
-## 🎯 Available Commands
+## 🎯 Command System (MANDATORY RULES)
 
-Access all functionality via `Ctrl+Space` command palette:
+### Command Access
+Access ALL functionality via `Ctrl+Space` command palette only.
 
-```bash
-# Document Management
-new [title]           # create new document
-save                  # save current document  
-open [filter]         # open document with search
+### Colon Shortcuts (MANDATORY FORMAT)
+ALL command aliases MUST use colon prefix followed by 1-3 characters:
 
-# Search & Organization  
-search <query>        # search all documents
-tag add <name>        # add tag to document
-tag list              # show all document tags
+| Shortcut | Command | Usage Example |
+|----------|---------|---------------|
+| **`:n`** | `new` | `:n My Epic Tale` |
+| **`:s`** | `save` | `:s` |
+| **`:o`** | `open` | `:o dragon` |
+| **`:f`** | `search` | `:f magic spells` |
+| **`:t`** | `theme` | `:t dark` |
+| **`:tt`** | `toggle theme` | `:tt` |
+| **`:i`** | `info` | `:i` |
+| **`:h`** | `help` | `:h` |
+| **`:d`** | `documents` | `:d` |
+| **`:fs`** | `focus search` | `:fs` |
+| **`:fd`** | `focus documents` | `:fd` |
+| **`:ts`** | `toggle sidebar` | `:ts` |
+| **`:tag`** | `tag` | `:tag add fantasy` |
 
-# Navigation & Interface
-focus search          # focus sidebar search
-focus documents       # focus document list
-theme <name>          # switch theme (light|dark|fantasy)
-help [command]        # show command help
-```
+### Command System Rules (MANDATORY)
+
+#### 1. **Alias Format Rules**
+- ✅ ALL aliases MUST start with `:` 
+- ✅ Followed by 1-3 characters max
+- ✅ Each shortcut maps to exactly ONE command
+- ❌ NO non-colon aliases allowed
+
+#### 2. **Dropdown Behavior**
+- When user types `:n` → Show ONLY `new` command
+- When user types `:n My Story` → Show `new` command with parameters
+- Each colon shortcut is unique and unambiguous
+
+#### 3. **Parameter Display**
+- Show parameters in italics: `new <em>[title] Document title</em>`
+- Required parameters: `<name>`
+- Optional parameters: `[name]`
+- Include parameter descriptions
+
+#### 4. **UI/UX Requirements**
+- Command bar appears at browser top (16px from edge)
+- Click outside or ESC hides command bar
+- Arrow keys navigate command list
+- Enter executes selected command
+- Always return focus to editor after execution
 
 ## 🚫 CRITICAL: Keyboard Shortcut Policy
 
 ### ABSOLUTE RULE: Ctrl+Space ONLY
 
-**NO EXCEPTIONS** - Only `Ctrl+Space` is allowed as a direct keyboard shortcut.
+**NO EXCEPTIONS** - Only `Ctrl+Space` triggers command palette.
 
 #### ❌ FORBIDDEN SHORTCUTS
-
-Never implement these (they conflict with browsers):
-
 - `Ctrl+K`, `Ctrl+F`, `Ctrl+E`, `Ctrl+L`, `Ctrl+T`, `Ctrl+N`, `Ctrl+R`, `Ctrl+H`
-- ANY other Ctrl combinations
+- ANY other direct keyboard shortcuts
 
 #### ✅ CORRECT APPROACH
-
-All functionality through command palette:
-
 ```bash
-Ctrl+Space → "focus search"      # Instead of Ctrl+F
-Ctrl+Space → "new My Document"   # Instead of Ctrl+N
-Ctrl+Space → "search dragons"    # Instead of Ctrl+F
+Ctrl+Space → ":fs"           # Focus search
+Ctrl+Space → ":n My Story"   # Create document  
+Ctrl+Space → ":f dragons"    # Search documents
 ```
 
 #### WHY THIS MATTERS
-
 1. **Zero Browser Conflicts** - No overriding browser shortcuts
-2. **Consistent UX** - One shortcut to remember
+2. **Consistent UX** - One shortcut to remember (Ctrl+Space)
 3. **Discoverable** - Find commands through fuzzy search
-4. **Professional** - Matches VS Code patterns
+4. **Efficient** - Colon shortcuts provide quick access
 
-#### FOR DEVELOPERS
+#### FOR DEVELOPERS (MANDATORY)
+- ✅ Add commands to registry with `:xx` aliases only
+- ✅ Use descriptive names and parameter definitions
+- ✅ All colon shortcuts must be 2-3 characters (`:n`, `:tt`, `:fs`)
+- ✅ Test command parsing with and without parameters
+- ❌ NEVER add direct keyboard event listeners for shortcuts
+- ❌ NEVER use `addEventListener('keydown')` for application shortcuts
+- ❌ NEVER create aliases without `:` prefix
+- ❌ NEVER create duplicate colon shortcuts
 
-- ✅ Add commands to registry, use descriptive names
-- ❌ NEVER add direct keyboard event listeners
-- ❌ NEVER use `addEventListener('keydown')` for shortcuts
+### Command Implementation Example
+```javascript
+{
+  name: 'new',
+  description: 'create a new document', 
+  aliases: [':n'],  // MANDATORY: colon prefix only
+  parameters: [
+    { name: 'title', required: false, type: 'string', description: 'Document title' }
+  ],
+  handler: async (args) => { /* implementation */ }
+}
+```
 
 ## 🚀 Next Sprint Priorities
 
@@ -141,3 +179,5 @@ Ctrl+Space → "search dragons"    # Instead of Ctrl+F
 ---
 
 **Fantasy Editor** - Single source of truth for development at **forgewright.io**
+
+- Always remember that documentation files they have a specific folder: docs

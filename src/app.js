@@ -284,7 +284,13 @@ class FantasyEditorApp {
   showNotification(message, type = 'info', duration = 3000) {
     const notification = document.createElement('div')
     notification.className = `notification notification-${type}`
-    notification.textContent = message
+    
+    // Handle multiline messages by converting newlines to <br> tags
+    if (message.includes('\n')) {
+      notification.innerHTML = message.replace(/\n/g, '<br>')
+    } else {
+      notification.textContent = message
+    }
     
     // Theme-aware colors using CSS variables
     const typeClasses = {

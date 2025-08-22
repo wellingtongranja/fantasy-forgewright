@@ -31,7 +31,9 @@ devHelpers.testDocumentOperations()
 ## Available Methods
 
 ### `devHelpers.cleanStorage()`
+
 Cleans all storage including:
+
 - localStorage
 - sessionStorage  
 - IndexedDB databases
@@ -40,12 +42,15 @@ Cleans all storage including:
 **Use case:** Reset to clean state for testing
 
 ### `devHelpers.freshStart()`
+
 Combines `cleanStorage()` with automatic page reload after 2 seconds.
 
 **Use case:** Quick reset during development
 
 ### `devHelpers.generateTestDocuments(count = 5)`
+
 Creates test documents with:
+
 - GUID-based IDs
 - Sample content including code blocks
 - Different tags for testing
@@ -54,7 +59,9 @@ Creates test documents with:
 **Use case:** Populate app with test data
 
 ### `devHelpers.showStorageInfo()`
+
 Displays comprehensive storage information:
+
 - Storage statistics table
 - Documents table with ID types (GUID vs Legacy)
 - localStorage contents
@@ -63,7 +70,9 @@ Displays comprehensive storage information:
 **Use case:** Debug storage state
 
 ### `devHelpers.testDocumentOperations()`
+
 Runs automated test of all CRUD operations:
+
 1. Create document
 2. Update document  
 3. Retrieve document

@@ -82,6 +82,7 @@ export class CommandBar {
       if (e.key === 'Escape' && this.isVisible) {
         e.preventDefault()
         this.hide()
+        this.returnFocusToEditor()
         return
       }
     })
@@ -135,6 +136,14 @@ export class CommandBar {
       if (resultElement) {
         const index = Array.from(this.results.children).indexOf(resultElement)
         this.selectIndex(index)
+      }
+    })
+
+    // Click outside to close command bar
+    document.addEventListener('click', (e) => {
+      if (this.isVisible && !this.element.contains(e.target)) {
+        this.hide()
+        this.returnFocusToEditor()
       }
     })
   }
@@ -215,6 +224,24 @@ export class CommandBar {
   }
 
   /**
+   * Return focus to the editor
+   */
+  returnFocusToEditor() {
+    setTimeout(() => {
+      const app = window.fantasyEditor
+      if (app && app.editor && app.editor.focus) {
+        app.editor.focus()
+      } else {
+        // Fallback to DOM focus
+        const editor = document.querySelector('#editor')
+        if (editor) {
+          editor.focus()
+        }
+      }
+    }, 0)
+  }
+
+  /**
    * Toggle command bar visibility
    */
   toggle() {
@@ -254,22 +281,67 @@ export class CommandBar {
       return
     }
 
-    this.results.innerHTML = this.filteredResults.map((command, index) => `
-      <div class="command-result ${index === this.selectedIndex ? 'selected' : ''}" data-index="${index}">
-        <div class="command-result-icon">
-          ${command.icon || '⚡'}
-        </div>
-        <div class="command-result-content">
-          <div class="command-result-title">
-            ${this.highlightMatch(command.name, this.currentQuery)}
+    this.results.innerHTML = this.filteredResults.map((command, index) => {
+      const parametersDisplay = this.formatParameters(command.parameters)
+      const aliasDisplay = this.formatAliases(command.aliases, this.currentQuery)
+      
+      return `
+        <div class="command-result ${index === this.selectedIndex ? 'selected' : ''}" data-index="${index}">
+          <div class="command-result-icon">
+            ${command.icon || '⚡'}
           </div>
-          <div class="command-result-description">
-            ${this.highlightMatch(command.description, this.currentQuery)}
+          <div class="command-result-content">
+            <div class="command-result-title">
+              ${this.highlightMatch(command.name, this.currentQuery)}
+              ${parametersDisplay ? `<span class="command-parameters">${parametersDisplay}</span>` : ''}
+              ${aliasDisplay ? `<span class="command-aliases">${aliasDisplay}</span>` : ''}
+            </div>
+            <div class="command-result-description">
+              ${this.highlightMatch(command.description, this.currentQuery)}
+            </div>
           </div>
+          ${command.shortcut ? `<div class="command-result-shortcut">${command.shortcut}</div>` : ''}
         </div>
-        ${command.shortcut ? `<div class="command-result-shortcut">${command.shortcut}</div>` : ''}
-      </div>
-    `).join('')
+      `
+    }).join('')
+
+    // Add click listeners to results
+    this.results.querySelectorAll('.command-result').forEach((result, index) => {
+      result.addEventListener('click', () => {
+        this.selectedIndex = index
+        this.executeSelected()
+      })
+    })
+  }
+
+  /**
+   * Format command parameters for display
+   * @param {Array} parameters Command parameters
+   * @returns {string} Formatted parameters string
+   */
+  formatParameters(parameters) {
+    if (!parameters || parameters.length === 0) return ''
+    
+    const paramStrings = parameters.map(param => {
+      const name = param.required ? `<${param.name}>` : `[${param.name}]`
+      const desc = param.description ? ` ${param.description}` : ''
+      return `${name}${desc}`
+    })
+    
+    return `<em>${paramStrings.join(' ')}</em>`
+  }
+
+  /**
+   * Format command aliases for display 
+   * @param {Array} aliases Command aliases
+   * @param {string} query Current query
+   * @returns {string} Formatted aliases string
+   */
+  formatAliases(aliases, query) {
+    if (!aliases || aliases.length === 0) return ''
+    
+    // Since all aliases are now colon shortcuts, show them all
+    return `<small>(${aliases.join(', ')})</small>`
   }
 
   /**

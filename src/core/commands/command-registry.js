@@ -137,23 +137,53 @@ export class CommandRegistry {
    */
   searchCommands(query) {
     if (!query.trim()) {
-      return this.getAllCommands()
+      return this.getAllCommands().slice(0, 10)
     }
 
-    const normalizedQuery = query.toLowerCase().replace(/^:/, '')
+    const isColonShortcut = query.startsWith(':')
+    let searchQuery = query.toLowerCase()
+    
+    // If it's a colon shortcut with parameters, extract just the command part
+    if (isColonShortcut) {
+      // Parse the query to extract the command part (before the first space)
+      const parsed = this.parseCommand(query)
+      if (parsed.name) {
+        // Use the parsed command name for searching
+        searchQuery = parsed.name.toLowerCase()
+      }
+    }
+
     const results = []
 
-    for (const command of this.commands.values()) {
-      if (!command.condition()) continue
+    // For colon shortcuts, prioritize exact alias matches
+    if (isColonShortcut) {
+      for (const command of this.commands.values()) {
+        if (!command.condition()) continue
 
-      const score = this.calculateMatchScore(command, normalizedQuery)
-      if (score > 0) {
-        results.push({ ...command, matchScore: score })
+        // Check if any alias matches exactly
+        if (command.aliases && command.aliases.includes(searchQuery)) {
+          results.push({ ...command, matchScore: 2000 }) // Highest priority for exact colon match
+        } else {
+          const score = this.calculateMatchScore(command, searchQuery, isColonShortcut)
+          if (score > 0) {
+            results.push({ ...command, matchScore: score })
+          }
+        }
+      }
+    } else {
+      for (const command of this.commands.values()) {
+        if (!command.condition()) continue
+
+        const score = this.calculateMatchScore(command, searchQuery, isColonShortcut)
+        if (score > 0) {
+          results.push({ ...command, matchScore: score })
+        }
       }
     }
 
     return results
       .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 10)
       .map(({ matchScore, ...command }) => command)
   }
 
@@ -163,12 +193,21 @@ export class CommandRegistry {
    * @param {string} query Normalized search query
    * @returns {number} Match score (0 = no match, higher = better match)
    */
-  calculateMatchScore(command, query) {
+  calculateMatchScore(command, query, isColonShortcut = false) {
     let score = 0
     
     const name = command.name.toLowerCase()
     const description = command.description.toLowerCase()
     const category = command.category.toLowerCase()
+
+    // For colon shortcuts, only match if it's actually a colon shortcut
+    if (isColonShortcut) {
+      // Check aliases for colon shortcuts
+      if (command.aliases && command.aliases.some(alias => alias.toLowerCase() === query)) {
+        score += 1500
+      }
+      return score // For colon shortcuts, only return score if alias matches
+    }
 
     // Exact name match
     if (name === query) {
@@ -267,9 +306,6 @@ export class CommandRegistry {
   parseCommand(input) {
     const trimmed = input.trim()
     
-    // Remove leading colon if present
-    const cleaned = trimmed.startsWith(':') ? trimmed.slice(1) : trimmed
-    
     // Try to find the longest matching command name (including multi-word commands)
     const allCommandNames = [
       ...Array.from(this.commands.keys()),
@@ -281,8 +317,8 @@ export class CommandRegistry {
     
     // Find the longest command name that matches the beginning of input
     for (const cmdName of allCommandNames) {
-      if (cleaned.toLowerCase().startsWith(cmdName.toLowerCase())) {
-        const remainder = cleaned.slice(cmdName.length).trim()
+      if (trimmed.toLowerCase().startsWith(cmdName.toLowerCase())) {
+        const remainder = trimmed.slice(cmdName.length).trim()
         if (remainder === '' || remainder.startsWith(' ')) {
           commandName = cmdName
           args = remainder ? remainder.split(/\s+/) : []
@@ -293,7 +329,7 @@ export class CommandRegistry {
     
     // Fallback to original parsing if no multi-word command found
     if (!commandName) {
-      const parts = cleaned.split(/\s+/)
+      const parts = trimmed.split(/\s+/)
       commandName = parts[0] || ''
       args = parts.slice(1)
     }
@@ -302,7 +338,7 @@ export class CommandRegistry {
       name: commandName,
       args,
       rawInput: input,
-      cleanInput: cleaned
+      cleanInput: trimmed
     }
   }
 

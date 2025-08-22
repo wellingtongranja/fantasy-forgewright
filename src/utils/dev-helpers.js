@@ -92,22 +92,36 @@ export class DevHelpers {
    * @param {string} dbName - Database name to delete
    */
   async deleteDatabase(dbName) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       console.log(`🗑️ Deleting IndexedDB database: ${dbName}`)
-      const deleteRequest = indexedDB.deleteDatabase(dbName)
       
-      deleteRequest.onsuccess = () => {
-        console.log(`✅ Deleted IndexedDB database: ${dbName}`)
-        resolve()
-      }
-      
-      deleteRequest.onerror = () => {
-        console.warn(`⚠️ Failed to delete IndexedDB database: ${dbName}`)
-        resolve() // Don't fail the whole operation
-      }
-      
-      deleteRequest.onblocked = () => {
-        console.warn(`⚠️ Delete blocked for IndexedDB database: ${dbName}`)
+      try {
+        const deleteRequest = indexedDB.deleteDatabase(dbName)
+        
+        deleteRequest.onsuccess = () => {
+          console.log(`✅ Deleted IndexedDB database: ${dbName}`)
+          resolve()
+        }
+        
+        deleteRequest.onerror = (event) => {
+          console.warn(`⚠️ Failed to delete IndexedDB database: ${dbName}`, event.target?.error?.message)
+          resolve() // Don't fail the whole operation
+        }
+        
+        deleteRequest.onblocked = () => {
+          console.warn(`⚠️ Delete blocked for IndexedDB database: ${dbName} - database may be open in another tab`)
+          console.log('💡 Try closing other tabs or use devHelpers.freshStart() to reload')
+          resolve() // Don't fail the whole operation
+        }
+        
+        // Add timeout to prevent hanging
+        setTimeout(() => {
+          console.warn(`⏱️ Timeout deleting IndexedDB database: ${dbName} - continuing anyway`)
+          resolve()
+        }, 5000)
+        
+      } catch (error) {
+        console.warn(`⚠️ Error deleting IndexedDB database: ${dbName}`, error.message)
         resolve() // Don't fail the whole operation
       }
     })

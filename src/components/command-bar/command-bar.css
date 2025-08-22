@@ -148,6 +148,32 @@
   border-color: rgba(106, 27, 154, 0.4);
 }
 
+/* Parameter and alias display styles */
+.command-parameters {
+  margin-left: var(--spacing-sm);
+  font-style: italic;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  opacity: 0.8;
+}
+
+.command-parameters em {
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+.command-aliases {
+  margin-left: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+}
+
+.command-aliases small {
+  font-size: inherit;
+  font-weight: var(--font-weight-normal);
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .command-bar {

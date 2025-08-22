@@ -10,7 +10,7 @@ export function registerCoreCommands(registry, app) {
       description: 'create a new document',
       category: 'document',
       icon: '📝',
-      aliases: ['n', 'create'],
+      aliases: [':n'],
       parameters: [
         { name: 'title', required: false, type: 'string', description: 'Document title' }
       ],
@@ -31,7 +31,7 @@ export function registerCoreCommands(registry, app) {
       description: 'save current document',
       category: 'document',
       icon: '💾',
-      aliases: ['s', 'write'],
+      aliases: [':s'],
       handler: async () => {
         await app.saveDocument()
         return { success: true, message: 'Document saved successfully' }
@@ -43,7 +43,7 @@ export function registerCoreCommands(registry, app) {
       description: 'open document',
       category: 'document',
       icon: '📂',
-      aliases: ['o', 'load'],
+      aliases: [':o'],
       parameters: [
         { name: 'filter', required: false, type: 'string', description: 'Search filter' }
       ],
@@ -71,11 +71,18 @@ export function registerCoreCommands(registry, app) {
           }
         }
         
-        // If no filter, show document list
+        // If no filter, show document list with instructions
+        if (documents.length === 0) {
+          return {
+            success: false,
+            message: 'No documents found. Use ":n [title]" to create your first document.'
+          }
+        }
+        
         return {
           success: true,
-          message: 'Available documents:',
-          data: documents.map(d => d.title)
+          message: `Available documents (use ":o <name>" to open specific document):`,
+          data: documents.map((d, index) => `${index + 1}. ${d.title}`)
         }
       }
     },
@@ -85,7 +92,7 @@ export function registerCoreCommands(registry, app) {
       description: 'search all documents',
       category: 'search',
       icon: '🔍',
-      aliases: ['find', 'grep'],
+      aliases: [':f'],
       parameters: [
         { name: 'query', required: true, type: 'string', description: 'Search query' }
       ],
@@ -126,7 +133,7 @@ export function registerCoreCommands(registry, app) {
       description: 'switch theme',
       category: 'appearance',
       icon: '🎨',
-      aliases: ['t'],
+      aliases: [':t'],
       parameters: [
         { name: 'theme', required: false, type: 'string', description: 'Theme name (light, dark, fantasy)' }
       ],
@@ -159,7 +166,7 @@ export function registerCoreCommands(registry, app) {
       description: 'cycle through themes',
       category: 'appearance',
       icon: '🌙',
-      aliases: ['theme toggle', 'tt'],
+      aliases: [':tt'],
       handler: async () => {
         app.themeManager.toggleTheme()
         const currentTheme = app.themeManager.getCurrentTheme()
@@ -173,7 +180,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show document info',
       category: 'info',
       icon: 'ℹ️',
-      aliases: ['status'],
+      aliases: [':i'],
       handler: async () => {
         const doc = app.currentDocument
         if (!doc) {
@@ -208,7 +215,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show help',
       category: 'info',
       icon: '❓',
-      aliases: ['h', '?'],
+      aliases: [':h'],
       parameters: [
         { name: 'command', required: false, type: 'string', description: 'Specific command to get help for' }
       ],
@@ -255,14 +262,14 @@ export function registerCoreCommands(registry, app) {
             categories: categories,
             totalCommands: stats.totalCommands,
             examples: [
-              'new My Epic Tale - create new document',
-              'save - save current document', 
-              'search dragon - find documents containing "dragon"',
-              'focus search - focus the search input',
-              'focus documents - navigate document list',
-              'documents - show all documents',
-              'theme dark - switch to dark theme',
-              'help search - get help for search command'
+              ':n My Epic Tale - create new document',
+              ':s - save current document', 
+              ':f dragon - find documents containing "dragon"',
+              ':fs - focus the search input',
+              ':fd - navigate document list',
+              ':d - show all documents',
+              ':t dark - switch to dark theme',
+              ':h search - get help for search command'
             ]
           }
         }
@@ -275,6 +282,7 @@ export function registerCoreCommands(registry, app) {
       description: 'manage tags',
       category: 'document',
       icon: '🏷️',
+      aliases: [':tag'],
       parameters: [
         { name: 'action', required: true, type: 'string', description: 'Action: add, remove, list' },
         { name: 'tag', required: false, type: 'string', description: 'Tag name' }
@@ -338,7 +346,7 @@ export function registerCoreCommands(registry, app) {
       description: 'focus search input',
       category: 'navigation',
       icon: '🔍',
-      aliases: ['fs', 'search focus'],
+      aliases: [':fs'],
       handler: async () => {
         const searchInput = document.getElementById('search-input')
         if (searchInput) {
@@ -356,7 +364,7 @@ export function registerCoreCommands(registry, app) {
       description: 'focus document list',
       category: 'navigation',
       icon: '📁',
-      aliases: ['fd', 'docs focus', 'documents focus'],
+      aliases: [':fd'],
       handler: async () => {
         const fileTree = document.getElementById('file-tree')
         if (fileTree) {
@@ -381,7 +389,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show document list',
       category: 'document',
       icon: '📂',
-      aliases: ['docs', 'list', 'ls'],
+      aliases: [':d'],
       handler: async () => {
         const documents = await app.storageManager.getAllDocuments()
         
@@ -409,7 +417,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show/hide sidebar',
       category: 'navigation',
       icon: '📚',
-      aliases: ['sidebar', 'ts'],
+      aliases: [':ts'],
       handler: async () => {
         const sidebar = document.querySelector('.sidebar')
         const appMain = document.querySelector('.app-main')
@@ -437,7 +445,7 @@ export function registerCoreCommands(registry, app) {
       description: 'open settings',
       category: 'system',
       icon: '⚙️',
-      aliases: ['preferences', 'config', 'prefs'],
+      aliases: [':se'],
       handler: async () => {
         // Placeholder for future settings implementation
         return {
@@ -457,7 +465,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show sync status',
       category: 'system',
       icon: '🔄',
-      aliases: ['sync status', 'refresh'],
+      aliases: [':sy'],
       handler: async () => {
         const syncStatus = document.getElementById('sync-status')
         const status = syncStatus ? syncStatus.textContent : 'Unknown'
@@ -481,7 +489,7 @@ export function registerCoreCommands(registry, app) {
       description: 'reload app',
       category: 'system',
       icon: '🔄',
-      aliases: ['refresh'],
+      aliases: [':r'],
       handler: async () => {
         window.location.reload()
         return { success: true, message: 'Reloading application...' }
@@ -493,7 +501,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show storage statistics',
       category: 'system',
       icon: '📊',
-      aliases: ['stats', 'storage'],
+      aliases: [':st'],
       handler: async () => {
         try {
           const stats = await app.storageManager.getStorageStats()
@@ -520,7 +528,7 @@ export function registerCoreCommands(registry, app) {
       description: 'show version',
       category: 'info',
       icon: '🏷️',
-      aliases: ['v'],
+      aliases: [':v'],
       handler: async () => {
         return {
           success: true,
@@ -542,7 +550,21 @@ export function registerCoreCommands(registry, app) {
   document.addEventListener('commandregistry:execute', (event) => {
     const { result } = event.detail
     if (result && result.message) {
-      app.showNotification(result.message, result.success ? 'success' : 'error')
+      let message = result.message
+      
+      // If there's data to display, append it to the message
+      if (result.data && Array.isArray(result.data) && result.data.length > 0) {
+        if (result.data.length <= 5) {
+          // For small lists, show all items
+          message += '\n• ' + result.data.join('\n• ')
+        } else {
+          // For large lists, show first few items
+          message += '\n• ' + result.data.slice(0, 5).join('\n• ')
+          message += `\n... and ${result.data.length - 5} more`
+        }
+      }
+      
+      app.showNotification(message, result.success ? 'success' : 'error')
     }
   })
 
