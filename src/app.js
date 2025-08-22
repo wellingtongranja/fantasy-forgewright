@@ -6,8 +6,8 @@ import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar/command-bar.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
-import { MigrationManager } from './utils/migration.js'
 import { guidManager } from './utils/guid.js'
+import { devHelpers } from './utils/dev-helpers.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -18,7 +18,6 @@ class FantasyEditorApp {
     this.commandRegistry = null
     this.commandBar = null
     this.fileTree = null
-    this.migrationManager = null
     this.currentDocument = null
     this.autoSaveTimeout = null
     this.autoSaveDelay = 2000 // 2 seconds
@@ -71,11 +70,7 @@ class FantasyEditorApp {
     this.editor = new EditorManager(editorElement)
     this.themeManager = new ThemeManager()
     this.storageManager = new StorageManager()
-    this.migrationManager = new MigrationManager(this.storageManager)
     this.searchEngine = new SearchEngine(this.storageManager)
-    
-    // Check for migration needs
-    await this.checkAndOfferMigration()
     
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
@@ -89,6 +84,9 @@ class FantasyEditorApp {
     
     // Register core commands
     registerCoreCommands(this.commandRegistry, this)
+    
+    // Initialize dev helpers for console access
+    devHelpers.init(this)
   }
 
   attachEventListeners() {
@@ -604,30 +602,6 @@ class FantasyEditorApp {
     }
   }
 
-  /**
-   * Check if migration from UID to GUID is needed and offer it to user
-   */
-  async checkAndOfferMigration() {
-    try {
-      const isNeeded = await this.migrationManager.isMigrationNeeded()
-      if (isNeeded) {
-        const stats = await this.migrationManager.getMigrationStats()
-        console.log(`Migration available: ${stats.needsMigration} documents can be migrated to GUID format`)
-        
-        // You could add a command or UI to trigger migration
-        // For now, just log the information
-        setTimeout(() => {
-          this.showNotification(
-            `${stats.needsMigration} documents can be migrated to the new GUID format. Use the migration commands to upgrade.`,
-            'info',
-            5000
-          )
-        }, 3000)
-      }
-    } catch (error) {
-      console.error('Migration check failed:', error)
-    }
-  }
 
   /**
    * Initialize change tracking for the current document
@@ -687,7 +661,6 @@ class FantasyEditorApp {
     return {
       ...doc,
       idType: isGuid ? 'GUID' : isOldUid ? 'Legacy UID' : 'Unknown',
-      canMigrate: isOldUid,
       filename: doc.filename || (isGuid ? this.guidManager.generateFilename(doc.title, doc.id) : null),
       hasUnsavedChanges: this.documentChangeTracking.hasUnsavedChanges
     }

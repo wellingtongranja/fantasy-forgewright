@@ -387,10 +387,6 @@ export class StorageManager {
     try {
       const documents = await this.getAllDocuments()
       const guidDocs = documents.filter(doc => this.guidManager.isValidGuid(doc.id))
-      const uidDocs = documents.filter(doc => this.guidManager.isOldUidFormat(doc.id))
-      const invalidDocs = documents.filter(doc => 
-        !this.guidManager.isValidGuid(doc.id) && !this.guidManager.isOldUidFormat(doc.id)
-      )
       
       const totalSize = documents.reduce((sum, doc) => 
         sum + (doc.content || '').length + (doc.title || '').length, 0
@@ -399,22 +395,15 @@ export class StorageManager {
       return {
         totalDocuments: documents.length,
         guidDocuments: guidDocs.length,
-        uidDocuments: uidDocs.length,
-        invalidDocuments: invalidDocs.length,
         totalSizeBytes: totalSize,
         averageSizeBytes: documents.length > 0 ? Math.round(totalSize / documents.length) : 0,
-        needsMigration: uidDocs.length > 0,
-        databaseVersion: this.dbVersion,
-        guidManagerStats: this.guidManager.getStats()
+        databaseVersion: this.dbVersion
       }
     } catch (error) {
       return {
         error: error.message,
         totalDocuments: 0,
-        guidDocuments: 0,
-        uidDocuments: 0,
-        invalidDocuments: 0,
-        needsMigration: false
+        guidDocuments: 0
       }
     }
   }

@@ -197,8 +197,7 @@ export function registerCoreCommands(registry, app) {
             words: wordCount,
             characters: charCount,
             tags: doc.tags || [],
-            hasUnsavedChanges: docInfo.hasUnsavedChanges,
-            canMigrate: docInfo.canMigrate
+            hasUnsavedChanges: docInfo.hasUnsavedChanges
           }
         }
       }
@@ -489,133 +488,6 @@ export function registerCoreCommands(registry, app) {
       }
     },
 
-    // Migration Commands
-    {
-      name: 'migration status',
-      description: 'check migration status',
-      category: 'system',
-      icon: '🔄',
-      aliases: ['migrate status', 'ms'],
-      handler: async () => {
-        try {
-          const stats = await app.migrationManager.getMigrationStats()
-          
-          return {
-            success: true,
-            message: 'Migration Status:',
-            data: {
-              totalDocuments: stats.total,
-              needsMigration: stats.needsMigration,
-              alreadyMigrated: stats.alreadyMigrated,
-              invalid: stats.invalid,
-              migrationRequired: stats.migrationNeeded,
-              recommendation: stats.migrationNeeded ? 
-                'Run "migrate all" to upgrade documents to GUID format' :
-                'All documents are up to date'
-            }
-          }
-        } catch (error) {
-          return { success: false, message: `Migration check failed: ${error.message}` }
-        }
-      }
-    },
-
-    {
-      name: 'migrate all',
-      description: 'migrate all documents to GUID format',
-      category: 'system',
-      icon: '⚡',
-      aliases: ['migrate'],
-      handler: async () => {
-        try {
-          const isNeeded = await app.migrationManager.isMigrationNeeded()
-          if (!isNeeded) {
-            return { success: true, message: 'No migration needed - all documents already use GUID format' }
-          }
-
-          app.updateSyncStatus('Migrating...')
-          const result = await app.migrationManager.migrateAllDocuments({
-            backupFirst: true,
-            continueOnError: true
-          })
-
-          app.updateSyncStatus('Ready')
-
-          if (result.success) {
-            // Refresh file tree to show migrated documents
-            if (app.fileTree) {
-              await app.fileTree.refresh()
-            }
-            
-            return {
-              success: true,
-              message: `Migration completed: ${result.migrated} documents migrated to GUID format`,
-              data: {
-                migrated: result.migrated,
-                errors: result.errors,
-                backupId: result.backupId
-              }
-            }
-          } else {
-            return {
-              success: false,
-              message: result.message,
-              data: result.errorDetails || []
-            }
-          }
-        } catch (error) {
-          app.updateSyncStatus('Ready')
-          return { success: false, message: `Migration failed: ${error.message}` }
-        }
-      }
-    },
-
-    {
-      name: 'migrate current',
-      description: 'migrate current document to GUID format',
-      category: 'document',
-      icon: '🔄',
-      aliases: ['migrate doc'],
-      handler: async () => {
-        const doc = app.currentDocument
-        if (!doc) {
-          return { success: false, message: 'No document currently open' }
-        }
-
-        if (!app.guidManager.isOldUidFormat(doc.id)) {
-          return { success: false, message: 'Current document is already in GUID format or cannot be migrated' }
-        }
-
-        try {
-          app.updateSyncStatus('Migrating...')
-          const migratedDoc = await app.migrationManager.migrateDocument(doc)
-          
-          // Load the migrated document
-          app.loadDocument(migratedDoc)
-          
-          // Refresh file tree
-          if (app.fileTree) {
-            await app.fileTree.refresh()
-          }
-          
-          app.updateSyncStatus('Ready')
-          
-          return {
-            success: true,
-            message: `Document migrated from UID to GUID format`,
-            data: {
-              oldId: doc.id,
-              newId: migratedDoc.id,
-              filename: migratedDoc.filename
-            }
-          }
-        } catch (error) {
-          app.updateSyncStatus('Ready')
-          return { success: false, message: `Migration failed: ${error.message}` }
-        }
-      }
-    },
-
     {
       name: 'storage stats',
       description: 'show storage statistics',
@@ -632,13 +504,9 @@ export function registerCoreCommands(registry, app) {
             data: {
               totalDocuments: stats.totalDocuments,
               guidDocuments: stats.guidDocuments,
-              legacyDocuments: stats.uidDocuments,
-              invalidDocuments: stats.invalidDocuments,
               totalSizeKB: Math.round(stats.totalSizeBytes / 1024),
               averageSizeKB: Math.round(stats.averageSizeBytes / 1024),
-              databaseVersion: stats.databaseVersion,
-              needsMigration: stats.needsMigration,
-              guidManagerStats: stats.guidManagerStats
+              databaseVersion: stats.databaseVersion
             }
           }
         } catch (error) {
@@ -660,7 +528,7 @@ export function registerCoreCommands(registry, app) {
           data: {
             version: '1.0.0',
             build: 'development',
-            features: ['PWA', 'Offline Storage', 'Multi-theme', 'Command Palette', 'GUID System', 'Migration Support']
+            features: ['PWA', 'Offline Storage', 'Multi-theme', 'Command Palette', 'GUID System']
           }
         }
       }
