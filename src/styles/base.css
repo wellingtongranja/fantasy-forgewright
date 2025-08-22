@@ -146,12 +146,30 @@ body {
 
 .editor {
   flex: 1;
-  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
   overflow-y: auto;
   background-color: var(--color-bg);
+}
+
+.editor-content {
+  width: 100%;
+  max-width: 65ch;
+  padding: var(--spacing-lg);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-base);
   line-height: var(--line-height-relaxed);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.editor-content:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .app-footer {
@@ -189,6 +207,11 @@ body {
   
   .app-title {
     font-size: var(--font-size-base);
+  }
+  
+  .editor-content {
+    max-width: 100%;
+    padding: var(--spacing-md);
   }
 }
 
