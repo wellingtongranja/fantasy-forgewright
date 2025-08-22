@@ -95,7 +95,7 @@ export class FileTree {
       for (const doc of docs) {
         const isSelected = doc.id === this.selectedDocumentId
         const excerpt = this.generateExcerpt(doc.content)
-        const timeAgo = this.formatTimeAgo(doc.updatedAt)
+        const timeAgo = this.formatTimeAgo(doc.updatedAt || doc.metadata?.modified)
         
         html += `
           <div class="file-tree-item ${isSelected ? 'selected' : ''}" data-doc-id="${doc.id}">
@@ -135,7 +135,7 @@ export class FileTree {
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
     
     for (const doc of documents) {
-      const docDate = new Date(doc.updatedAt)
+      const docDate = new Date(doc.updatedAt || doc.metadata?.modified)
       let groupKey
       
       if (this.isSameDate(docDate, today)) {
@@ -200,7 +200,15 @@ export class FileTree {
   }
 
   formatTimeAgo(dateString) {
+    if (!dateString) {
+      return 'No date'
+    }
+    
     const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return 'Invalid date'
+    }
+    
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
