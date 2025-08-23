@@ -60,6 +60,9 @@ class FantasyEditorApp {
         appMain.classList.add('sidebar-hidden')
       }
       
+      // Set up periodic sync status updates
+      this.startPeriodicSyncStatusUpdates()
+      
       console.log('Fantasy Editor initialized successfully')
     } catch (error) {
       console.error('Failed to initialize app:', error)
@@ -234,6 +237,8 @@ class FantasyEditorApp {
       if (success) {
         this.showNotification(`Repository "${user.login}/fantasy-editor" configured! Use :ghp to push documents.`, 'success')
         console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
+        // Update UI to reflect new repository configuration
+        this.updateGitHubUI()
       } else {
         this.showNotification('Repository setup failed, but you can configure manually with :ghc', 'warning')
       }
@@ -481,6 +486,9 @@ class FantasyEditorApp {
       this.fileTree.setSelectedDocument(doc.id)
     }
     
+    // Update all UI components including GitHub sync status
+    this.updateUI()
+    
     // Log GUID info for debugging
     if (this.guidManager.isValidGuid(doc.id)) {
       console.log(`Loaded GUID document: ${doc.filename || doc.title} (${doc.id})`)
@@ -575,6 +583,23 @@ class FantasyEditorApp {
   }
 
   /**
+   * Start periodic sync status updates
+   */
+  startPeriodicSyncStatusUpdates() {
+    // Update sync status every 5 seconds
+    setInterval(() => {
+      this.updateGitHubSyncStatus()
+    }, 5000)
+    
+    // Also update when visibility changes (user returns to tab)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        this.updateGitHubSyncStatus()
+      }
+    })
+  }
+
+  /**
    * Update GitHub sync status indicator in footer
    */
   updateGitHubSyncStatus() {
@@ -583,20 +608,22 @@ class FantasyEditorApp {
     const syncIcon = document.getElementById('sync-status-icon')
     
     if (!syncIndicator || !repoName || !syncIcon) {
+      console.warn('GitHub sync indicator elements not found')
       return
     }
 
-    // Check if GitHub is configured
+    // Check if GitHub is configured and authenticated
     const config = this.githubStorage?.getConfig() || {}
+    const isAuthenticated = this.githubAuth?.isAuthenticated()
     const isConfigured = config.configured && config.owner && config.repo
     
-    if (!isConfigured || !this.githubAuth?.isAuthenticated()) {
+    if (!isConfigured || !isAuthenticated) {
       syncIndicator.style.display = 'none'
       return
     }
 
-    // Show repository name
-    repoName.textContent = `${config.owner}/${config.repo}`
+    // Show repository name (just repo name, not owner/repo)
+    repoName.textContent = config.repo
     
     // Determine sync status
     let status = 'local-only'
@@ -607,7 +634,11 @@ class FantasyEditorApp {
       
       if (hasGitHubMetadata) {
         const lastSynced = this.currentDocument.lastSyncedAt ? new Date(this.currentDocument.lastSyncedAt) : null
-        const lastModified = this.currentDocument.metadata?.modified ? new Date(this.currentDocument.metadata.modified) : null
+        const lastModified = this.currentDocument.metadata?.modified 
+          ? new Date(this.currentDocument.metadata.modified)
+          : this.currentDocument.updatedAt 
+            ? new Date(this.currentDocument.updatedAt) 
+            : null
         
         if (lastSynced && lastModified && lastSynced >= lastModified) {
           status = 'synced'
