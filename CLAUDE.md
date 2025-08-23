@@ -20,6 +20,8 @@
 - [x] **Navigator Component** - Tabbed sidebar with Documents, Outline, Search
 - [x] **Auto-unhide functionality** - Mouse-triggered Navigator appearance
 - [x] **RECENT/PREVIOUS document organization** - Simplified grouping system
+- [x] **Editor Width & Zoom Controls** - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
+- [x] **Document Export System** - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
 - [ ] Project Gutenberg integration
 - [ ] Internationalization support
 
@@ -45,6 +47,8 @@
 - **Sync Status Indicators** - Real-time document sync status in status bar (🟢🟡🔴)
 - **Document Synchronization** - Bidirectional sync between local IndexedDB and GitHub
 - **Command System Enhancement** - All GitHub operations via colon shortcuts
+- **Editor Width & Zoom Controls** - Dynamic width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
+- **Document Export System** - Multi-format export capabilities (Markdown, HTML, PDF, Text) with streamlined commands
 
 ## 🛠️ Development Standards
 
@@ -61,10 +65,13 @@
 ```text
 src/
 ├── core/                    # Business logic
-│   ├── editor/             # CodeMirror integration
+│   ├── editor/             # CodeMirror integration & width/zoom controls
+│   │   ├── editor.js       # Main editor manager
+│   │   └── width-manager.js # Width presets & zoom functionality
 │   ├── storage/            # IndexedDB + GitHub sync
 │   ├── search/             # Full-text search + tags
 │   ├── commands/           # Command registry & handlers
+│   ├── export/             # Document export functionality
 │   └── themes/             # Theme management
 ├── components/             # UI components
 │   ├── navigator/          # Tabbed sidebar (Documents/Outline/Search)
@@ -103,6 +110,51 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:fd`** | `focus documents` | `:fd` |
 | **`:ts`** | `toggle sidebar` | `:ts` |
 | **`:tag`** | `tag` | `:tag add fantasy` |
+
+#### Editor Width and Zoom Commands
+*Optimized for writer-focused editing experience*
+
+| **`:65`** | `width 65` | `:65` |
+| **`:80`** | `width 80` | `:80` |
+| **`:90`** | `width 90` | `:90` |
+| **`:zi`** | `zoom in` | `:zi` |
+| **`:zo`** | `zoom out` | `:zo` |
+| **`:zr`** | `zoom reset` | `:zr` |
+| **`:ei`** | `editor info` | `:ei` |
+
+#### Export Commands
+*Writer-focused document export functionality*
+
+| **`:ex`** | `export` | `:ex md` |
+| **`:em`** | `export markdown` | `:em` |
+| **`:et`** | `export text` | `:et` |
+| **`:eh`** | `export html` | `:eh` |
+| **`:ep`** | `export pdf` | `:ep` |
+
+#### Search and Navigation Commands
+*Enhanced document discovery and navigation*
+
+| **`:fs`** | `focus search` | `:fs` |
+| **`:fd`** | `focus documents` | `:fd` |
+| **`:ts`** | `toggle sidebar` | `:ts` |
+| **`:fo`** | `filter open` | `:fo` |
+| **`:fu`** | `filter untagged` | `:fu` |
+| **`:fal`** | `filter all` | `:fal` |
+| **`:ual`** | `untag all` | `:ual` |
+| **`:fl`** | `filter list` | `:fl` |
+| **`:sr`** | `sort recent` | `:sr` |
+| **`:fa`** | `filter archived` | `:fa` |
+
+#### System and Utility Commands
+*Editor configuration and system functions*
+
+| **`:sp`** | `spell check` | `:sp` |
+| **`:wc`** | `word count` | `:wc` |
+| **`:se`** | `settings` | `:se` |
+| **`:sy`** | `sync` | `:sy` |
+| **`:r`** | `refresh` | `:r` |
+| **`:st`** | `statistics` | `:st` |
+| **`:v`** | `version` | `:v` |
 
 #### GitHub Integration Commands
 *Aligned with standard Git aliases (st=status, pu=push, pl=pull, etc.)*
@@ -240,6 +292,89 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 - Adapts to Light, Dark, and Fantasy themes
 - Consistent styling with editor theme
 - Proper contrast ratios for accessibility
+
+## ✏️ Editor Width and Zoom Controls
+
+Fantasy Editor provides comprehensive width and zoom controls optimized for writer-focused editing experiences.
+
+### Width Presets
+
+**Three Optimized Widths:**
+- **65ch** - Optimal reading width for comfortable text consumption
+- **80ch** - Standard coding width for balanced line length
+- **90ch** - Wide editing width for maximum content visibility
+
+**Features:**
+- Instant switching via `:65`, `:80`, `:90` commands
+- CSS transitions for smooth visual changes
+- Responsive behavior on mobile (auto-adjusts to 100% width)
+- localStorage persistence across sessions
+
+### Zoom Functionality
+
+**Dynamic Font Size Control:**
+- **Zoom Range**: 85% - 130% in discrete steps
+- **Commands**: `:zi` (zoom in), `:zo` (zoom out), `:zr` (reset to 100%)
+- **Increments**: 85%, 100%, 115%, 130%
+
+**Technical Implementation:**
+- CodeMirror-native font size changes (not CSS scaling)
+- Dynamic theme regeneration with computed pixel values
+- Immediate visual feedback with toast notifications
+- Preserved zoom levels across editor theme changes
+
+### Editor Configuration
+
+**Information Display:**
+- `:ei` command shows current width and zoom settings
+- Available width options and current selection
+- Zoom percentage and range information
+- Quick reference for all available controls
+
+**Integration:**
+- Seamless coordination with theme system
+- Mobile-responsive width behavior
+- Persistent user preferences via localStorage
+- Smooth animations and visual feedback
+
+## 📤 Document Export System
+
+Fantasy Editor provides comprehensive document export capabilities for various publishing workflows.
+
+### Supported Export Formats
+
+**Multiple Output Formats:**
+- **Markdown (.md)** - Preserve original formatting and structure
+- **Plain Text (.txt)** - Clean text without formatting
+- **HTML (.html)** - Web-ready formatted output  
+- **PDF (.pdf)** - Print-ready document format
+
+### Export Commands
+
+**Quick Export:**
+- **`:ex [format]`** - Export to specified format (md, txt, html, pdf)
+- **`:em`** - Direct Markdown export shortcut
+- **`:ex`** - Show available export formats
+
+**Features:**
+- Automatic filename generation based on document title
+- Browser download integration for seamless file saving
+- Format validation with helpful error messages
+- Export status feedback via toast notifications
+
+### Technical Integration
+
+**Export Manager:**
+- Dedicated ExportManager class for format handling
+- Support detection and validation system
+- Consistent API across all export formats
+- Error handling and user feedback integration
+
+**Writer Workflow:**
+- One-command export process from editor
+- No interruption to writing flow
+- Immediate download without additional dialogs
+- Support for untitled documents with fallback naming
 
 ## 🧭 Navigator Component
 
