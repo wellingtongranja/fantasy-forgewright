@@ -69,6 +69,10 @@
   box-shadow: var(--shadow);
 }
 
+[data-theme='dark'] .app-title {
+  color: #ffffff !important;
+}
+
 [data-theme='dark'] .sidebar,
 [data-theme='dark'] .gutenberg-panel {
   background-color: var(--surface-color);
