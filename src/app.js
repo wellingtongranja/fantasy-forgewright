@@ -4,6 +4,7 @@ import { StorageManager } from './core/storage/storage-manager.js'
 import { SearchEngine } from './core/search/search-engine.js'
 import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar/command-bar.js'
+import { Navigator } from './components/navigator/navigator.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
 import { registerGitHubCommands } from './core/commands/github-commands.js'
@@ -23,6 +24,7 @@ class FantasyEditorApp {
     this.searchEngine = null
     this.commandRegistry = null
     this.commandBar = null
+    this.navigator = null
     this.fileTree = null
     this.currentDocument = null
     this.autoSaveTimeout = null
@@ -50,14 +52,19 @@ class FantasyEditorApp {
       await this.loadInitialDocument()
       this.updateUI()
 
-      // Hide sidebar initially for distraction-free writing
+      // Hide legacy sidebar initially and setup navigator
       const sidebar = document.querySelector('.sidebar')
       const appMain = document.querySelector('.app-main')
       if (sidebar) {
         sidebar.classList.add('sidebar-hidden')
       }
       if (appMain) {
-        appMain.classList.add('sidebar-hidden')
+        appMain.classList.add('navigator-hidden')
+      }
+      
+      // Initialize navigator preferences
+      if (this.navigator) {
+        this.navigator.restorePreferences()
       }
 
       // Set up periodic sync status updates
@@ -97,7 +104,13 @@ class FantasyEditorApp {
     this.commandRegistry = new CommandRegistry()
     this.commandBar = new CommandBar(this.commandRegistry)
 
-    // Initialize file tree
+    // Initialize Navigator
+    const navigatorContainer = document.getElementById('navigator')
+    if (navigatorContainer) {
+      this.navigator = new Navigator(navigatorContainer, this)
+    }
+    
+    // Initialize file tree (legacy fallback)
     const fileTreeContainer = document.getElementById('file-tree')
     this.fileTree = new FileTree(fileTreeContainer, this.storageManager, (document) => {
       this.loadDocument(document)
@@ -462,7 +475,10 @@ class FantasyEditorApp {
       // Initialize change tracking
       this.initializeChangeTracking()
 
-      // Update file tree
+      // Update navigator and file tree
+      if (this.navigator) {
+        this.navigator.onDocumentCreate(this.currentDocument)
+      }
       if (this.fileTree) {
         this.fileTree.addDocument(this.currentDocument)
         this.fileTree.setSelectedDocument(this.currentDocument.id)
@@ -489,7 +505,10 @@ class FantasyEditorApp {
     // Initialize change tracking for the loaded document
     this.initializeChangeTracking()
 
-    // Update file tree selection
+    // Update navigator and file tree selection
+    if (this.navigator) {
+      this.navigator.onDocumentChange(doc)
+    }
     if (this.fileTree) {
       this.fileTree.setSelectedDocument(doc.id)
     }
@@ -535,7 +554,10 @@ class FantasyEditorApp {
       // Update change tracking
       this.initializeChangeTracking()
 
-      // Update file tree
+      // Update navigator and file tree
+      if (this.navigator) {
+        this.navigator.onDocumentSave(savedDoc)
+      }
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
       }
@@ -825,7 +847,10 @@ class FantasyEditorApp {
       // Update change tracking
       this.initializeChangeTracking()
 
-      // Update file tree silently
+      // Update navigator and file tree silently
+      if (this.navigator) {
+        this.navigator.onDocumentSave(savedDoc)
+      }
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
       }

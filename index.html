@@ -19,6 +19,7 @@
   
   <link rel="stylesheet" href="/src/styles/base.css">
   <link rel="stylesheet" href="/src/styles/variables.css">
+  <link rel="stylesheet" href="/src/components/navigator/navigator.css">
   <link rel="stylesheet" href="/src/components/sidebar/file-tree.css">
   <link rel="stylesheet" href="/src/components/search/search-results.css">
   <link rel="stylesheet" href="/src/components/auth/github-auth-button.css">
@@ -34,6 +35,10 @@
     </header>
     
     <main class="app-main">
+      <!-- Navigator Panel -->
+      <div id="navigator" class="navigator"></div>
+      
+      <!-- Legacy Sidebar (fallback) -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-section">
           <h2>Documents</h2>

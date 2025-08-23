@@ -96,14 +96,27 @@ export function registerCoreCommands(registry, app) {
       category: 'search',
       icon: '🔍',
       aliases: [':f'],
-      parameters: [{ name: 'query', required: true, type: 'string', description: 'Search query' }],
+      parameters: [{ name: 'query', required: false, type: 'string', description: 'Search query' }],
       handler: async (args) => {
         const query = args.join(' ')
 
+        // Open search tab in navigator if available
+        if (app.navigator) {
+          if (query) {
+            app.navigator.openSearch(query)
+            return { success: true, message: `Searching for "${query}"...` }
+          } else {
+            // No query provided - just open search tab and focus input
+            app.navigator.openSearch('')
+            return { success: true, message: 'Search panel opened' }
+          }
+        }
+        
         if (!query) {
           return { success: false, message: 'Please provide a search query' }
         }
 
+        // Fallback to existing search implementation
         try {
           const results = await app.searchEngine.search(query, { limit: 5 })
 
@@ -411,30 +424,46 @@ export function registerCoreCommands(registry, app) {
 
     {
       name: 'documents',
-      description: 'show document list',
-      category: 'document',
-      icon: '📂',
+      description: 'open documents panel',
+      category: 'navigation',
+      icon: '📄',
       aliases: [':d'],
-      handler: async () => {
-        const documents = await app.storageManager.getAllDocuments()
-
-        if (documents.length === 0) {
-          return {
-            success: true,
-            message: 'No documents found',
-            data: ['Use "new" command to create your first document']
+      parameters: [
+        { name: 'filter', required: false, type: 'string', description: 'Filter documents' }
+      ],
+      handler: async (args) => {
+        const filter = args.join(' ')
+        
+        if (app.navigator) {
+          app.navigator.openDocuments(filter)
+          return { success: true, message: 'Documents panel opened' }
+        } else {
+          // Fallback to showing sidebar
+          const sidebar = document.querySelector('.sidebar')
+          if (sidebar) {
+            sidebar.classList.remove('sidebar-hidden')
+            const appMain = document.querySelector('.app-main')
+            if (appMain) {
+              appMain.classList.remove('sidebar-hidden')
+            }
           }
+          return { success: true, message: 'Documents panel opened' }
         }
+      }
+    },
 
-        return {
-          success: true,
-          message: `Found ${documents.length} documents:`,
-          data: documents.map((doc, index) => {
-            const timeAgo = app.formatTimeAgo
-              ? app.formatTimeAgo(doc.updatedAt)
-              : new Date(doc.updatedAt).toLocaleDateString()
-            return `${index + 1}. ${doc.title} (${timeAgo})`
-          })
+    {
+      name: 'outline',
+      description: 'open document outline',
+      category: 'navigation',
+      icon: '📝',
+      aliases: [':l'],
+      handler: async () => {
+        if (app.navigator) {
+          app.navigator.openOutline()
+          return { success: true, message: 'Outline panel opened' }
+        } else {
+          return { success: false, message: 'Outline not available' }
         }
       }
     },
