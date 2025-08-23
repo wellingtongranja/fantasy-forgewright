@@ -40,8 +40,10 @@ body {
 }
 
 .app-title {
+  font-family: "Times New Roman", Times, Georgia, serif;
   font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-weight: 700;
+  letter-spacing: 0.15em;
   color: var(--color-primary);
   white-space: nowrap;
 }
