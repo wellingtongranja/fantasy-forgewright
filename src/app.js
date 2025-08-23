@@ -228,7 +228,7 @@ class FantasyEditorApp {
       this.updateGitHubUI()
 
       // Automatically create and configure default repository
-      this.setupDefaultRepository(user)
+      await this.setupDefaultRepository(user)
     } catch (error) {
       console.error('OAuth completion failed:', error)
       this.showNotification(`Login failed: ${error.message}`, 'error')
@@ -284,7 +284,7 @@ class FantasyEditorApp {
 
       // Initialize GitHub authentication using Device Flow
       this.githubAuth = new GitHubAuth()
-      this.githubAuth.init({ clientId: githubClientId })
+      await this.githubAuth.init({ clientId: githubClientId })
 
       // Initialize GitHub storage
       this.githubStorage = new GitHubStorage(this.githubAuth)
@@ -398,6 +398,11 @@ class FantasyEditorApp {
       this.githubUserMenu.refresh()
     }
     this.updateGitHubSyncStatus()
+    
+    // Refresh navigator documents tab to update sync status indicators
+    if (this.navigator && this.navigator.tabComponents && this.navigator.tabComponents['documents']) {
+      this.navigator.tabComponents['documents'].refresh()
+    }
   }
 
   attachEventListeners() {
@@ -446,6 +451,11 @@ class FantasyEditorApp {
         }
       })
     }
+    
+    // Listen for GitHub authentication state changes
+    window.addEventListener('github-auth-state-changed', () => {
+      this.updateGitHubUI()
+    })
   }
 
   async loadInitialDocument() {

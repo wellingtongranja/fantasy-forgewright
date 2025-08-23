@@ -21,8 +21,9 @@ export class GitHubAuth {
    * Initialize GitHub OAuth with client configuration
    * @param {Object} config - OAuth configuration
    * @param {string} config.clientId - GitHub OAuth App client ID
+   * @returns {Promise<void>}
    */
-  init(config) {
+  async init(config) {
     if (!config.clientId) {
       throw new Error('GitHub OAuth client ID is required')
     }
@@ -31,7 +32,7 @@ export class GitHubAuth {
     this.initialized = true
 
     // Check for stored token on initialization
-    this.loadStoredToken()
+    await this.loadStoredToken()
   }
 
   /**
@@ -125,6 +126,9 @@ export class GitHubAuth {
       // Fetch user information
       await this.fetchUserInfo()
 
+      // Emit auth state change event for UI updates
+      this.emitAuthStateChange()
+
       // Clean up session storage
       this.cleanupOAuthSession()
 
@@ -143,6 +147,9 @@ export class GitHubAuth {
     this.user = null
     this.clearStoredToken()
     this.cleanupOAuthSession()
+    
+    // Emit auth state change event for UI updates
+    this.emitAuthStateChange()
   }
 
   /**
@@ -268,17 +275,45 @@ export class GitHubAuth {
 
   /**
    * Load stored token
+   * @returns {Promise<boolean>} True if token was loaded and validated
    */
-  loadStoredToken() {
+  async loadStoredToken() {
     const token = sessionStorage.getItem('github_access_token')
-    if (token) {
-      this.accessToken = token
-      // Fetch user info to validate token
-      this.fetchUserInfo().catch(() => {
-        // Token might be expired, clear it
-        this.clearStoredToken()
-      })
+    if (!token) {
+      return false
     }
+
+    this.accessToken = token
+    
+    try {
+      // Fetch user info to validate token
+      await this.fetchUserInfo()
+      
+      // Emit auth state change event for UI updates
+      this.emitAuthStateChange()
+      
+      return true
+    } catch (error) {
+      // Token might be expired, clear it
+      console.warn('Stored token validation failed:', error.message)
+      this.clearStoredToken()
+      this.accessToken = null
+      this.user = null
+      return false
+    }
+  }
+  
+  /**
+   * Emit authentication state change event
+   */
+  emitAuthStateChange() {
+    const event = new CustomEvent('github-auth-state-changed', {
+      detail: { 
+        isAuthenticated: this.isAuthenticated(),
+        user: this.user 
+      }
+    })
+    window.dispatchEvent(event)
   }
 
   /**

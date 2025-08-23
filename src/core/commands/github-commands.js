@@ -35,7 +35,15 @@ export function registerGitHubCommands(registry, app) {
                 ? `${storageConfig.owner}/${storageConfig.repo}`
                 : 'Not configured',
               branch: storageConfig.branch || 'main',
-              documentsPath: storageConfig.documentsPath || 'documents'
+              documentsPath: storageConfig.documentsPath || 'documents',
+              // Debug info for sync indicators
+              debug: {
+                'Auth Token': status.authenticated ? 'Present ✅' : 'Missing ❌',
+                'Storage Configured': storageConfig.configured ? 'Yes ✅' : 'No ❌',
+                'Owner Set': storageConfig.owner ? `${storageConfig.owner} ✅` : 'Missing ❌',
+                'Repo Set': storageConfig.repo ? `${storageConfig.repo} ✅` : 'Missing ❌',
+                'Sync Indicators Should Show': (status.authenticated && storageConfig.configured) ? 'YES ✅' : 'NO ❌'
+              }
             }
           }
         } else {

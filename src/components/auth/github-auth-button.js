@@ -10,6 +10,9 @@ export class GitHubAuthButton {
 
     this.element = null
     this.currentUser = null
+    
+    // Bind event handlers to maintain correct context
+    this.handleAuthStateChange = this.refresh.bind(this)
 
     this.init()
   }
@@ -102,6 +105,9 @@ export class GitHubAuthButton {
         this.onLoginClick(e)
       }
     })
+
+    // Listen for authentication state changes
+    window.addEventListener('github-auth-state-changed', this.handleAuthStateChange)
   }
 
   /**
@@ -132,6 +138,9 @@ export class GitHubAuthButton {
    * Destroy the component
    */
   destroy() {
+    // Remove event listeners
+    window.removeEventListener('github-auth-state-changed', this.handleAuthStateChange)
+    
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element)
     }

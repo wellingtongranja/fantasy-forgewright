@@ -211,7 +211,8 @@ export class DocumentsTab {
     // Check GitHub sync status
     const hasGitHubMetadata = doc.githubSha && doc.githubPath
     const isAuthenticated = this.app.githubAuth?.isAuthenticated()
-    const isConfigured = this.app.githubStorage?.getConfig()?.configured
+    const config = this.app.githubStorage?.getConfig()
+    const isConfigured = config?.configured
     
     if (!isAuthenticated || !isConfigured) {
       return {
