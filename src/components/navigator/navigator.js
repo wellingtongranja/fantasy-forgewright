@@ -151,6 +151,9 @@ export class Navigator {
         this.toggle()
       }
     })
+    
+    // Auto-unhide when mouse approaches left edge
+    this.setupAutoUnhide()
   }
 
   initializeResize(handle) {
@@ -191,6 +194,41 @@ export class Navigator {
         
         // Save width preference
         localStorage.setItem('navigator-width', this.width)
+      }
+    })
+  }
+
+  setupAutoUnhide() {
+    let autoHideTimeout = null
+    const EDGE_THRESHOLD = 10 // pixels from left edge
+    const AUTO_HIDE_DELAY = 1000 // ms to auto-hide after mouse leaves
+    
+    // Track mouse movement globally
+    document.addEventListener('mousemove', (e) => {
+      // Only auto-unhide if navigator is not pinned and not visible
+      if (this.isPinned || this.isVisible) return
+      
+      // Check if mouse is near left edge
+      if (e.clientX <= EDGE_THRESHOLD) {
+        this.show()
+      }
+    })
+    
+    // Auto-hide when mouse leaves navigator (only if not pinned)
+    this.container.addEventListener('mouseenter', () => {
+      if (autoHideTimeout) {
+        clearTimeout(autoHideTimeout)
+        autoHideTimeout = null
+      }
+    })
+    
+    this.container.addEventListener('mouseleave', () => {
+      // Only auto-hide if not pinned
+      if (!this.isPinned && this.isVisible) {
+        autoHideTimeout = setTimeout(() => {
+          this.hide()
+          autoHideTimeout = null
+        }, AUTO_HIDE_DELAY)
       }
     })
   }
