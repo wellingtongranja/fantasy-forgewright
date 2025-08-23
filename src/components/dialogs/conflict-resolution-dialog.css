@@ -205,12 +205,12 @@
 }
 
 /* Dark theme adjustments */
-[data-theme="dark"] .diff-local {
+[data-theme='dark'] .diff-local {
   background: #2d5a2d;
   color: #a8d8a8;
 }
 
-[data-theme="dark"] .diff-remote {
+[data-theme='dark'] .diff-remote {
   background: #5a2d2d;
   color: #d8a8a8;
 }

@@ -24,26 +24,32 @@ export class DevHelpers {
   async cleanStorage() {
     try {
       console.log('🧹 Cleaning all storage...')
-      
+
       // Clear localStorage
       const localStorageKeys = Object.keys(localStorage)
       console.log(`📦 Clearing ${localStorageKeys.length} localStorage items:`, localStorageKeys)
       localStorage.clear()
-      
+
       // Clear sessionStorage
       const sessionStorageKeys = Object.keys(sessionStorage)
       if (sessionStorageKeys.length > 0) {
-        console.log(`📦 Clearing ${sessionStorageKeys.length} sessionStorage items:`, sessionStorageKeys)
+        console.log(
+          `📦 Clearing ${sessionStorageKeys.length} sessionStorage items:`,
+          sessionStorageKeys
+        )
         sessionStorage.clear()
       }
-      
+
       // Clear IndexedDB databases
       if ('indexedDB' in window) {
         // Get list of databases (if supported)
         if (indexedDB.databases) {
           const databases = await indexedDB.databases()
-          console.log(`🗄️ Found ${databases.length} IndexedDB databases:`, databases.map(db => db.name))
-          
+          console.log(
+            `🗄️ Found ${databases.length} IndexedDB databases:`,
+            databases.map((db) => db.name)
+          )
+
           for (const db of databases) {
             await this.deleteDatabase(db.name)
           }
@@ -52,21 +58,21 @@ export class DevHelpers {
           await this.deleteDatabase('FantasyEditorDB')
         }
       }
-      
+
       // Clear service worker cache if available
       if ('caches' in window) {
         const cacheNames = await caches.keys()
         console.log(`🗃️ Found ${cacheNames.length} cache storages:`, cacheNames)
-        
+
         for (const cacheName of cacheNames) {
           await caches.delete(cacheName)
           console.log(`🗑️ Deleted cache: ${cacheName}`)
         }
       }
-      
+
       console.log('✅ Storage cleaned successfully!')
       console.log('🔄 Reload the page to start fresh')
-      
+
       return {
         success: true,
         message: 'Storage cleaned successfully. Reload the page to start fresh.',
@@ -82,7 +88,7 @@ export class DevHelpers {
       return {
         success: false,
         message: `Failed to clean storage: ${error.message}`,
-        error: error
+        error
       }
     }
   }
@@ -94,32 +100,36 @@ export class DevHelpers {
   async deleteDatabase(dbName) {
     return new Promise((resolve) => {
       console.log(`🗑️ Deleting IndexedDB database: ${dbName}`)
-      
+
       try {
         const deleteRequest = indexedDB.deleteDatabase(dbName)
-        
+
         deleteRequest.onsuccess = () => {
           console.log(`✅ Deleted IndexedDB database: ${dbName}`)
           resolve()
         }
-        
+
         deleteRequest.onerror = (event) => {
-          console.warn(`⚠️ Failed to delete IndexedDB database: ${dbName}`, event.target?.error?.message)
+          console.warn(
+            `⚠️ Failed to delete IndexedDB database: ${dbName}`,
+            event.target?.error?.message
+          )
           resolve() // Don't fail the whole operation
         }
-        
+
         deleteRequest.onblocked = () => {
-          console.warn(`⚠️ Delete blocked for IndexedDB database: ${dbName} - database may be open in another tab`)
+          console.warn(
+            `⚠️ Delete blocked for IndexedDB database: ${dbName} - database may be open in another tab`
+          )
           console.log('💡 Try closing other tabs or use devHelpers.freshStart() to reload')
           resolve() // Don't fail the whole operation
         }
-        
+
         // Add timeout to prevent hanging
         setTimeout(() => {
           console.warn(`⏱️ Timeout deleting IndexedDB database: ${dbName} - continuing anyway`)
           resolve()
         }, 5000)
-        
       } catch (error) {
         console.warn(`⚠️ Error deleting IndexedDB database: ${dbName}`, error.message)
         resolve() // Don't fail the whole operation
@@ -133,16 +143,16 @@ export class DevHelpers {
    */
   async freshStart() {
     console.log('🚀 Starting fresh - cleaning storage and reloading...')
-    
+
     const result = await this.cleanStorage()
-    
+
     if (result.success) {
       console.log('🔄 Reloading page in 2 seconds...')
       setTimeout(() => {
         window.location.reload()
       }, 2000)
     }
-    
+
     return result
   }
 
@@ -178,18 +188,18 @@ export class DevHelpers {
       }
 
       console.log(`🎉 Generated ${documents.length} test documents successfully!`)
-      
+
       return {
         success: true,
         message: `Generated ${documents.length} test documents`,
-        documents: documents.map(doc => ({ id: doc.id, title: doc.title }))
+        documents: documents.map((doc) => ({ id: doc.id, title: doc.title }))
       }
     } catch (error) {
       console.error('❌ Failed to generate test documents:', error)
       return {
         success: false,
         message: `Failed to generate test documents: ${error.message}`,
-        error: error
+        error
       }
     }
   }
@@ -205,31 +215,33 @@ export class DevHelpers {
 
     try {
       console.log('📊 Storage Information:')
-      
+
       // Get storage stats
       const stats = await this.app.storageManager.getStorageStats()
       console.table(stats)
-      
+
       // Get all documents
       const documents = await this.app.storageManager.getAllDocuments()
       console.log('📄 Documents:')
-      console.table(documents.map(doc => ({
-        id: doc.id.substring(0, 20) + '...',
-        title: doc.title,
-        type: this.app.guidManager.isValidGuid(doc.id) ? 'GUID' : 'Legacy',
-        size: `${(doc.content || '').length} chars`,
-        created: doc.metadata?.created || doc.createdAt,
-        modified: doc.metadata?.modified || doc.updatedAt
-      })))
-      
+      console.table(
+        documents.map((doc) => ({
+          id: `${doc.id.substring(0, 20)}...`,
+          title: doc.title,
+          type: this.app.guidManager.isValidGuid(doc.id) ? 'GUID' : 'Legacy',
+          size: `${(doc.content || '').length} chars`,
+          created: doc.metadata?.created || doc.createdAt,
+          modified: doc.metadata?.modified || doc.updatedAt
+        }))
+      )
+
       // LocalStorage info
       console.log('💾 LocalStorage:')
       const localStorageInfo = {}
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         localStorageInfo[key] = `${localStorage.getItem(key).length} chars`
       })
       console.table(localStorageInfo)
-      
+
       return {
         success: true,
         stats,
@@ -241,7 +253,7 @@ export class DevHelpers {
       return {
         success: false,
         message: `Failed to get storage info: ${error.message}`,
-        error: error
+        error
       }
     }
   }
@@ -257,7 +269,7 @@ export class DevHelpers {
 
     try {
       console.log('🧪 Testing document operations...')
-      
+
       // Create a test document
       console.log('1. Creating test document...')
       const testDoc = {
@@ -265,33 +277,33 @@ export class DevHelpers {
         content: '# Test\n\nThis is a test document.',
         tags: ['test', 'automated']
       }
-      
+
       const savedDoc = await this.app.storageManager.saveDocument(testDoc)
       console.log('✅ Document created:', savedDoc.id)
-      
+
       // Update the document
       console.log('2. Updating document...')
       savedDoc.content += '\n\n## Updated Content\n\nThis was added by the test.'
-      const updatedDoc = await this.app.storageManager.saveDocument(savedDoc)
+      await this.app.storageManager.saveDocument(savedDoc)
       console.log('✅ Document updated')
-      
+
       // Retrieve the document
       console.log('3. Retrieving document...')
       const retrievedDoc = await this.app.storageManager.getDocument(savedDoc.id)
       console.log('✅ Document retrieved:', retrievedDoc.title)
-      
+
       // Search for the document
       console.log('4. Searching documents...')
       const searchResults = await this.app.storageManager.searchDocuments('test')
       console.log('✅ Search results:', searchResults.length)
-      
+
       // Delete the document
       console.log('5. Deleting test document...')
       await this.app.storageManager.deleteDocument(savedDoc.id)
       console.log('✅ Document deleted')
-      
+
       console.log('🎉 All document operations completed successfully!')
-      
+
       return {
         success: true,
         message: 'All document operations completed successfully',
@@ -302,7 +314,7 @@ export class DevHelpers {
       return {
         success: false,
         message: `Document operations test failed: ${error.message}`,
-        error: error
+        error
       }
     }
   }
@@ -332,7 +344,7 @@ Usage Examples:
 
 Note: Make sure to call devHelpers.init(fantasyEditor) first
     `)
-    
+
     return {
       success: true,
       message: 'Help displayed',

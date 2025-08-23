@@ -109,7 +109,7 @@ describe('GitHubAuth', () => {
   describe('PKCE Generation', () => {
     test('should generate code verifier', () => {
       const verifier = githubAuth.generateCodeVerifier()
-      
+
       expect(typeof verifier).toBe('string')
       expect(verifier.length).toBeGreaterThan(0)
       expect(mockCrypto.getRandomValues).toHaveBeenCalled()
@@ -118,7 +118,7 @@ describe('GitHubAuth', () => {
     test('should generate code challenge', async () => {
       const verifier = 'test-verifier'
       const challenge = await githubAuth.generateCodeChallenge(verifier)
-      
+
       expect(typeof challenge).toBe('string')
       expect(challenge.length).toBeGreaterThan(0)
       expect(mockCrypto.subtle.digest).toHaveBeenCalledWith('SHA-256', expect.any(Uint8Array))
@@ -126,7 +126,7 @@ describe('GitHubAuth', () => {
 
     test('should generate state parameter', () => {
       const state = githubAuth.generateState()
-      
+
       expect(typeof state).toBe('string')
       expect(state.length).toBeGreaterThan(0)
       expect(mockCrypto.getRandomValues).toHaveBeenCalled()
@@ -141,9 +141,9 @@ describe('GitHubAuth', () => {
     test('should build authorization URL correctly', () => {
       const codeChallenge = 'test-challenge'
       githubAuth.state = 'test-state'
-      
+
       const url = githubAuth.buildAuthorizationUrl(codeChallenge)
-      
+
       expect(url).toContain('https://github.com/login/oauth/authorize')
       expect(url).toContain('client_id=test-client-id')
       expect(url).toContain('code_challenge=test-challenge')
@@ -156,13 +156,19 @@ describe('GitHubAuth', () => {
 
       await githubAuth.login()
 
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith('github_oauth_state', expect.any(String))
-      expect(mockSessionStorage.setItem).toHaveBeenCalledWith('github_oauth_code_verifier', expect.any(String))
+      expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
+        'github_oauth_state',
+        expect.any(String)
+      )
+      expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
+        'github_oauth_code_verifier',
+        expect.any(String)
+      )
     })
 
     test('should throw error if not initialized', async () => {
       const uninitialized = new GitHubAuth()
-      
+
       await expect(uninitialized.login()).rejects.toThrow('GitHubAuth not initialized')
     })
   })
@@ -170,7 +176,7 @@ describe('GitHubAuth', () => {
   describe('Callback Handling', () => {
     beforeEach(() => {
       githubAuth.init({ clientId: 'test-client-id' })
-      
+
       // Mock stored state and verifier
       mockSessionStorage.data['github_oauth_state'] = 'test-state'
       mockSessionStorage.data['github_oauth_code_verifier'] = 'test-verifier'
@@ -178,13 +184,13 @@ describe('GitHubAuth', () => {
 
     test('should handle successful callback', async () => {
       const callbackUrl = 'https://test.example.com/auth/callback?code=test-code&state=test-state'
-      
+
       // Mock token exchange
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ access_token: 'test-token' })
       })
-      
+
       // Mock user fetch
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -202,19 +208,26 @@ describe('GitHubAuth', () => {
     test('should handle callback with error', async () => {
       const callbackUrl = 'https://test.example.com/auth/callback?error=access_denied'
 
-      await expect(githubAuth.handleCallback(callbackUrl)).rejects.toThrow('OAuth error: access_denied')
+      await expect(githubAuth.handleCallback(callbackUrl)).rejects.toThrow(
+        'OAuth error: access_denied'
+      )
     })
 
     test('should handle callback with invalid state', async () => {
-      const callbackUrl = 'https://test.example.com/auth/callback?code=test-code&state=invalid-state'
+      const callbackUrl =
+        'https://test.example.com/auth/callback?code=test-code&state=invalid-state'
 
-      await expect(githubAuth.handleCallback(callbackUrl)).rejects.toThrow('Invalid state parameter')
+      await expect(githubAuth.handleCallback(callbackUrl)).rejects.toThrow(
+        'Invalid state parameter'
+      )
     })
 
     test('should handle missing parameters', async () => {
       const callbackUrl = 'https://test.example.com/auth/callback'
 
-      await expect(githubAuth.handleCallback(callbackUrl)).rejects.toThrow('Missing authorization code or state parameter')
+      await expect(githubAuth.handleCallback(callbackUrl)).rejects.toThrow(
+        'Missing authorization code or state parameter'
+      )
     })
   })
 
@@ -225,24 +238,24 @@ describe('GitHubAuth', () => {
 
     test('should store token securely', () => {
       githubAuth.storeToken('test-token')
-      
+
       expect(mockSessionStorage.setItem).toHaveBeenCalledWith('github_access_token', 'test-token')
     })
 
     test('should load stored token', () => {
       mockSessionStorage.data['github_access_token'] = 'stored-token'
-      
+
       // Mock user fetch to fail (simulating expired token)
       mockFetch.mockRejectedValueOnce(new Error('Unauthorized'))
-      
+
       githubAuth.loadStoredToken()
-      
+
       expect(githubAuth.accessToken).toBe('stored-token')
     })
 
     test('should clear stored token', () => {
       githubAuth.clearStoredToken()
-      
+
       expect(mockSessionStorage.removeItem).toHaveBeenCalledWith('github_access_token')
     })
   })
@@ -289,8 +302,8 @@ describe('GitHubAuth', () => {
 
       expect(mockFetch).toHaveBeenCalledWith('https://api.github.com/user', {
         headers: {
-          'Authorization': 'Bearer test-token',
-          'Accept': 'application/vnd.github.v3+json'
+          Authorization: 'Bearer test-token',
+          Accept: 'application/vnd.github.v3+json'
         }
       })
       expect(response.ok).toBe(true)
@@ -312,7 +325,9 @@ describe('GitHubAuth', () => {
     test('should throw error when not authenticated', async () => {
       githubAuth.accessToken = null
 
-      await expect(githubAuth.makeAuthenticatedRequest('/user')).rejects.toThrow('Not authenticated')
+      await expect(githubAuth.makeAuthenticatedRequest('/user')).rejects.toThrow(
+        'Not authenticated'
+      )
     })
 
     test('should handle network errors', async () => {
@@ -326,7 +341,7 @@ describe('GitHubAuth', () => {
     test('should encode buffer correctly', () => {
       const buffer = new Uint8Array([1, 2, 3, 4])
       const encoded = githubAuth.base64URLEncode(buffer)
-      
+
       expect(typeof encoded).toBe('string')
       expect(encoded).not.toContain('+')
       expect(encoded).not.toContain('/')

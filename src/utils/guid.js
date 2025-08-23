@@ -17,11 +17,11 @@ export class GuidManager {
     if (crypto && crypto.randomUUID) {
       return crypto.randomUUID()
     }
-    
+
     // Fallback implementation for older browsers
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0
-      const v = c === 'x' ? r : (r & 0x3 | 0x8)
+      const r = (Math.random() * 16) | 0
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
   }
@@ -35,7 +35,7 @@ export class GuidManager {
     if (!guid || typeof guid !== 'string') {
       return false
     }
-    
+
     return this.guidRegex.test(guid)
   }
 
@@ -57,17 +57,17 @@ export class GuidManager {
     const sanitizedTitle = workingTitle
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')         // Replace spaces with hyphens
-      .replace(/-+/g, '-')          // Collapse multiple hyphens
-      .replace(/^-+|-+$/g, '')      // Trim leading/trailing hyphens
-      .substring(0, 50)             // Limit length
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Collapse multiple hyphens
+      .replace(/^-+|-+$/g, '') // Trim leading/trailing hyphens
+      .substring(0, 50) // Limit length
 
     // Use first 8 characters of GUID for uniqueness
     const guidPrefix = guid.substring(0, 8)
-    
+
     // Fallback if title becomes empty after sanitization
     const finalTitle = sanitizedTitle || 'document'
-    
+
     return `${finalTitle}-${guidPrefix}.md`
   }
 
@@ -91,7 +91,7 @@ export class GuidManager {
   createDocumentWithGuid(title, content = '', tags = []) {
     const guid = this.generateGuid()
     const now = new Date().toISOString()
-    
+
     return {
       id: guid,
       title: title || 'Untitled Document',
@@ -126,7 +126,7 @@ export class GuidManager {
     }
 
     const updated = { ...document, ...changes }
-    
+
     // Update timestamps
     updated.metadata = {
       ...updated.metadata,
@@ -161,10 +161,10 @@ export class GuidManager {
     let hash = 0
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
-    
+
     return Math.abs(hash).toString(16).padStart(8, '0')
   }
 
@@ -176,10 +176,10 @@ export class GuidManager {
   migrateUidToGuid(oldId) {
     // Generate new GUID for migration
     const newGuid = this.generateGuid()
-    
+
     // Log migration for debugging
     console.log(`Migrating document ID: ${oldId} → ${newGuid}`)
-    
+
     return newGuid
   }
 
@@ -192,7 +192,7 @@ export class GuidManager {
     if (!id || typeof id !== 'string') {
       return false
     }
-    
+
     // Old format: doc_1648125632_a1b2c3d4
     return /^doc_\d+_[a-f0-9]{8}$/i.test(id)
   }

@@ -7,10 +7,10 @@ export class GitHubAuthButton {
     this.githubAuth = githubAuth
     this.onLoginClick = onLoginClick
     this.onUserClick = onUserClick
-    
+
     this.element = null
     this.currentUser = null
-    
+
     this.init()
   }
 
@@ -29,10 +29,10 @@ export class GitHubAuthButton {
   createDOM() {
     this.element = document.createElement('div')
     this.element.className = 'github-auth-container'
-    
+
     // Set initial content based on auth state
     this.updateDisplay()
-    
+
     return this.element
   }
 
@@ -43,7 +43,7 @@ export class GitHubAuthButton {
     if (!this.element) return
 
     const isAuthenticated = this.githubAuth?.isAuthenticated()
-    
+
     if (isAuthenticated) {
       this.currentUser = this.githubAuth.getCurrentUser()
       this.renderUserButton()
@@ -95,7 +95,7 @@ export class GitHubAuthButton {
   attachEventListeners() {
     this.element.addEventListener('click', (e) => {
       const isAuthenticated = this.githubAuth?.isAuthenticated()
-      
+
       if (isAuthenticated && this.onUserClick) {
         this.onUserClick(e, this.currentUser)
       } else if (!isAuthenticated && this.onLoginClick) {

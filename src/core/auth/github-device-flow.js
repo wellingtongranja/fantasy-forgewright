@@ -26,10 +26,10 @@ export class GitHubDeviceFlow {
     if (!config.clientId) {
       throw new Error('GitHub OAuth client ID is required')
     }
-    
+
     this.clientId = config.clientId
     this.initialized = true
-    
+
     // Check for stored token on initialization
     this.loadStoredToken()
   }
@@ -71,7 +71,7 @@ export class GitHubDeviceFlow {
       const response = await fetch('/api/github/device-code', {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'Content-Type': 'application/json'
         }
       })
@@ -81,7 +81,7 @@ export class GitHubDeviceFlow {
       }
 
       const data = await response.json()
-      
+
       if (data.error) {
         throw new Error(`Device flow error: ${data.error_description || data.error}`)
       }
@@ -113,7 +113,7 @@ export class GitHubDeviceFlow {
 
     return new Promise((resolve, reject) => {
       const startTime = Date.now()
-      
+
       this.pollingTimer = setInterval(async () => {
         try {
           // Check if expired
@@ -126,7 +126,7 @@ export class GitHubDeviceFlow {
           const response = await fetch('/api/github/device-token', {
             method: 'POST',
             headers: {
-              'Accept': 'application/json',
+              Accept: 'application/json',
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -168,7 +168,7 @@ export class GitHubDeviceFlow {
             this.stopPolling()
             this.accessToken = data.access_token
             this.storeToken(data.access_token)
-            
+
             try {
               await this.fetchUserInfo()
               resolve(this.user)
@@ -244,10 +244,10 @@ export class GitHubDeviceFlow {
     }
 
     const url = endpoint.startsWith('/api/') ? endpoint : `/api/github/proxy${endpoint}`
-    
+
     const headers = {
-      'Authorization': `Bearer ${this.accessToken}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `Bearer ${this.accessToken}`,
+      Accept: 'application/vnd.github.v3+json',
       ...options.headers
     }
 

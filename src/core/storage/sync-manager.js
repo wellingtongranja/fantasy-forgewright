@@ -96,8 +96,8 @@ export class SyncManager {
       const remoteDocs = await this.github.listDocuments()
 
       // Create lookup maps
-      const localMap = new Map(localDocs.map(doc => [doc.id, doc]))
-      const remoteMap = new Map(remoteDocs.map(doc => [doc.id, doc]))
+      const localMap = new Map(localDocs.map((doc) => [doc.id, doc]))
+      const remoteMap = new Map(remoteDocs.map((doc) => [doc.id, doc]))
 
       // Find documents to sync
       const toUpload = []
@@ -107,7 +107,7 @@ export class SyncManager {
       // Check each local document
       for (const localDoc of localDocs) {
         const remoteDoc = remoteMap.get(localDoc.id)
-        
+
         if (!remoteDoc) {
           // Local document doesn't exist remotely - upload
           toUpload.push(localDoc)
@@ -125,12 +125,14 @@ export class SyncManager {
       // Check each remote document
       for (const remoteDoc of remoteDocs) {
         const localDoc = localMap.get(remoteDoc.id)
-        
+
         if (!localDoc) {
           // Remote document doesn't exist locally - download
           toDownload.push(remoteDoc)
-        } else if (!conflicts.some(c => c.remote.id === remoteDoc.id) && 
-                   this.isRemoteNewer(localDoc, remoteDoc)) {
+        } else if (
+          !conflicts.some((c) => c.remote.id === remoteDoc.id) &&
+          this.isRemoteNewer(localDoc, remoteDoc)
+        ) {
           toDownload.push(remoteDoc)
         }
       }
@@ -169,7 +171,6 @@ export class SyncManager {
 
       results.endTime = new Date()
       return results
-
     } catch (error) {
       results.errors++
       throw error
@@ -185,7 +186,7 @@ export class SyncManager {
    */
   async uploadDocument(document) {
     const result = await this.github.saveDocument(document)
-    
+
     // Update local document with GitHub metadata
     const updatedDoc = {
       ...document,
@@ -193,7 +194,7 @@ export class SyncManager {
       githubPath: result.document.githubPath,
       lastSyncedAt: result.document.lastSyncedAt
     }
-    
+
     await this.storage.saveDocument(updatedDoc)
   }
 
@@ -216,9 +217,10 @@ export class SyncManager {
   detectConflict(localDoc, remoteDoc) {
     const localTime = new Date(localDoc.updatedAt || localDoc.metadata?.modified)
     const remoteTime = new Date(remoteDoc.updatedAt)
-    
+
     // If both have been modified since last sync, it's a conflict
-    if (Math.abs(localTime.getTime() - remoteTime.getTime()) > 1000) { // 1 second tolerance
+    if (Math.abs(localTime.getTime() - remoteTime.getTime()) > 1000) {
+      // 1 second tolerance
       if (localDoc.checksum && remoteDoc.checksum && localDoc.checksum !== remoteDoc.checksum) {
         return 'content'
       }
@@ -227,7 +229,7 @@ export class SyncManager {
       }
       return 'timestamp'
     }
-    
+
     return null
   }
 
@@ -262,35 +264,35 @@ export class SyncManager {
    * @returns {Promise<void>}
    */
   async resolveConflict(conflictId, resolution) {
-    const conflictIndex = this.conflictQueue.findIndex(c => 
-      this.generateConflictId(c) === conflictId
+    const conflictIndex = this.conflictQueue.findIndex(
+      (c) => this.generateConflictId(c) === conflictId
     )
-    
+
     if (conflictIndex === -1) {
       throw new Error('Conflict not found')
     }
-    
+
     const conflict = this.conflictQueue[conflictIndex]
-    
+
     switch (resolution) {
       case 'local':
         await this.uploadDocument(conflict.local)
         break
-        
+
       case 'remote':
         await this.downloadDocument(conflict.remote)
         break
-        
+
       case 'merge':
         const mergedDoc = await this.mergeDocuments(conflict.local, conflict.remote)
         await this.storage.saveDocument(mergedDoc)
         await this.uploadDocument(mergedDoc)
         break
-        
+
       default:
         throw new Error(`Unknown resolution strategy: ${resolution}`)
     }
-    
+
     // Remove resolved conflict from queue
     this.conflictQueue.splice(conflictIndex, 1)
   }
@@ -305,16 +307,16 @@ export class SyncManager {
     // Simple merge strategy: combine content and use latest metadata
     const localTime = new Date(localDoc.updatedAt || localDoc.metadata?.modified)
     const remoteTime = new Date(remoteDoc.updatedAt)
-    
+
     const newerDoc = localTime > remoteTime ? localDoc : remoteDoc
     const olderDoc = localTime > remoteTime ? remoteDoc : localDoc
-    
+
     // Merge content with conflict markers
     const mergedContent = `${newerDoc.content}\n\n---\n\n### Merged from ${olderDoc.title} (${olderDoc.updatedAt})\n\n${olderDoc.content}`
-    
+
     // Merge tags
     const mergedTags = [...new Set([...(localDoc.tags || []), ...(remoteDoc.tags || [])])]
-    
+
     return {
       ...newerDoc,
       content: mergedContent,
@@ -340,7 +342,7 @@ export class SyncManager {
    * @returns {Array} Array of conflicts
    */
   getPendingConflicts() {
-    return this.conflictQueue.map(conflict => ({
+    return this.conflictQueue.map((conflict) => ({
       id: this.generateConflictId(conflict),
       type: conflict.type,
       local: {
@@ -361,7 +363,7 @@ export class SyncManager {
    * @param {Object} document - Document to sync
    */
   queueForSync(document) {
-    const existing = this.syncQueue.find(item => item.id === document.id)
+    const existing = this.syncQueue.find((item) => item.id === document.id)
     if (existing) {
       existing.document = document
       existing.timestamp = new Date()
@@ -379,7 +381,11 @@ export class SyncManager {
    * @returns {Promise<void>}
    */
   async processSyncQueue() {
-    if (this.syncQueue.length === 0 || !this.auth.isAuthenticated() || !this.github.isConfigured()) {
+    if (
+      this.syncQueue.length === 0 ||
+      !this.auth.isAuthenticated() ||
+      !this.github.isConfigured()
+    ) {
       return
     }
 
@@ -435,7 +441,7 @@ export class SyncManager {
     const metadata = {
       lastSyncTime: this.lastSyncTime?.toISOString()
     }
-    
+
     localStorage.setItem('fantasy_editor_sync_metadata', JSON.stringify(metadata))
   }
 

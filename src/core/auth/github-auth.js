@@ -26,10 +26,10 @@ export class GitHubAuth {
     if (!config.clientId) {
       throw new Error('GitHub OAuth client ID is required')
     }
-    
+
     this.clientId = config.clientId
     this.initialized = true
-    
+
     // Check for stored token on initialization
     this.loadStoredToken()
   }
@@ -79,7 +79,7 @@ export class GitHubAuth {
 
       // Build authorization URL
       const authUrl = this.buildAuthorizationUrl(codeChallenge)
-      
+
       // Redirect to GitHub
       window.location.href = authUrl
     } catch (error) {
@@ -121,7 +121,7 @@ export class GitHubAuth {
 
       // Exchange code for access token
       await this.exchangeCodeForToken(code, codeVerifier)
-      
+
       // Fetch user information
       await this.fetchUserInfo()
 
@@ -214,7 +214,7 @@ export class GitHubAuth {
   async exchangeCodeForToken(code, codeVerifier) {
     // Use backend API to handle token exchange with client secret and PKCE
     const requestBody = { code: code }
-    
+
     // Include code_verifier if provided (for PKCE)
     if (codeVerifier) {
       requestBody.code_verifier = codeVerifier
@@ -223,7 +223,7 @@ export class GitHubAuth {
     const response = await fetch('/api/github/oauth/token', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)
@@ -235,7 +235,7 @@ export class GitHubAuth {
     }
 
     const data = await response.json()
-    
+
     if (data.error) {
       throw new Error(`Token exchange error: ${data.error_description || data.error}`)
     }
@@ -308,10 +308,10 @@ export class GitHubAuth {
     }
 
     const url = endpoint.startsWith('/api/') ? endpoint : `/api/github/proxy${endpoint}`
-    
+
     const headers = {
-      'Authorization': `Bearer ${this.accessToken}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `Bearer ${this.accessToken}`,
+      Accept: 'application/vnd.github.v3+json',
       ...options.headers
     }
 
@@ -329,8 +329,11 @@ export class GitHubAuth {
         if (response.status === 401) {
           this.logout()
         }
-        
-        const errorResponse = await this.errorHandler.handleError(response, `GitHub API ${endpoint}`)
+
+        const errorResponse = await this.errorHandler.handleError(
+          response,
+          `GitHub API ${endpoint}`
+        )
         this.errorHandler.logError(errorResponse, { endpoint, method: options.method || 'GET' })
         throw new Error(this.errorHandler.formatUserMessage(errorResponse))
       }
@@ -341,7 +344,7 @@ export class GitHubAuth {
         // Already handled by error handler
         throw error
       }
-      
+
       // Handle network and other errors
       const errorResponse = await this.errorHandler.handleError(error, `GitHub API ${endpoint}`)
       this.errorHandler.logError(errorResponse, { endpoint, method: options.method || 'GET' })

@@ -263,11 +263,11 @@
     width: calc(100vw - 32px);
     max-width: 300px;
   }
-  
+
   .sync-status-main {
     min-width: 100px;
   }
-  
+
   .status-message,
   .status-details {
     font-size: 0.8rem;
@@ -285,7 +285,7 @@
 }
 
 /* Dark theme adjustments */
-[data-theme="dark"] .sync-status-dropdown {
+[data-theme='dark'] .sync-status-dropdown {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
@@ -294,7 +294,7 @@
   .sync-status-main {
     border-width: 2px;
   }
-  
+
   .sync-action-btn {
     border-width: 2px;
   }
@@ -305,11 +305,11 @@
   .status-indicator {
     animation: none !important;
   }
-  
+
   .sync-status-dropdown {
     transition: none;
   }
-  
+
   .sync-status-main {
     transition: none;
   }

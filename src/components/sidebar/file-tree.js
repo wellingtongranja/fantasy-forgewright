@@ -10,7 +10,7 @@ export class FileTree {
     this.onDocumentSelect = onDocumentSelect
     this.documents = []
     this.selectedDocumentId = null
-    
+
     this.init()
   }
 
@@ -20,10 +20,10 @@ export class FileTree {
     this.container.setAttribute('tabindex', '0')
     this.container.setAttribute('role', 'listbox')
     this.container.setAttribute('aria-label', 'Document list')
-    
+
     // Create loading state
     this.showLoading()
-    
+
     // Load documents
     this.loadDocuments()
   }
@@ -65,7 +65,7 @@ export class FileTree {
         <button class="retry-btn">Retry</button>
       </div>
     `
-    
+
     this.container.querySelector('.retry-btn').addEventListener('click', () => {
       this.loadDocuments()
     })
@@ -79,9 +79,9 @@ export class FileTree {
 
     // Group documents by date for better organization
     const groupedDocs = this.groupDocumentsByDate(this.documents)
-    
+
     let html = '<div class="file-tree-list">'
-    
+
     for (const [dateGroup, docs] of Object.entries(groupedDocs)) {
       html += `
         <div class="file-tree-group">
@@ -91,39 +91,46 @@ export class FileTree {
           </div>
           <div class="file-tree-group-items">
       `
-      
+
       for (const doc of docs) {
         const isSelected = doc.id === this.selectedDocumentId
         const excerpt = this.generateExcerpt(doc.content)
         const timeAgo = this.formatTimeAgo(doc.updatedAt || doc.metadata?.modified)
-        
+
         html += `
           <div class="file-tree-item ${isSelected ? 'selected' : ''}" data-doc-id="${doc.id}">
             <div class="file-item-main">
               <div class="file-item-title">${this.escapeHtml(doc.title)}</div>
               <div class="file-item-meta">
                 <span class="file-item-time">${timeAgo}</span>
-                ${doc.tags && doc.tags.length > 0 ? `
+                ${
+                  doc.tags && doc.tags.length > 0
+                    ? `
                   <div class="file-item-tags">
-                    ${doc.tags.slice(0, 3).map(tag => `<span class="file-tag">${this.escapeHtml(tag)}</span>`).join('')}
+                    ${doc.tags
+                      .slice(0, 3)
+                      .map((tag) => `<span class="file-tag">${this.escapeHtml(tag)}</span>`)
+                      .join('')}
                     ${doc.tags.length > 3 ? '<span class="file-tag-more">+' + (doc.tags.length - 3) + '</span>' : ''}
                   </div>
-                ` : ''}
+                `
+                    : ''
+                }
               </div>
             </div>
             ${excerpt ? `<div class="file-item-excerpt">${this.escapeHtml(excerpt)}</div>` : ''}
           </div>
         `
       }
-      
+
       html += `
           </div>
         </div>
       `
     }
-    
+
     html += '</div>'
-    
+
     this.container.innerHTML = html
     this.attachEventListeners()
   }
@@ -133,17 +140,17 @@ export class FileTree {
     const today = new Date()
     const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-    
+
     // Ensure documents is an array
     if (!Array.isArray(documents)) {
       console.warn('groupDocumentsByDate received non-array:', documents)
       return { 'No Documents': [] }
     }
-    
+
     for (const doc of documents) {
       const docDate = new Date(doc.updatedAt || doc.metadata?.modified)
       let groupKey
-      
+
       // Handle invalid dates
       if (isNaN(docDate.getTime())) {
         groupKey = 'Unknown Date'
@@ -158,29 +165,31 @@ export class FileTree {
       } else {
         groupKey = docDate.getFullYear().toString()
       }
-      
+
       if (!groups[groupKey]) {
         groups[groupKey] = []
       }
       groups[groupKey].push(doc)
     }
-    
+
     // Sort groups by priority
     const sortedGroups = {}
     const groupOrder = ['Today', 'Yesterday', 'This Week']
-    
-    groupOrder.forEach(key => {
+
+    groupOrder.forEach((key) => {
       if (groups[key]) {
         sortedGroups[key] = groups[key]
         delete groups[key]
       }
     })
-    
+
     // Add remaining groups sorted by date
-    Object.keys(groups).sort().forEach(key => {
-      sortedGroups[key] = groups[key]
-    })
-    
+    Object.keys(groups)
+      .sort()
+      .forEach((key) => {
+        sortedGroups[key] = groups[key]
+      })
+
     return sortedGroups
   }
 
@@ -190,7 +199,7 @@ export class FileTree {
 
   generateExcerpt(content, maxLength = 60) {
     if (!content) return ''
-    
+
     // Remove markdown formatting for excerpt
     const plainText = content
       .replace(/^#{1,6}\s+/gm, '') // Remove headers
@@ -200,11 +209,11 @@ export class FileTree {
       .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove links
       .replace(/\n+/g, ' ') // Replace newlines with spaces
       .trim()
-    
+
     if (plainText.length <= maxLength) {
       return plainText
     }
-    
+
     return plainText.substring(0, maxLength) + '...'
   }
 
@@ -212,18 +221,18 @@ export class FileTree {
     if (!dateString) {
       return 'No date'
     }
-    
+
     const date = new Date(dateString)
     if (isNaN(date.getTime())) {
       return 'Invalid date'
     }
-    
+
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
     const diffHours = Math.floor(diffMinutes / 60)
     const diffDays = Math.floor(diffHours / 24)
-    
+
     if (diffMinutes < 1) {
       return 'Just now'
     } else if (diffMinutes < 60) {
@@ -233,8 +242,8 @@ export class FileTree {
     } else if (diffDays < 7) {
       return `${diffDays}d ago`
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
       })
@@ -281,11 +290,9 @@ export class FileTree {
   navigateDocuments(direction) {
     const items = this.container.querySelectorAll('.file-tree-item')
     if (items.length === 0) return
-    
-    const currentIndex = Array.from(items).findIndex(item => 
-      item.classList.contains('selected')
-    )
-    
+
+    const currentIndex = Array.from(items).findIndex((item) => item.classList.contains('selected'))
+
     let newIndex
     if (currentIndex === -1) {
       newIndex = direction > 0 ? 0 : items.length - 1
@@ -294,18 +301,18 @@ export class FileTree {
       if (newIndex < 0) newIndex = items.length - 1
       if (newIndex >= items.length) newIndex = 0
     }
-    
+
     // Update selection
-    items.forEach(item => item.classList.remove('selected'))
+    items.forEach((item) => item.classList.remove('selected'))
     items[newIndex].classList.add('selected')
     items[newIndex].scrollIntoView({ block: 'nearest' })
-    
+
     this.selectedDocumentId = items[newIndex].dataset.docId
   }
 
   async selectDocument(docId) {
     if (!docId) return
-    
+
     try {
       const document = await this.storageManager.getDocument(docId)
       if (document && this.onDocumentSelect) {
@@ -319,7 +326,7 @@ export class FileTree {
   }
 
   updateSelection() {
-    this.container.querySelectorAll('.file-tree-item').forEach(item => {
+    this.container.querySelectorAll('.file-tree-item').forEach((item) => {
       item.classList.toggle('selected', item.dataset.docId === this.selectedDocumentId)
     })
   }
@@ -340,7 +347,7 @@ export class FileTree {
   }
 
   updateDocument(document) {
-    const index = this.documents.findIndex(doc => doc.id === document.id)
+    const index = this.documents.findIndex((doc) => doc.id === document.id)
     if (index !== -1) {
       this.documents[index] = document
       this.render()
@@ -348,7 +355,7 @@ export class FileTree {
   }
 
   removeDocument(docId) {
-    this.documents = this.documents.filter(doc => doc.id !== docId)
+    this.documents = this.documents.filter((doc) => doc.id !== docId)
     if (this.selectedDocumentId === docId) {
       this.selectedDocumentId = null
     }

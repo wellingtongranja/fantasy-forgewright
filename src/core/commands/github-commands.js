@@ -21,18 +21,18 @@ export function registerGitHubCommands(registry, app) {
 
         const status = app.githubAuth.getStatus()
         const user = app.githubAuth.getCurrentUser()
-        
+
         if (status.authenticated && user) {
           const storageConfig = app.githubStorage?.getConfig() || {}
-          
+
           return {
             success: true,
             message: 'GitHub Status:',
             data: {
               status: 'Connected ✅',
               user: `${user.name} (@${user.login})`,
-              repository: storageConfig.configured 
-                ? `${storageConfig.owner}/${storageConfig.repo}` 
+              repository: storageConfig.configured
+                ? `${storageConfig.owner}/${storageConfig.repo}`
                 : 'Not configured',
               branch: storageConfig.branch || 'main',
               documentsPath: storageConfig.documentsPath || 'documents'
@@ -77,7 +77,7 @@ export function registerGitHubCommands(registry, app) {
         try {
           // Start OAuth Web Application Flow
           await app.githubAuth.login()
-          
+
           return {
             success: true,
             message: 'Redirecting to GitHub for authorization...'
@@ -114,7 +114,7 @@ export function registerGitHubCommands(registry, app) {
 
         const user = app.githubAuth.getCurrentUser()
         app.githubAuth.logout()
-        
+
         return {
           success: true,
           message: `Logged out from GitHub (was: ${user.name})`
@@ -132,7 +132,12 @@ export function registerGitHubCommands(registry, app) {
       parameters: [
         { name: 'owner', required: false, type: 'string', description: 'Repository owner' },
         { name: 'repo', required: false, type: 'string', description: 'Repository name' },
-        { name: 'branch', required: false, type: 'string', description: 'Branch name (default: main)' }
+        {
+          name: 'branch',
+          required: false,
+          type: 'string',
+          description: 'Branch name (default: main)'
+        }
       ],
       handler: async (args) => {
         if (!app.githubStorage) {
@@ -143,7 +148,7 @@ export function registerGitHubCommands(registry, app) {
         }
 
         const [owner, repo, branch] = args
-        
+
         if (!owner || !repo) {
           const config = app.githubStorage.getConfig()
           return {
@@ -169,7 +174,7 @@ export function registerGitHubCommands(registry, app) {
 
           // Verify repository access
           const isAccessible = await app.githubStorage.verifyRepository()
-          
+
           if (isAccessible) {
             return {
               success: true,
@@ -273,9 +278,9 @@ export function registerGitHubCommands(registry, app) {
         try {
           // Ensure document is saved locally first
           await app.saveDocument()
-          
+
           const result = await app.githubStorage.saveDocument(doc)
-          
+
           // Update local document with GitHub metadata
           const updatedDoc = {
             ...doc,
@@ -283,15 +288,15 @@ export function registerGitHubCommands(registry, app) {
             githubPath: result.document.githubPath,
             lastSyncedAt: result.document.lastSyncedAt
           }
-          
+
           // Save updated document locally with GitHub metadata
           await app.storageManager.saveDocument(updatedDoc)
-          
+
           // Update current document if it's the same one
           if (app.currentDocument && app.currentDocument.id === doc.id) {
             app.currentDocument = updatedDoc
           }
-          
+
           return {
             success: true,
             message: `Document "${doc.title}" pushed to GitHub successfully`
@@ -312,7 +317,12 @@ export function registerGitHubCommands(registry, app) {
       icon: '⬇️',
       aliases: [':gpl'],
       parameters: [
-        { name: 'filename', required: false, type: 'string', description: 'Specific document to pull' }
+        {
+          name: 'filename',
+          required: false,
+          type: 'string',
+          description: 'Specific document to pull'
+        }
       ],
       handler: async (args) => {
         if (!app.githubAuth?.isAuthenticated()) {
@@ -331,12 +341,14 @@ export function registerGitHubCommands(registry, app) {
 
         try {
           const filename = args[0]
-          
+
           if (filename) {
             // Pull specific document
-            const document = await app.githubStorage.loadDocument(`${app.githubStorage.documentsPath}/${filename}`)
+            const document = await app.githubStorage.loadDocument(
+              `${app.githubStorage.documentsPath}/${filename}`
+            )
             await app.storageManager.saveDocument(document)
-            
+
             return {
               success: true,
               message: `Document "${document.title}" pulled from GitHub successfully`
@@ -344,18 +356,18 @@ export function registerGitHubCommands(registry, app) {
           } else {
             // List available documents for pulling
             const documents = await app.githubStorage.listDocuments()
-            
+
             if (documents.length === 0) {
               return {
                 success: true,
                 message: 'No documents found in GitHub repository'
               }
             }
-            
+
             return {
               success: true,
               message: `Found ${documents.length} documents in GitHub:`,
-              data: documents.map(doc => `${doc.title} (${doc.githubPath})`)
+              data: documents.map((doc) => `${doc.title} (${doc.githubPath})`)
             }
           }
         } catch (error) {
@@ -378,14 +390,14 @@ export function registerGitHubCommands(registry, app) {
       ],
       handler: async (args) => {
         const url = args[0]
-        
+
         if (!url) {
           return {
             success: false,
             message: 'GitHub URL required. Usage: github import <url>'
           }
         }
-        
+
         if (!url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
           return {
             success: false,
@@ -406,7 +418,7 @@ export function registerGitHubCommands(registry, app) {
           }
 
           const content = await response.text()
-          
+
           // Try to parse as Fantasy Editor document
           let document
           try {
@@ -442,7 +454,7 @@ export function registerGitHubCommands(registry, app) {
 
           await app.storageManager.saveDocument(document)
           app.loadDocument(document)
-          
+
           return {
             success: true,
             message: `Document "${document.title}" imported successfully from GitHub`
@@ -480,7 +492,7 @@ export function registerGitHubCommands(registry, app) {
 
         try {
           const documents = await app.githubStorage.listDocuments()
-          
+
           if (documents.length === 0) {
             return {
               success: true,
@@ -488,11 +500,11 @@ export function registerGitHubCommands(registry, app) {
               data: ['Use ":gpu" to push your current document to GitHub']
             }
           }
-          
+
           return {
             success: true,
             message: `Found ${documents.length} documents in GitHub repository:`,
-            data: documents.map(doc => {
+            data: documents.map((doc) => {
               const size = Math.round(doc.size / 1024)
               return `${doc.title} (${size}KB, updated: ${new Date(doc.updatedAt).toLocaleDateString()})`
             })
@@ -529,7 +541,7 @@ export function registerGitHubCommands(registry, app) {
 
         try {
           await app.githubStorage.ensureDocumentsDirectory()
-          
+
           return {
             success: true,
             message: 'GitHub repository initialized for Fantasy Editor documents'
@@ -545,7 +557,7 @@ export function registerGitHubCommands(registry, app) {
   ]
 
   // Add required properties to all commands
-  const processedCommands = commands.map(command => ({
+  const processedCommands = commands.map((command) => ({
     condition: () => true,
     parameters: command.parameters || [],
     ...command

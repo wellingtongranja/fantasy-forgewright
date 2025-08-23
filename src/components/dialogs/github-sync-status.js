@@ -22,9 +22,8 @@ export class GitHubSyncStatus {
    * @param {Object} container - Container element or selector
    */
   init(container) {
-    const containerElement = typeof container === 'string' 
-      ? document.querySelector(container) 
-      : container
+    const containerElement =
+      typeof container === 'string' ? document.querySelector(container) : container
 
     if (!containerElement) {
       throw new Error('GitHub sync status container not found')
@@ -181,7 +180,7 @@ export class GitHubSyncStatus {
 
     // Set status classes and messages
     this.element.className = 'github-sync-status'
-    
+
     if (error) {
       this.element.classList.add('status-error')
       statusIndicator.textContent = '❌'
@@ -274,7 +273,7 @@ export class GitHubSyncStatus {
 
     // Action buttons
     const actionBtns = this.element.querySelectorAll('.sync-action-btn, .retry-btn')
-    actionBtns.forEach(btn => {
+    actionBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const action = e.target.closest('button').dataset.action
         this.handleAction(action)
@@ -336,7 +335,7 @@ export class GitHubSyncStatus {
       detail: { action, status: this.status }
     })
     document.dispatchEvent(event)
-    
+
     // Close dropdown after action
     this.closeDropdown()
   }
@@ -384,7 +383,7 @@ export class GitHubSyncStatus {
     if (minutes < 60) return `${minutes}m ago`
     if (hours < 24) return `${hours}h ago`
     if (days < 7) return `${days}d ago`
-    
+
     return then.toLocaleDateString()
   }
 
@@ -402,7 +401,7 @@ export class GitHubSyncStatus {
    */
   destroy() {
     this.stopAutoUpdate()
-    
+
     if (this.element) {
       this.element.remove()
       this.element = null

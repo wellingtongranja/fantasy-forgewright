@@ -137,13 +137,13 @@
 }
 
 /* Dark theme adjustments */
-[data-theme="dark"] .command-bar {
+[data-theme='dark'] .command-bar {
   background: rgba(45, 45, 45, 0.92);
   border-color: rgba(64, 64, 64, 0.6);
 }
 
 /* Fantasy theme adjustments */
-[data-theme="fantasy"] .command-bar {
+[data-theme='fantasy'] .command-bar {
   background: rgba(26, 0, 51, 0.92);
   border-color: rgba(106, 27, 154, 0.4);
 }
@@ -189,7 +189,7 @@
     border-width: 1px;
     background: var(--color-bg);
   }
-  
+
   .command-result.selected {
     outline: 1px solid var(--color-primary);
     outline-offset: -1px;

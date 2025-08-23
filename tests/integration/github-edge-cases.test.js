@@ -402,6 +402,8 @@ missing colon
       }
       
       syncManager = new SyncManager(storageManager, githubStorage, githubAuth)
+      // Reset sync state between tests
+      syncManager.syncing = false
       githubAuth.accessToken = 'test-token'
       githubAuth.user = { id: 1, login: 'testuser' }
     })

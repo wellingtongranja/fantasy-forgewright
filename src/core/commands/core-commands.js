@@ -19,7 +19,7 @@ export function registerCoreCommands(registry, app) {
       handler: async (args) => {
         const title = args.join(' ') || 'Untitled Document'
         const doc = await app.createNewDocument(title)
-        
+
         if (doc) {
           return { success: true, message: `Created new document: ${title}` }
         } else {
@@ -52,27 +52,28 @@ export function registerCoreCommands(registry, app) {
       handler: async (args) => {
         const filter = args.join(' ')
         const documents = await app.storageManager.getAllDocuments()
-        
+
         if (filter) {
-          const filtered = documents.filter(doc => 
-            doc.title.toLowerCase().includes(filter.toLowerCase()) ||
-            doc.content.toLowerCase().includes(filter.toLowerCase())
+          const filtered = documents.filter(
+            (doc) =>
+              doc.title.toLowerCase().includes(filter.toLowerCase()) ||
+              doc.content.toLowerCase().includes(filter.toLowerCase())
           )
-          
+
           if (filtered.length === 1) {
             app.loadDocument(filtered[0])
             return { success: true, message: `Opened: ${filtered[0].title}` }
           } else if (filtered.length === 0) {
             return { success: false, message: `No documents found matching "${filter}"` }
           } else {
-            return { 
-              success: true, 
+            return {
+              success: true,
               message: `Found ${filtered.length} documents matching "${filter}":`,
-              data: filtered.map(d => `${d.title} (${d.id})`)
+              data: filtered.map((d) => `${d.title} (${d.id})`)
             }
           }
         }
-        
+
         // If no filter, show document list with instructions
         if (documents.length === 0) {
           return {
@@ -80,7 +81,7 @@ export function registerCoreCommands(registry, app) {
             message: 'No documents found. Use ":n [title]" to create your first document.'
           }
         }
-        
+
         return {
           success: true,
           message: `Available documents (use ":o <name>" to open specific document):`,
@@ -95,19 +96,17 @@ export function registerCoreCommands(registry, app) {
       category: 'search',
       icon: '🔍',
       aliases: [':f'],
-      parameters: [
-        { name: 'query', required: true, type: 'string', description: 'Search query' }
-      ],
+      parameters: [{ name: 'query', required: true, type: 'string', description: 'Search query' }],
       handler: async (args) => {
         const query = args.join(' ')
-        
+
         if (!query) {
           return { success: false, message: 'Please provide a search query' }
         }
 
         try {
           const results = await app.searchEngine.search(query, { limit: 5 })
-          
+
           if (results.length === 0) {
             return { success: false, message: `No documents found matching "${query}"` }
           }
@@ -115,11 +114,14 @@ export function registerCoreCommands(registry, app) {
           return {
             success: true,
             message: `Found ${results.length} documents matching "${query}"`,
-            data: results.map(result => ({
+            data: results.map((result) => ({
               title: result.document.title,
               id: result.document.id,
               relevance: Math.round(result.relevance * 100) + '%',
-              snippet: result.matches.find(m => m.field === 'content')?.snippets[0]?.text?.substring(0, 80) + '...' || ''
+              snippet:
+                result.matches
+                  .find((m) => m.field === 'content')
+                  ?.snippets[0]?.text?.substring(0, 80) + '...' || ''
             }))
           }
         } catch (error) {
@@ -137,12 +139,17 @@ export function registerCoreCommands(registry, app) {
       icon: '🎨',
       aliases: [':t'],
       parameters: [
-        { name: 'theme', required: false, type: 'string', description: 'Theme name (light, dark, fantasy)' }
+        {
+          name: 'theme',
+          required: false,
+          type: 'string',
+          description: 'Theme name (light, dark, fantasy)'
+        }
       ],
       handler: async (args) => {
         const themeName = args[0]
         const availableThemes = ['light', 'dark', 'fantasy']
-        
+
         if (!themeName) {
           return {
             success: true,
@@ -150,14 +157,14 @@ export function registerCoreCommands(registry, app) {
             data: availableThemes
           }
         }
-        
+
         if (!availableThemes.includes(themeName)) {
           return {
             success: false,
             message: `Unknown theme "${themeName}". Available themes: ${availableThemes.join(', ')}`
           }
         }
-        
+
         app.themeManager.applyTheme(themeName)
         return { success: true, message: `Switched to ${themeName} theme` }
       }
@@ -188,11 +195,16 @@ export function registerCoreCommands(registry, app) {
         if (!doc) {
           return { success: false, message: 'No document currently open' }
         }
-        
-        const wordCount = doc.content ? doc.content.trim().split(/\s+/).filter(w => w.length > 0).length : 0
+
+        const wordCount = doc.content
+          ? doc.content
+              .trim()
+              .split(/\s+/)
+              .filter((w) => w.length > 0).length
+          : 0
         const charCount = doc.content ? doc.content.length : 0
         const docInfo = app.getDocumentInfo()
-        
+
         return {
           success: true,
           message: 'Document information:',
@@ -219,17 +231,22 @@ export function registerCoreCommands(registry, app) {
       icon: '❓',
       aliases: [':h'],
       parameters: [
-        { name: 'command', required: false, type: 'string', description: 'Specific command to get help for' }
+        {
+          name: 'command',
+          required: false,
+          type: 'string',
+          description: 'Specific command to get help for'
+        }
       ],
       handler: async (args, context) => {
         const commandName = args[0]
-        
+
         if (commandName) {
           const command = registry.getCommand(commandName)
           if (!command) {
             return { success: false, message: `Command "${commandName}" not found` }
           }
-          
+
           return {
             success: true,
             message: `help for ${command.name}`,
@@ -239,33 +256,34 @@ export function registerCoreCommands(registry, app) {
               category: command.category,
               aliases: command.aliases,
               parameters: command.parameters,
-              usage: command.parameters.length > 0 
-                ? `${command.name} ${command.parameters.map(p => p.required ? `<${p.name}>` : `[${p.name}]`).join(' ')}`
-                : `${command.name}`
+              usage:
+                command.parameters.length > 0
+                  ? `${command.name} ${command.parameters.map((p) => (p.required ? `<${p.name}>` : `[${p.name}]`)).join(' ')}`
+                  : `${command.name}`
             }
           }
         }
-        
+
         // General help
         const categories = registry.getCategories()
         const stats = registry.getStats()
-        
+
         return {
           success: true,
           message: 'fantasy editor command help',
           data: {
             shortcuts: {
               'Ctrl+Space': 'open command palette',
-              'Escape': 'close command palette',
+              Escape: 'close command palette',
               '↑↓ Arrow Keys': 'navigate commands',
-              'Enter': 'execute command',
-              'Tab': 'cycle through results'
+              Enter: 'execute command',
+              Tab: 'cycle through results'
             },
             categories: categories,
             totalCommands: stats.totalCommands,
             examples: [
               ':n My Epic Tale - create new document',
-              ':s - save current document', 
+              ':s - save current document',
               ':f dragon - find documents containing "dragon"',
               ':fs - focus the search input',
               ':fd - navigate document list',
@@ -286,22 +304,27 @@ export function registerCoreCommands(registry, app) {
       icon: '🏷️',
       aliases: [':tag'],
       parameters: [
-        { name: 'action', required: true, type: 'string', description: 'Action: add, remove, list' },
+        {
+          name: 'action',
+          required: true,
+          type: 'string',
+          description: 'Action: add, remove, list'
+        },
         { name: 'tag', required: false, type: 'string', description: 'Tag name' }
       ],
       handler: async (args) => {
         const action = args[0]
         const tagName = args[1]
         const doc = app.currentDocument
-        
+
         if (!doc) {
           return { success: false, message: 'No document currently open' }
         }
-        
+
         if (!doc.tags) {
           doc.tags = []
         }
-        
+
         switch (action) {
           case 'add':
             if (!tagName) {
@@ -313,7 +336,7 @@ export function registerCoreCommands(registry, app) {
             doc.tags.push(tagName)
             await app.saveDocument()
             return { success: true, message: `Added tag "${tagName}"` }
-            
+
           case 'remove':
             if (!tagName) {
               return { success: false, message: 'tag name required. Usage: tag remove <tagname>' }
@@ -325,14 +348,14 @@ export function registerCoreCommands(registry, app) {
             doc.tags.splice(index, 1)
             await app.saveDocument()
             return { success: true, message: `Removed tag "${tagName}"` }
-            
+
           case 'list':
             return {
               success: true,
               message: 'Document tags:',
               data: doc.tags
             }
-            
+
           default:
             return {
               success: false,
@@ -394,7 +417,7 @@ export function registerCoreCommands(registry, app) {
       aliases: [':d'],
       handler: async () => {
         const documents = await app.storageManager.getAllDocuments()
-        
+
         if (documents.length === 0) {
           return {
             success: true,
@@ -402,12 +425,14 @@ export function registerCoreCommands(registry, app) {
             data: ['Use "new" command to create your first document']
           }
         }
-        
+
         return {
           success: true,
           message: `Found ${documents.length} documents:`,
           data: documents.map((doc, index) => {
-            const timeAgo = app.formatTimeAgo ? app.formatTimeAgo(doc.updatedAt) : new Date(doc.updatedAt).toLocaleDateString()
+            const timeAgo = app.formatTimeAgo
+              ? app.formatTimeAgo(doc.updatedAt)
+              : new Date(doc.updatedAt).toLocaleDateString()
             return `${index + 1}. ${doc.title} (${timeAgo})`
           })
         }
@@ -423,7 +448,7 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         const sidebar = document.querySelector('.sidebar')
         const appMain = document.querySelector('.app-main')
-        
+
         if (sidebar && appMain) {
           const isHidden = sidebar.classList.contains('sidebar-hidden')
           if (isHidden) {
@@ -436,7 +461,7 @@ export function registerCoreCommands(registry, app) {
             return { success: true, message: 'Sidebar hidden' }
           }
         }
-        
+
         return { success: false, message: 'Sidebar not found' }
       }
     },
@@ -471,8 +496,8 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         const syncStatus = document.getElementById('sync-status')
         const status = syncStatus ? syncStatus.textContent : 'Unknown'
-        const docCount = await app.storageManager.getAllDocuments().then(docs => docs.length)
-        
+        const docCount = await app.storageManager.getAllDocuments().then((docs) => docs.length)
+
         return {
           success: true,
           message: 'Sync Status',
@@ -507,7 +532,7 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         try {
           const stats = await app.storageManager.getStorageStats()
-          
+
           return {
             success: true,
             message: 'Storage Statistics:',
@@ -556,7 +581,7 @@ export function registerCoreCommands(registry, app) {
     const { result } = event.detail
     if (result && result.message) {
       let message = result.message
-      
+
       // If there's data to display, append it to the message
       if (result.data && Array.isArray(result.data) && result.data.length > 0) {
         if (result.data.length <= 5) {
@@ -568,7 +593,7 @@ export function registerCoreCommands(registry, app) {
           message += `\n... and ${result.data.length - 5} more`
         }
       }
-      
+
       app.showNotification(message, result.success ? 'success' : 'error')
     }
   })

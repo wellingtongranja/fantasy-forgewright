@@ -29,13 +29,13 @@ export class ThemeManager {
   updateThemeToggle() {
     const toggle = document.getElementById('theme-toggle')
     if (!toggle) return
-    
+
     const icons = {
       light: '🌙',
       dark: '☀️',
       fantasy: '✨'
     }
-    
+
     toggle.textContent = icons[this.currentTheme] || '🌙'
     toggle.setAttribute('aria-label', `Switch to ${this.getNextTheme()} theme`)
   }

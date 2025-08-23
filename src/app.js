@@ -33,7 +33,7 @@ class FantasyEditorApp {
       lastTitleHash: null,
       hasUnsavedChanges: false
     }
-    
+
     // GitHub integration
     this.githubAuth = null
     this.githubStorage = null
@@ -49,7 +49,7 @@ class FantasyEditorApp {
       this.attachEventListeners()
       await this.loadInitialDocument()
       this.updateUI()
-      
+
       // Hide sidebar initially for distraction-free writing
       const sidebar = document.querySelector('.sidebar')
       const appMain = document.querySelector('.app-main')
@@ -59,10 +59,10 @@ class FantasyEditorApp {
       if (appMain) {
         appMain.classList.add('sidebar-hidden')
       }
-      
+
       // Set up periodic sync status updates
       this.startPeriodicSyncStatusUpdates()
-      
+
       console.log('Fantasy Editor initialized successfully')
     } catch (error) {
       console.error('Failed to initialize app:', error)
@@ -73,7 +73,9 @@ class FantasyEditorApp {
   async registerServiceWorker() {
     if ('serviceWorker' in navigator) {
       try {
-        const registration = await navigator.serviceWorker.register('/src/workers/service-worker.js')
+        const registration = await navigator.serviceWorker.register(
+          '/src/workers/service-worker.js'
+        )
         console.log('Service Worker registered:', registration)
       } catch (error) {
         console.error('Service Worker registration failed:', error)
@@ -87,32 +89,32 @@ class FantasyEditorApp {
     this.themeManager = new ThemeManager()
     this.storageManager = new StorageManager()
     this.searchEngine = new SearchEngine(this.storageManager)
-    
+
     // Initialize GitHub integration
     await this.initializeGitHubIntegration()
-    
+
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
     this.commandBar = new CommandBar(this.commandRegistry)
-    
+
     // Initialize file tree
     const fileTreeContainer = document.getElementById('file-tree')
     this.fileTree = new FileTree(fileTreeContainer, this.storageManager, (document) => {
       this.loadDocument(document)
     })
-    
+
     // Register core commands
     registerCoreCommands(this.commandRegistry, this)
-    
+
     // Register GitHub commands
     registerGitHubCommands(this.commandRegistry, this)
-    
+
     // Initialize dev helpers for console access
     devHelpers.init(this)
-    
+
     // Handle GitHub OAuth callback
     this.handleOAuthCallback()
-    
+
     // Handle command execution results
     this.setupCommandEventHandlers()
   }
@@ -145,7 +147,7 @@ class FantasyEditorApp {
     } else if (result.data) {
       // Simplify data display for better UX
       let message = result.message || 'Command completed'
-      
+
       if (Array.isArray(result.data)) {
         // For lists, show count summary instead of full list
         if (result.data.length > 3) {
@@ -163,7 +165,7 @@ class FantasyEditorApp {
           message += ` (${entries.length} properties)`
         }
       }
-      
+
       this.showNotification(message, result.success ? 'success' : 'info')
     } else {
       this.showNotification(result.message, result.success ? 'success' : 'info')
@@ -188,7 +190,7 @@ class FantasyEditorApp {
       } else if (code) {
         this.completeOAuthFlow(code, state)
       }
-      
+
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
     }
@@ -205,7 +207,7 @@ class FantasyEditorApp {
 
       // Handle the OAuth callback
       const user = await this.githubAuth.handleCallback(window.location.href)
-      
+
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
       console.log('GitHub authentication successful:', user)
 
@@ -231,20 +233,29 @@ class FantasyEditorApp {
       }
 
       this.showNotification('Setting up your Fantasy Editor repository...', 'info')
-      
+
       const success = await this.githubStorage.createDefaultRepository(user.login)
-      
+
       if (success) {
-        this.showNotification(`Repository "${user.login}/fantasy-editor" configured! Use :ghp to push documents.`, 'success')
+        this.showNotification(
+          `Repository "${user.login}/fantasy-editor" configured! Use :ghp to push documents.`,
+          'success'
+        )
         console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
         // Update UI to reflect new repository configuration
         this.updateGitHubUI()
       } else {
-        this.showNotification('Repository setup failed, but you can configure manually with :ghc', 'warning')
+        this.showNotification(
+          'Repository setup failed, but you can configure manually with :ghc',
+          'warning'
+        )
       }
     } catch (error) {
       console.error('Failed to setup default repository:', error)
-      this.showNotification('Repository setup failed, but you can configure manually with :ghc', 'warning')
+      this.showNotification(
+        'Repository setup failed, but you can configure manually with :ghc',
+        'warning'
+      )
     }
   }
 
@@ -252,7 +263,7 @@ class FantasyEditorApp {
     try {
       // Get GitHub client ID from environment variables
       const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-      
+
       if (!githubClientId) {
         console.warn('GitHub OAuth not configured: VITE_GITHUB_CLIENT_ID not found in .env file')
         return
@@ -273,10 +284,9 @@ class FantasyEditorApp {
       })
 
       console.log('✅ GitHub Device Flow integration initialized')
-      
+
       // Initialize GitHub UI components
       this.initializeGitHubUI()
-      
     } catch (error) {
       console.error('❌ Failed to initialize GitHub integration:', error)
       this.showNotification('GitHub integration failed to initialize', 'warning')
@@ -377,7 +387,6 @@ class FantasyEditorApp {
     this.updateGitHubSyncStatus()
   }
 
-
   attachEventListeners() {
     // No direct keyboard shortcuts - everything goes through Ctrl+Space command palette
     // No icon buttons - everything goes through command palette
@@ -424,18 +433,17 @@ class FantasyEditorApp {
         }
       })
     }
-
   }
 
   async loadInitialDocument() {
     const documents = await this.storageManager.getAllDocuments()
-    
+
     if (documents.length > 0) {
       this.currentDocument = documents[0]
     } else {
       this.currentDocument = this.createNewDocument()
     }
-    
+
     this.loadDocument(this.currentDocument)
   }
 
@@ -445,21 +453,21 @@ class FantasyEditorApp {
       content: '# Welcome to Fantasy Editor\n\nStart writing your epic tale...',
       tags: []
     }
-    
+
     try {
       // Create document with GUID system
       this.currentDocument = await this.storageManager.saveDocument(newDoc)
       this.loadDocument(this.currentDocument)
-      
+
       // Initialize change tracking
       this.initializeChangeTracking()
-      
+
       // Update file tree
       if (this.fileTree) {
         this.fileTree.addDocument(this.currentDocument)
         this.fileTree.setSelectedDocument(this.currentDocument.id)
       }
-      
+
       console.log(`Created new document with GUID: ${this.currentDocument.id}`)
       return this.currentDocument
     } catch (error) {
@@ -471,24 +479,24 @@ class FantasyEditorApp {
 
   loadDocument(doc) {
     if (!doc) return
-    
+
     this.currentDocument = doc
     document.getElementById('doc-title').value = doc.title || 'Untitled Document'
     this.editor.setContent(doc.content || '')
     this.updateWordCount()
     this.updateSyncStatus('Ready')
-    
+
     // Initialize change tracking for the loaded document
     this.initializeChangeTracking()
-    
+
     // Update file tree selection
     if (this.fileTree) {
       this.fileTree.setSelectedDocument(doc.id)
     }
-    
+
     // Update all UI components including GitHub sync status
     this.updateUI()
-    
+
     // Log GUID info for debugging
     if (this.guidManager.isValidGuid(doc.id)) {
       console.log(`Loaded GUID document: ${doc.filename || doc.title} (${doc.id})`)
@@ -499,44 +507,47 @@ class FantasyEditorApp {
 
   async saveDocument() {
     if (!this.currentDocument) return
-    
+
     try {
       this.updateSyncStatus('Saving...')
-      
+
       // Get current title and content
       const title = document.getElementById('doc-title').value || 'Untitled Document'
       const content = this.editor.getContent()
-      
+
       // Check for actual changes before saving
       const hasContentChanges = this.hasContentChanged(content)
       const hasTitleChanges = this.hasTitleChanged(title)
-      
+
       if (!hasContentChanges && !hasTitleChanges) {
         this.updateSyncStatus('No changes')
         setTimeout(() => this.updateSyncStatus('Ready'), 1000)
         return
       }
-      
+
       // Update document
       this.currentDocument.title = title
       this.currentDocument.content = content
-      
+
       const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
       this.currentDocument = savedDoc
-      
+
       // Update change tracking
       this.initializeChangeTracking()
-      
+
       // Update file tree
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
       }
-      
+
       // Show GUID info if this is a newly created GUID document
-      if (this.guidManager.isValidGuid(savedDoc.id) && savedDoc.metadata?.created === savedDoc.metadata?.modified) {
+      if (
+        this.guidManager.isValidGuid(savedDoc.id) &&
+        savedDoc.metadata?.created === savedDoc.metadata?.modified
+      ) {
         console.log(`Saved new GUID document: ${savedDoc.filename} (${savedDoc.id})`)
       }
-      
+
       this.updateSyncStatus('Saved')
       setTimeout(() => this.updateSyncStatus('Ready'), 2000)
     } catch (error) {
@@ -554,8 +565,11 @@ class FantasyEditorApp {
         document.getElementById('word-count').textContent = '0 words'
         return
       }
-      
-      const words = content.trim().split(/\s+/).filter(word => word.length > 0).length
+
+      const words = content
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length
       const wordCount = isNaN(words) ? 0 : words
       document.getElementById('word-count').textContent = `${wordCount} words`
     } catch (error) {
@@ -573,7 +587,7 @@ class FantasyEditorApp {
    */
   updateGuidLabel() {
     const guidLabel = document.getElementById('doc-guid-label')
-    
+
     if (!guidLabel) {
       return
     }
@@ -590,7 +604,7 @@ class FantasyEditorApp {
     setInterval(() => {
       this.updateGitHubSyncStatus()
     }, 5000)
-    
+
     // Also update when visibility changes (user returns to tab)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
@@ -606,7 +620,7 @@ class FantasyEditorApp {
     const syncIndicator = document.getElementById('github-sync-indicator')
     const repoName = document.getElementById('repo-name')
     const syncIcon = document.getElementById('sync-status-icon')
-    
+
     if (!syncIndicator || !repoName || !syncIcon) {
       console.warn('GitHub sync indicator elements not found')
       return
@@ -616,7 +630,7 @@ class FantasyEditorApp {
     const config = this.githubStorage?.getConfig() || {}
     const isAuthenticated = this.githubAuth?.isAuthenticated()
     const isConfigured = config.configured && config.owner && config.repo
-    
+
     if (!isConfigured || !isAuthenticated) {
       syncIndicator.style.display = 'none'
       return
@@ -624,22 +638,24 @@ class FantasyEditorApp {
 
     // Show repository name (just repo name, not owner/repo)
     repoName.textContent = config.repo
-    
+
     // Determine sync status
     let status = 'local-only'
     let icon = '🔴'
-    
+
     if (this.currentDocument) {
       const hasGitHubMetadata = this.currentDocument.githubSha && this.currentDocument.githubPath
-      
+
       if (hasGitHubMetadata) {
-        const lastSynced = this.currentDocument.lastSyncedAt ? new Date(this.currentDocument.lastSyncedAt) : null
-        const lastModified = this.currentDocument.metadata?.modified 
+        const lastSynced = this.currentDocument.lastSyncedAt
+          ? new Date(this.currentDocument.lastSyncedAt)
+          : null
+        const lastModified = this.currentDocument.metadata?.modified
           ? new Date(this.currentDocument.metadata.modified)
-          : this.currentDocument.updatedAt 
-            ? new Date(this.currentDocument.updatedAt) 
+          : this.currentDocument.updatedAt
+            ? new Date(this.currentDocument.updatedAt)
             : null
-        
+
         if (lastSynced && lastModified && lastSynced >= lastModified) {
           status = 'synced'
           icon = '🟢'
@@ -649,7 +665,7 @@ class FantasyEditorApp {
         }
       }
     }
-    
+
     syncIcon.textContent = icon
     syncIcon.setAttribute('data-status', status)
     syncIndicator.style.display = 'flex'
@@ -665,14 +681,14 @@ class FantasyEditorApp {
   showNotification(message, type = 'info', duration = 3000) {
     const notification = document.createElement('div')
     notification.className = `notification notification-${type}`
-    
+
     // Handle multiline messages by converting newlines to <br> tags
     if (message.includes('\n')) {
       notification.innerHTML = message.replace(/\n/g, '<br>')
     } else {
       notification.textContent = message
     }
-    
+
     // Theme-aware colors using CSS variables
     const typeClasses = {
       success: 'notification-success',
@@ -680,9 +696,9 @@ class FantasyEditorApp {
       warning: 'notification-warning',
       info: 'notification-info'
     }
-    
+
     notification.className += ` ${typeClasses[type] || typeClasses.info}`
-    
+
     notification.style.cssText = `
       position: fixed;
       bottom: calc(var(--footer-height) + var(--spacing-md));
@@ -701,7 +717,7 @@ class FantasyEditorApp {
       transition: all 200ms ease-out;
       border-left: 3px solid var(--notification-accent-color, var(--color-primary));
     `
-    
+
     // Add notification styles if not already present
     if (!document.getElementById('notification-styles')) {
       const styleSheet = document.createElement('style')
@@ -735,15 +751,15 @@ class FantasyEditorApp {
       `
       document.head.appendChild(styleSheet)
     }
-    
+
     document.body.appendChild(notification)
-    
+
     // Animate in
     requestAnimationFrame(() => {
       notification.style.opacity = '1'
       notification.style.transform = 'translateY(0)'
     })
-    
+
     // Auto-hide
     setTimeout(() => {
       notification.style.opacity = '0'
@@ -761,17 +777,17 @@ class FantasyEditorApp {
    */
   scheduleAutoSave() {
     if (!this.currentDocument) return
-    
+
     // Clear existing timeout
     if (this.autoSaveTimeout) {
       clearTimeout(this.autoSaveTimeout)
     }
-    
+
     // Schedule new auto-save
     this.autoSaveTimeout = setTimeout(() => {
       this.performAutoSave()
     }, this.autoSaveDelay)
-    
+
     // Show pending save indicator
     this.updateSyncStatus('Pending...')
   }
@@ -781,42 +797,41 @@ class FantasyEditorApp {
    */
   async performAutoSave() {
     if (!this.currentDocument) return
-    
+
     try {
       // Get current title and content
       const title = document.getElementById('doc-title').value || 'Untitled Document'
       const content = this.editor.getContent()
-      
+
       // Use GUID-aware change detection
       const hasContentChanges = this.hasContentChanged(content)
       const hasTitleChanges = this.hasTitleChanged(title)
-      
+
       if (!hasContentChanges && !hasTitleChanges) {
         this.updateSyncStatus('Ready')
         this.documentChangeTracking.hasUnsavedChanges = false
         return
       }
-      
+
       this.updateSyncStatus('Auto-saving...')
-      
+
       // Update document
       this.currentDocument.title = title
       this.currentDocument.content = content
-      
+
       const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
       this.currentDocument = savedDoc
-      
+
       // Update change tracking
       this.initializeChangeTracking()
-      
+
       // Update file tree silently
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
       }
-      
+
       this.updateSyncStatus('Auto-saved')
       setTimeout(() => this.updateSyncStatus('Ready'), 1000)
-      
     } catch (error) {
       console.error('Auto-save failed:', error)
       this.updateSyncStatus('Auto-save failed')
@@ -830,7 +845,7 @@ class FantasyEditorApp {
   async performSearch(query) {
     const searchResultsContainer = document.getElementById('search-results')
     if (!searchResultsContainer) return
-    
+
     if (!query || query.trim().length === 0) {
       this.clearSearchResults()
       return
@@ -839,10 +854,10 @@ class FantasyEditorApp {
     try {
       // Show loading state
       searchResultsContainer.innerHTML = '<div class="search-loading">Searching...</div>'
-      
+
       // Perform search
       const results = await this.searchEngine.search(query.trim(), { limit: 10 })
-      
+
       if (results.length === 0) {
         searchResultsContainer.innerHTML = `
           <div class="search-empty">
@@ -855,11 +870,11 @@ class FantasyEditorApp {
 
       // Display results
       let html = '<div class="search-results-list">'
-      
-      results.forEach(result => {
+
+      results.forEach((result) => {
         const { document, matches, relevance } = result
         const timeAgo = this.formatTimeAgo(document.updatedAt)
-        
+
         html += `
           <div class="search-result-item" data-doc-id="${document.id}">
             <div class="search-result-header">
@@ -867,10 +882,10 @@ class FantasyEditorApp {
               <span class="search-result-meta">${timeAgo}</span>
             </div>
         `
-        
+
         // Add snippets from matches
         if (matches && matches.length > 0) {
-          matches.forEach(match => {
+          matches.forEach((match) => {
             if (match.field === 'content' && match.snippets.length > 0) {
               const snippet = match.snippets[0]
               const highlightedText = this.highlightSearchTerm(snippet.text, snippet.highlight)
@@ -878,26 +893,27 @@ class FantasyEditorApp {
             }
           })
         }
-        
+
         // Add tags if available
         if (document.tags && document.tags.length > 0) {
           html += `
             <div class="search-result-tags">
-              ${document.tags.slice(0, 3).map(tag => 
-                `<span class="search-tag">${this.escapeHtml(tag)}</span>`
-              ).join('')}
+              ${document.tags
+                .slice(0, 3)
+                .map((tag) => `<span class="search-tag">${this.escapeHtml(tag)}</span>`)
+                .join('')}
             </div>
           `
         }
-        
+
         html += '</div>'
       })
-      
+
       html += '</div>'
       searchResultsContainer.innerHTML = html
-      
+
       // Add click handlers for search results
-      searchResultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+      searchResultsContainer.querySelectorAll('.search-result-item').forEach((item) => {
         item.addEventListener('click', async () => {
           const docId = item.dataset.docId
           try {
@@ -914,7 +930,6 @@ class FantasyEditorApp {
           }
         })
       })
-      
     } catch (error) {
       console.error('Search failed:', error)
       searchResultsContainer.innerHTML = `
@@ -940,7 +955,7 @@ class FantasyEditorApp {
    */
   highlightSearchTerm(text, term) {
     if (!term || !text) return this.escapeHtml(text)
-    
+
     const escaped = this.escapeHtml(text)
     const regex = new RegExp(`(${this.escapeRegex(term)})`, 'gi')
     return escaped.replace(regex, '<mark>$1</mark>')
@@ -972,7 +987,7 @@ class FantasyEditorApp {
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
     const diffHours = Math.floor(diffMinutes / 60)
     const diffDays = Math.floor(diffHours / 24)
-    
+
     if (diffMinutes < 1) {
       return 'Just now'
     } else if (diffMinutes < 60) {
@@ -982,8 +997,8 @@ class FantasyEditorApp {
     } else if (diffDays < 7) {
       return `${diffDays}d ago`
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric'
       })
     }
@@ -1001,16 +1016,15 @@ class FantasyEditorApp {
     }
   }
 
-
   /**
    * Initialize change tracking for the current document
    */
   initializeChangeTracking() {
     if (!this.currentDocument) return
-    
+
     const content = this.currentDocument.content || ''
     const title = this.currentDocument.title || ''
-    
+
     this.documentChangeTracking = {
       lastContentChecksum: this.guidManager.generateChecksum(content),
       lastTitleHash: this.simpleHash(title),
@@ -1041,7 +1055,7 @@ class FantasyEditorApp {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32bit integer
     }
     return hash.toString(16)
@@ -1052,19 +1066,19 @@ class FantasyEditorApp {
    */
   getDocumentInfo() {
     if (!this.currentDocument) return null
-    
+
     const doc = this.currentDocument
     const isGuid = this.guidManager.isValidGuid(doc.id)
     const isOldUid = this.guidManager.isOldUidFormat(doc.id)
-    
+
     return {
       ...doc,
       idType: isGuid ? 'GUID' : isOldUid ? 'Legacy UID' : 'Unknown',
-      filename: doc.filename || (isGuid ? this.guidManager.generateFilename(doc.title, doc.id) : null),
+      filename:
+        doc.filename || (isGuid ? this.guidManager.generateFilename(doc.title, doc.id) : null),
       hasUnsavedChanges: this.documentChangeTracking.hasUnsavedChanges
     }
   }
-
 }
 
 document.addEventListener('DOMContentLoaded', () => {

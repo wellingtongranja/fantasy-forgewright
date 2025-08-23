@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fantasy-editor-v1'
+// const CACHE_NAME = 'fantasy-editor-v1' // Reserved for future use
 const STATIC_CACHE = 'static-v1'
 const DYNAMIC_CACHE = 'dynamic-v1'
 
@@ -23,13 +23,15 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
-          .map((name) => caches.delete(name))
+    caches
+      .keys()
+      .then((cacheNames) =>
+        Promise.all(
+          cacheNames
+            .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
+            .map((name) => caches.delete(name))
+        )
       )
-    })
   )
   self.clients.claim()
 })
@@ -40,25 +42,28 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin === location.origin) {
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse
-        }
-        
-        return fetch(request).then((networkResponse) => {
-          if (request.method === 'GET' && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone()
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, responseToCache)
-            })
+      caches
+        .match(request)
+        .then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse
           }
-          return networkResponse
+
+          return fetch(request).then((networkResponse) => {
+            if (request.method === 'GET' && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone()
+              caches.open(DYNAMIC_CACHE).then((cache) => {
+                cache.put(request, responseToCache)
+              })
+            }
+            return networkResponse
+          })
         })
-      }).catch(() => {
-        if (request.destination === 'document') {
-          return caches.match('/index.html')
-        }
-      })
+        .catch(() => {
+          if (request.destination === 'document') {
+            return caches.match('/index.html')
+          }
+        })
     )
   } else if (url.hostname === 'api.github.com') {
     event.respondWith(
@@ -86,7 +91,7 @@ self.addEventListener('sync', (event) => {
 async function syncDocuments() {
   const cache = await caches.open('pending-sync')
   const requests = await cache.keys()
-  
+
   return Promise.all(
     requests.map(async (request) => {
       try {

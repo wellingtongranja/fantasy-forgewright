@@ -151,45 +151,49 @@
   #search-results {
     max-height: 300px;
   }
-  
+
   .search-result-item {
     padding: var(--spacing-xs);
   }
-  
+
   .search-result-title {
     font-size: var(--font-size-xs);
   }
-  
+
   .search-result-tags {
     display: none; /* Hide tags on very small screens */
   }
 }
 
 /* Dark Theme Adjustments */
-[data-theme="dark"] .search-result-snippet mark {
+[data-theme='dark'] .search-result-snippet mark {
   background-color: rgba(var(--color-primary-rgb), 0.3);
 }
 
-[data-theme="dark"] .search-result-item:hover {
+[data-theme='dark'] .search-result-item:hover {
   background-color: var(--color-bg-secondary);
 }
 
 /* Fantasy Theme Adjustments */
-[data-theme="fantasy"] .search-result-snippet mark {
+[data-theme='fantasy'] .search-result-snippet mark {
   background-color: rgba(255, 111, 0, 0.2);
   color: var(--color-secondary);
 }
 
-[data-theme="fantasy"] .search-result-item:hover {
+[data-theme='fantasy'] .search-result-item:hover {
   border-color: var(--color-secondary);
 }
 
-[data-theme="fantasy"] .search-loading::before {
+[data-theme='fantasy'] .search-loading::before {
   border-top-color: var(--color-secondary);
 }
 
 /* Animation for spin */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

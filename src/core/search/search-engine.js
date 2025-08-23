@@ -19,21 +19,21 @@ export class SearchEngine {
    */
   async buildIndex() {
     if (this.isIndexing) return
-    
+
     this.isIndexing = true
-    
+
     try {
       // Fetch all documents
       this.documents = await this.storageManager.getAllDocuments()
-      
+
       // Build Lunr index
       const self = this
-      this.index = lunr(function() {
+      this.index = lunr(function () {
         this.ref('id')
         this.field('title', { boost: 3 }) // Title has higher importance
         this.field('content', { boost: 1 })
         this.field('tags', { boost: 2 }) // Tags are important for categorization
-        
+
         // Add documents to index
         for (const doc of self.documents) {
           this.add({
@@ -44,10 +44,9 @@ export class SearchEngine {
           })
         }
       })
-      
+
       this.lastIndexUpdate = Date.now()
       console.log(`Search index built with ${this.documents.length} documents`)
-      
     } catch (error) {
       console.error('Failed to build search index:', error)
     } finally {
@@ -62,7 +61,7 @@ export class SearchEngine {
     if (!content || typeof content !== 'string') {
       return ''
     }
-    
+
     return content
       .replace(/^#{1,6}\s+/gm, '') // Remove markdown headers
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
@@ -79,12 +78,7 @@ export class SearchEngine {
    * Search documents using fuzzy matching
    */
   async search(query, options = {}) {
-    const {
-      limit = 10,
-      includeMatches = true,
-      fuzzy = true,
-      boost = {}
-    } = options
+    const { limit = 10, includeMatches = true, fuzzy = true, boost = {} } = options
 
     // Ensure index is built
     if (!this.index) {
@@ -103,24 +97,25 @@ export class SearchEngine {
     try {
       // Build search query
       let searchQuery = query.trim()
-      
+
       if (fuzzy) {
         // Add fuzzy matching (~1 allows 1 character difference)
-        searchQuery = searchQuery.split(' ')
-          .map(term => term.length > 3 ? `${term}~1` : term)
+        searchQuery = searchQuery
+          .split(' ')
+          .map((term) => (term.length > 3 ? `${term}~1` : term))
           .join(' ')
       }
 
       // Perform search
       const results = this.index.search(searchQuery)
-      
+
       // Get full document data and add search metadata
       const searchResults = results
         .slice(0, limit)
-        .map(result => {
-          const doc = this.documents.find(d => d.id === result.ref)
+        .map((result) => {
+          const doc = this.documents.find((d) => d.id === result.ref)
           if (!doc) return null
-          
+
           return {
             document: doc,
             score: result.score,
@@ -128,7 +123,7 @@ export class SearchEngine {
             relevance: this.calculateRelevance(doc, query, result.score)
           }
         })
-        .filter(result => result !== null)
+        .filter((result) => result !== null)
 
       return searchResults
     } catch (error) {
@@ -143,8 +138,11 @@ export class SearchEngine {
    */
   extractMatches(document, query) {
     const matches = []
-    const queryTerms = query.toLowerCase().split(' ').filter(term => term.length > 0)
-    
+    const queryTerms = query
+      .toLowerCase()
+      .split(' ')
+      .filter((term) => term.length > 0)
+
     // Search in title
     const titleMatches = this.findMatches(document.title || '', queryTerms)
     if (titleMatches.length > 0) {
@@ -164,13 +162,13 @@ export class SearchEngine {
     }
 
     // Search in tags
-    const tagMatches = (document.tags || []).filter(tag =>
-      queryTerms.some(term => tag.toLowerCase().includes(term))
+    const tagMatches = (document.tags || []).filter((tag) =>
+      queryTerms.some((term) => tag.toLowerCase().includes(term))
     )
     if (tagMatches.length > 0) {
       matches.push({
         field: 'tags',
-        snippets: tagMatches.map(tag => ({ text: tag, highlight: true }))
+        snippets: tagMatches.map((tag) => ({ text: tag, highlight: true }))
       })
     }
 
@@ -183,28 +181,28 @@ export class SearchEngine {
   findMatches(text, queryTerms, contextLength = 50) {
     const matches = []
     const lowerText = text.toLowerCase()
-    
-    queryTerms.forEach(term => {
+
+    queryTerms.forEach((term) => {
       let startIndex = 0
       while (true) {
         const index = lowerText.indexOf(term, startIndex)
         if (index === -1) break
-        
+
         // Extract context around match
         const start = Math.max(0, index - contextLength)
         const end = Math.min(text.length, index + term.length + contextLength)
         const snippet = text.substring(start, end)
-        
+
         matches.push({
           text: snippet,
           highlight: term,
           position: index
         })
-        
+
         startIndex = index + term.length
       }
     })
-    
+
     return matches
   }
 
@@ -213,24 +211,25 @@ export class SearchEngine {
    */
   calculateRelevance(document, query, lunrScore) {
     let relevance = lunrScore
-    
+
     // Boost recently modified documents
-    const daysSinceUpdate = (Date.now() - new Date(document.updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+    const daysSinceUpdate =
+      (Date.now() - new Date(document.updatedAt).getTime()) / (1000 * 60 * 60 * 24)
     if (daysSinceUpdate < 7) {
       relevance *= 1.2 // 20% boost for documents modified in last week
     }
-    
+
     // Boost documents with more content (up to a point)
     const contentLength = (document.content || '').length
     if (contentLength > 500 && contentLength < 5000) {
       relevance *= 1.1 // 10% boost for substantial documents
     }
-    
+
     // Boost documents with tags
     if (document.tags && document.tags.length > 0) {
       relevance *= 1.05 // 5% boost for tagged documents
     }
-    
+
     return relevance
   }
 
@@ -240,7 +239,7 @@ export class SearchEngine {
   async fallbackSearch(query, limit) {
     try {
       const results = await this.storageManager.searchDocuments(query)
-      return results.slice(0, limit).map(doc => ({
+      return results.slice(0, limit).map((doc) => ({
         document: doc,
         score: 0.5,
         matches: this.extractMatches(doc, query),
@@ -257,21 +256,20 @@ export class SearchEngine {
    */
   async shouldRebuildIndex() {
     if (!this.lastIndexUpdate || !this.index) return true
-    
+
     try {
       const documents = await this.storageManager.getAllDocuments()
-      
+
       // Check if document count changed
       if (documents.length !== this.documents.length) {
         return true
       }
-      
+
       // Check if any document was modified since last index
       if (documents.length === 0) return false
-      
-      const lastModified = Math.max(...documents.map(doc => new Date(doc.updatedAt).getTime()))
+
+      const lastModified = Math.max(...documents.map((doc) => new Date(doc.updatedAt).getTime()))
       return lastModified > this.lastIndexUpdate
-      
     } catch (error) {
       console.error('Error checking index freshness:', error)
       return true
@@ -315,24 +313,22 @@ export class SearchEngine {
 
     // Extract unique words from all documents for suggestions
     const allWords = new Set()
-    
-    this.documents.forEach(doc => {
+
+    this.documents.forEach((doc) => {
       const words = [
         ...(doc.title || '').toLowerCase().split(/\s+/),
         ...(doc.content || '').toLowerCase().split(/\s+/),
-        ...(doc.tags || []).map(tag => tag.toLowerCase())
+        ...(doc.tags || []).map((tag) => tag.toLowerCase())
       ]
-      
-      words.forEach(word => {
+
+      words.forEach((word) => {
         if (word.length > 2 && word.includes(partialQuery.toLowerCase())) {
           allWords.add(word)
         }
       })
     })
 
-    return Array.from(allWords)
-      .sort()
-      .slice(0, limit)
+    return Array.from(allWords).sort().slice(0, limit)
   }
 
   /**

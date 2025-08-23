@@ -49,7 +49,7 @@ export class CommandRegistry {
     this.commands.set(name, commandDef)
 
     // Register aliases
-    aliases.forEach(alias => {
+    aliases.forEach((alias) => {
       this.aliases.set(alias, name)
     })
 
@@ -65,7 +65,7 @@ export class CommandRegistry {
    * @param {Array} commands Array of command definitions
    */
   registerCommands(commands) {
-    commands.forEach(command => this.registerCommand(command))
+    commands.forEach((command) => this.registerCommand(command))
   }
 
   /**
@@ -80,7 +80,7 @@ export class CommandRegistry {
     this.commands.delete(name)
 
     // Remove aliases
-    command.aliases.forEach(alias => {
+    command.aliases.forEach((alias) => {
       this.aliases.delete(alias)
     })
 
@@ -113,7 +113,7 @@ export class CommandRegistry {
    */
   getAllCommands() {
     return Array.from(this.commands.values())
-      .filter(command => command.condition())
+      .filter((command) => command.condition())
       .sort((a, b) => a.name.localeCompare(b.name))
   }
 
@@ -125,8 +125,8 @@ export class CommandRegistry {
   getCommandsByCategory(category) {
     const commandNames = this.categories.get(category) || []
     return commandNames
-      .map(name => this.commands.get(name))
-      .filter(command => command && command.condition())
+      .map((name) => this.commands.get(name))
+      .filter((command) => command && command.condition())
       .sort((a, b) => a.name.localeCompare(b.name))
   }
 
@@ -142,7 +142,7 @@ export class CommandRegistry {
 
     const isColonShortcut = query.startsWith(':')
     let searchQuery = query.toLowerCase()
-    
+
     // If it's a colon shortcut with parameters, extract just the command part
     if (isColonShortcut) {
       // Parse the query to extract the command part (before the first space)
@@ -195,7 +195,7 @@ export class CommandRegistry {
    */
   calculateMatchScore(command, query, isColonShortcut = false) {
     let score = 0
-    
+
     const name = command.name.toLowerCase()
     const description = command.description.toLowerCase()
     const category = command.category.toLowerCase()
@@ -203,7 +203,7 @@ export class CommandRegistry {
     // For colon shortcuts, only match if it's actually a colon shortcut
     if (isColonShortcut) {
       // Check aliases for colon shortcuts
-      if (command.aliases && command.aliases.some(alias => alias.toLowerCase() === query)) {
+      if (command.aliases && command.aliases.some((alias) => alias.toLowerCase() === query)) {
         score += 1500
       }
       return score // For colon shortcuts, only return score if alias matches
@@ -221,23 +221,23 @@ export class CommandRegistry {
     else if (name.includes(query)) {
       score += 600
     }
-    
+
     // Check if query matches individual words in multi-word commands
     const nameWords = name.split(/\s+/)
     const queryWords = query.split(/\s+/)
-    
+
     // Boost score for matching multiple words
     if (queryWords.length > 1 && nameWords.length > 1) {
-      const matchingWords = queryWords.filter(qWord => 
-        nameWords.some(nWord => nWord.startsWith(qWord))
+      const matchingWords = queryWords.filter((qWord) =>
+        nameWords.some((nWord) => nWord.startsWith(qWord))
       )
       if (matchingWords.length === queryWords.length) {
         score += 750 // High score for matching all query words
       } else if (matchingWords.length > 0) {
-        score += 400 + (matchingWords.length * 100)
+        score += 400 + matchingWords.length * 100
       }
     }
-    
+
     // Check for partial word matches in command name
     const firstWord = nameWords[0]
     if (firstWord && firstWord.startsWith(query)) {
@@ -287,14 +287,14 @@ export class CommandRegistry {
   fuzzyMatch(text, query) {
     let textIndex = 0
     let queryIndex = 0
-    
+
     while (textIndex < text.length && queryIndex < query.length) {
       if (text[textIndex].toLowerCase() === query[queryIndex].toLowerCase()) {
         queryIndex++
       }
       textIndex++
     }
-    
+
     return queryIndex === query.length
   }
 
@@ -305,16 +305,16 @@ export class CommandRegistry {
    */
   parseCommand(input) {
     const trimmed = input.trim()
-    
+
     // Try to find the longest matching command name (including multi-word commands)
     const allCommandNames = [
       ...Array.from(this.commands.keys()),
       ...Array.from(this.aliases.keys())
     ].sort((a, b) => b.length - a.length) // Sort by length desc to match longest first
-    
+
     let commandName = ''
     let args = []
-    
+
     // Find the longest command name that matches the beginning of input
     for (const cmdName of allCommandNames) {
       if (trimmed.toLowerCase().startsWith(cmdName.toLowerCase())) {
@@ -326,7 +326,7 @@ export class CommandRegistry {
         }
       }
     }
-    
+
     // Fallback to original parsing if no multi-word command found
     if (!commandName) {
       const parts = trimmed.split(/\s+/)
@@ -375,7 +375,6 @@ export class CommandRegistry {
       this.dispatchEvent('execute', { command, args: parsed.args, result })
 
       return result
-
     } catch (error) {
       // Dispatch error event
       this.dispatchEvent('error', { input, error: error.message })
@@ -389,10 +388,10 @@ export class CommandRegistry {
    * @param {Array} args Provided arguments
    */
   validateParameters(command, args) {
-    const required = command.parameters.filter(p => p.required)
-    
+    const required = command.parameters.filter((p) => p.required)
+
     if (args.length < required.length) {
-      const missing = required.slice(args.length).map(p => p.name)
+      const missing = required.slice(args.length).map((p) => p.name)
       throw new Error(`Missing required parameters: ${missing.join(', ')}`)
     }
 

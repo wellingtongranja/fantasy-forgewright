@@ -32,32 +32,32 @@ export class StorageManager {
     if (!doc || typeof doc !== 'object') {
       throw new Error('Invalid document: document must be an object')
     }
-    
+
     // Validate ID (GUID or old UID for backward compatibility)
     if (!doc.id || typeof doc.id !== 'string') {
       throw new Error('Document ID is required')
     }
-    
+
     if (!this.guidManager.isValidGuid(doc.id) && !this.guidManager.isOldUidFormat(doc.id)) {
       throw new Error('Document ID must be valid GUID or UID format')
     }
-    
+
     if (!doc.title || typeof doc.title !== 'string' || doc.title.trim().length === 0) {
       throw new Error('Document title is required')
     }
-    
+
     if (doc.title.length > 200) {
       throw new Error('Document title must be less than 200 characters')
     }
-    
+
     if (doc.content && typeof doc.content !== 'string') {
       throw new Error('Document content must be a string')
     }
-    
+
     if (doc.tags && !Array.isArray(doc.tags)) {
       throw new Error('Document tags must be an array')
     }
-    
+
     return true
   }
 
@@ -66,7 +66,7 @@ export class StorageManager {
    */
   sanitizeDocument(doc) {
     const sanitized = { ...doc }
-    
+
     // Basic XSS prevention - remove script tags and javascript: protocols
     if (sanitized.content) {
       sanitized.content = sanitized.content
@@ -74,21 +74,19 @@ export class StorageManager {
         .replace(/javascript:/gi, '')
         .replace(/on\w+\s*=/gi, '')
     }
-    
+
     // Sanitize title
     if (sanitized.title) {
-      sanitized.title = sanitized.title
-        .replace(/<[^>]*>/g, '')
-        .trim()
+      sanitized.title = sanitized.title.replace(/<[^>]*>/g, '').trim()
     }
-    
+
     // Ensure tags are strings
     if (sanitized.tags) {
       sanitized.tags = sanitized.tags
-        .filter(tag => typeof tag === 'string')
-        .map(tag => tag.toLowerCase().trim())
+        .filter((tag) => typeof tag === 'string')
+        .map((tag) => tag.toLowerCase().trim())
     }
-    
+
     return sanitized
   }
 
@@ -97,7 +95,7 @@ export class StorageManager {
    */
   verifyIntegrity(doc) {
     if (!doc.checksum || !doc.content) return false
-    
+
     const currentChecksum = this.generateChecksum(doc.content)
     return currentChecksum === doc.checksum
   }
@@ -105,19 +103,19 @@ export class StorageManager {
   async initDatabase() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion)
-      
+
       request.onerror = () => {
         reject(new Error('Failed to open database'))
       }
-      
+
       request.onsuccess = (event) => {
         this.db = event.target.result
         resolve(this.db)
       }
-      
+
       request.onupgradeneeded = (event) => {
         const db = event.target.result
-        
+
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
           store.createIndex('title', 'title', { unique: false })
@@ -130,11 +128,11 @@ export class StorageManager {
 
   async saveDocument(document) {
     await this.ensureDatabase()
-    
+
     if (!document) {
       throw new Error('Invalid document')
     }
-    
+
     let processedDoc
 
     // Check if this is a new document or existing one
@@ -149,7 +147,7 @@ export class StorageManager {
       // Update existing document
       this.validateDocument(document)
       const sanitizedDoc = this.sanitizeDocument(document)
-      
+
       if (this.guidManager.isValidGuid(document.id)) {
         // Update GUID document
         processedDoc = this.guidManager.updateDocument(sanitizedDoc, {
@@ -169,12 +167,12 @@ export class StorageManager {
         }
       }
     }
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
       const request = store.put(processedDoc)
-      
+
       transaction.oncomplete = () => resolve(processedDoc)
       transaction.onerror = () => reject(new Error('Failed to save document'))
     })
@@ -182,12 +180,12 @@ export class StorageManager {
 
   async getDocument(id) {
     await this.ensureDatabase()
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readonly')
       const store = transaction.objectStore(this.storeName)
       const request = store.get(id)
-      
+
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(new Error('Failed to get document'))
     })
@@ -195,12 +193,12 @@ export class StorageManager {
 
   async getAllDocuments() {
     await this.ensureDatabase()
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readonly')
       const store = transaction.objectStore(this.storeName)
       const request = store.getAll()
-      
+
       request.onsuccess = () => {
         const documents = request.result
         documents.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
@@ -212,12 +210,12 @@ export class StorageManager {
 
   async deleteDocument(id) {
     await this.ensureDatabase()
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
       const request = store.delete(id)
-      
+
       request.onsuccess = () => resolve()
       request.onerror = () => reject(new Error('Failed to delete document'))
     })
@@ -226,12 +224,12 @@ export class StorageManager {
   async searchDocuments(query) {
     const documents = await this.getAllDocuments()
     const lowerQuery = query.toLowerCase()
-    
-    return documents.filter(doc => {
+
+    return documents.filter((doc) => {
       const titleMatch = doc.title?.toLowerCase().includes(lowerQuery)
       const contentMatch = doc.content?.toLowerCase().includes(lowerQuery)
-      const tagMatch = doc.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
-      
+      const tagMatch = doc.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))
+
       return titleMatch || contentMatch || tagMatch
     })
   }
@@ -249,16 +247,16 @@ export class StorageManager {
    */
   async documentExists(guid) {
     await this.ensureDatabase()
-    
+
     if (!this.guidManager.isValidGuid(guid)) {
       return false
     }
-    
+
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readonly')
       const store = transaction.objectStore(this.storeName)
       const request = store.get(guid)
-      
+
       request.onsuccess = () => resolve(!!request.result)
       request.onerror = () => reject(new Error('Failed to check document existence'))
     })
@@ -271,9 +269,9 @@ export class StorageManager {
    */
   async getDocumentByFilename(filename) {
     await this.ensureDatabase()
-    
+
     const documents = await this.getAllDocuments()
-    return documents.find(doc => doc.filename === filename) || null
+    return documents.find((doc) => doc.filename === filename) || null
   }
 
   /**
@@ -283,58 +281,66 @@ export class StorageManager {
    */
   async findPotentialDuplicates(document) {
     await this.ensureDatabase()
-    
+
     if (!document.title && !document.content) {
       return []
     }
-    
+
     const allDocuments = await this.getAllDocuments()
     const potentialDuplicates = []
-    
+
     for (const existingDoc of allDocuments) {
       if (existingDoc.id === document.id) {
         continue // Skip self
       }
-      
+
       let similarity = 0
-      
+
       // Check title similarity
       if (document.title && existingDoc.title) {
         if (document.title.toLowerCase() === existingDoc.title.toLowerCase()) {
           similarity += 50 // 50% weight for exact title match
-        } else if (existingDoc.title.toLowerCase().includes(document.title.toLowerCase()) ||
-                   document.title.toLowerCase().includes(existingDoc.title.toLowerCase())) {
+        } else if (
+          existingDoc.title.toLowerCase().includes(document.title.toLowerCase()) ||
+          document.title.toLowerCase().includes(existingDoc.title.toLowerCase())
+        ) {
           similarity += 25 // 25% weight for partial title match
         }
       }
-      
+
       // Check content similarity (basic)
       if (document.content && existingDoc.content) {
         const docChecksum = this.generateChecksum(document.content)
         const existingChecksum = this.generateChecksum(existingDoc.content)
-        
+
         if (docChecksum === existingChecksum) {
           similarity += 40 // 40% weight for identical content
         } else {
           // Simple content similarity check
           const docWords = document.content.toLowerCase().split(/\s+/)
           const existingWords = existingDoc.content.toLowerCase().split(/\s+/)
-          const commonWords = docWords.filter(word => existingWords.includes(word))
-          
+          const commonWords = docWords.filter((word) => existingWords.includes(word))
+
           if (commonWords.length > Math.min(docWords.length, existingWords.length) * 0.5) {
             similarity += 20 // 20% weight for significant word overlap
           }
         }
       }
-      
+
       // Check tag similarity
-      if (document.tags && existingDoc.tags && document.tags.length > 0 && existingDoc.tags.length > 0) {
-        const commonTags = document.tags.filter(tag => existingDoc.tags.includes(tag))
+      if (
+        document.tags &&
+        existingDoc.tags &&
+        document.tags.length > 0 &&
+        existingDoc.tags.length > 0
+      ) {
+        const commonTags = document.tags.filter((tag) => existingDoc.tags.includes(tag))
         if (commonTags.length > 0) {
-          similarity += (commonTags.length / Math.max(document.tags.length, existingDoc.tags.length)) * 10
+          similarity +=
+            (commonTags.length / Math.max(document.tags.length, existingDoc.tags.length)) * 10
         }
       }
-      
+
       // Consider it a potential duplicate if similarity > 60%
       if (similarity >= 60) {
         potentialDuplicates.push({
@@ -344,7 +350,7 @@ export class StorageManager {
         })
       }
     }
-    
+
     return potentialDuplicates.sort((a, b) => b.similarity - a.similarity)
   }
 
@@ -354,11 +360,11 @@ export class StorageManager {
    */
   getDuplicateReasons(doc1, doc2, similarity) {
     const reasons = []
-    
+
     if (doc1.title && doc2.title && doc1.title.toLowerCase() === doc2.title.toLowerCase()) {
       reasons.push('Identical titles')
     }
-    
+
     if (doc1.content && doc2.content) {
       const checksum1 = this.generateChecksum(doc1.content)
       const checksum2 = this.generateChecksum(doc2.content)
@@ -366,14 +372,14 @@ export class StorageManager {
         reasons.push('Identical content')
       }
     }
-    
+
     if (doc1.tags && doc2.tags) {
-      const commonTags = doc1.tags.filter(tag => doc2.tags.includes(tag))
+      const commonTags = doc1.tags.filter((tag) => doc2.tags.includes(tag))
       if (commonTags.length > 0) {
         reasons.push(`${commonTags.length} common tags`)
       }
     }
-    
+
     return reasons
   }
 
@@ -383,17 +389,18 @@ export class StorageManager {
    */
   async getStorageStats() {
     await this.ensureDatabase()
-    
+
     try {
       const documents = await this.getAllDocuments()
-      const guidDocs = documents.filter(doc => this.guidManager.isValidGuid(doc.id))
-      const githubDocs = documents.filter(doc => doc.githubSha || doc.githubPath)
-      const syncedDocs = documents.filter(doc => doc.lastSyncedAt)
-      
-      const totalSize = documents.reduce((sum, doc) => 
-        sum + (doc.content || '').length + (doc.title || '').length, 0
+      const guidDocs = documents.filter((doc) => this.guidManager.isValidGuid(doc.id))
+      const githubDocs = documents.filter((doc) => doc.githubSha || doc.githubPath)
+      const syncedDocs = documents.filter((doc) => doc.lastSyncedAt)
+
+      const totalSize = documents.reduce(
+        (sum, doc) => sum + (doc.content || '').length + (doc.title || '').length,
+        0
       )
-      
+
       return {
         totalDocuments: documents.length,
         guidDocuments: guidDocs.length,
@@ -422,19 +429,19 @@ export class StorageManager {
    */
   async updateGitHubMetadata(documentId, githubMetadata) {
     await this.ensureDatabase()
-    
+
     const document = await this.getDocument(documentId)
     if (!document) {
       throw new Error('Document not found')
     }
-    
+
     const updatedDoc = {
       ...document,
       githubSha: githubMetadata.sha,
       githubPath: githubMetadata.path,
       lastSyncedAt: githubMetadata.lastSyncedAt || new Date().toISOString()
     }
-    
+
     return await this.saveDocument(updatedDoc)
   }
 
@@ -445,21 +452,21 @@ export class StorageManager {
    */
   async getDocumentsNeedingSync(since = null) {
     await this.ensureDatabase()
-    
+
     const documents = await this.getAllDocuments()
-    
-    return documents.filter(doc => {
+
+    return documents.filter((doc) => {
       // Skip if document has never been modified
       if (!doc.updatedAt) return false
-      
+
       const updatedAt = new Date(doc.updatedAt)
-      
+
       // If since date provided, only include documents modified after that
       if (since && updatedAt <= since) return false
-      
+
       // Include if never synced or modified after last sync
       if (!doc.lastSyncedAt) return true
-      
+
       const lastSynced = new Date(doc.lastSyncedAt)
       return updatedAt > lastSynced
     })
@@ -472,12 +479,12 @@ export class StorageManager {
    */
   async markAsSynced(documentId) {
     await this.ensureDatabase()
-    
+
     const document = await this.getDocument(documentId)
     if (!document) {
       throw new Error('Document not found')
     }
-    
+
     document.lastSyncedAt = new Date().toISOString()
     await this.saveDocument(document)
   }
@@ -489,16 +496,16 @@ export class StorageManager {
    */
   async getDocumentSyncStatus(documentId) {
     await this.ensureDatabase()
-    
+
     const document = await this.getDocument(documentId)
     if (!document) {
       throw new Error('Document not found')
     }
-    
+
     const hasGitHubMetadata = !!(document.githubSha && document.githubPath)
     const lastSynced = document.lastSyncedAt ? new Date(document.lastSyncedAt) : null
     const lastModified = document.updatedAt ? new Date(document.updatedAt) : null
-    
+
     let status = 'unknown'
     if (!hasGitHubMetadata) {
       status = 'not_synced'
@@ -509,7 +516,7 @@ export class StorageManager {
     } else {
       status = 'synced'
     }
-    
+
     return {
       status,
       hasGitHubMetadata,
@@ -527,16 +534,16 @@ export class StorageManager {
    */
   async removeGitHubMetadata(documentId) {
     await this.ensureDatabase()
-    
+
     const document = await this.getDocument(documentId)
     if (!document) {
       throw new Error('Document not found')
     }
-    
+
     delete document.githubSha
     delete document.githubPath
     delete document.lastSyncedAt
-    
+
     await this.saveDocument(document)
   }
 }

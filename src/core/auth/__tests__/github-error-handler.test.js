@@ -84,10 +84,14 @@ describe('GitHubErrorHandler', () => {
     })
 
     test('should handle 422 Validation Error', async () => {
-      const response = createMockResponse(422, {}, {
-        message: 'Validation failed',
-        errors: [{ field: 'name', code: 'required' }]
-      })
+      const response = createMockResponse(
+        422,
+        {},
+        {
+          message: 'Validation failed',
+          errors: [{ field: 'name', code: 'required' }]
+        }
+      )
       const error = await errorHandler.handleError(response, 'Test operation')
 
       expect(error.type).toBe('validation_error')
@@ -176,11 +180,12 @@ describe('GitHubErrorHandler', () => {
     test('should update rate limit info from headers', () => {
       const response = {
         headers: {
-          get: (name) => ({
-            'X-RateLimit-Remaining': '4500',
-            'X-RateLimit-Reset': '1640995200',
-            'X-RateLimit-Limit': '5000'
-          })[name] || null
+          get: (name) =>
+            ({
+              'X-RateLimit-Remaining': '4500',
+              'X-RateLimit-Reset': '1640995200',
+              'X-RateLimit-Limit': '5000'
+            })[name] || null
         }
       }
 
@@ -195,7 +200,7 @@ describe('GitHubErrorHandler', () => {
       const rateLimitedResponse = {
         status: 403,
         headers: {
-          get: (name) => name === 'X-RateLimit-Remaining' ? '0' : null
+          get: (name) => (name === 'X-RateLimit-Remaining' ? '0' : null)
         }
       }
 
@@ -204,7 +209,7 @@ describe('GitHubErrorHandler', () => {
       const normalResponse = {
         status: 403,
         headers: {
-          get: (name) => name === 'X-RateLimit-Remaining' ? '100' : null
+          get: (name) => (name === 'X-RateLimit-Remaining' ? '100' : null)
         }
       }
 
@@ -234,7 +239,12 @@ describe('GitHubErrorHandler', () => {
       expect(errorHandler.isRetryable(retryableError)).toBe(true)
 
       const nonRetryableError = await errorHandler.handleError(
-        { status: 400, statusText: 'Bad Request', headers: { get: () => null }, text: () => Promise.resolve('') },
+        {
+          status: 400,
+          statusText: 'Bad Request',
+          headers: { get: () => null },
+          text: () => Promise.resolve('')
+        },
         'Test operation'
       )
       expect(errorHandler.isRetryable(nonRetryableError)).toBe(false)
@@ -299,7 +309,7 @@ describe('GitHubErrorHandler', () => {
   describe('Error Logging', () => {
     test('should log errors with context', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
-      
+
       const errorResponse = {
         type: 'network_error',
         message: 'Network failed',
@@ -309,11 +319,14 @@ describe('GitHubErrorHandler', () => {
 
       errorHandler.logError(errorResponse, { endpoint: '/test' })
 
-      expect(consoleSpy).toHaveBeenCalledWith('GitHub Error:', expect.objectContaining({
-        type: 'network_error',
-        message: 'Network failed',
-        endpoint: '/test'
-      }))
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'GitHub Error:',
+        expect.objectContaining({
+          type: 'network_error',
+          message: 'Network failed',
+          endpoint: '/test'
+        })
+      )
 
       consoleSpy.mockRestore()
     })
@@ -323,7 +336,7 @@ describe('GitHubErrorHandler', () => {
     test('should parse retry-after header', () => {
       const response = {
         headers: {
-          get: (name) => name === 'Retry-After' ? '120' : null
+          get: (name) => (name === 'Retry-After' ? '120' : null)
         }
       }
 

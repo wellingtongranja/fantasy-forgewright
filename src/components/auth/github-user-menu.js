@@ -8,12 +8,12 @@ export class GitHubUserMenu {
     this.githubStorage = githubStorage
     this.onSignOut = onSignOut
     this.onHelp = onHelp
-    
+
     this.element = null
     this.isVisible = false
     this.overlay = null
     this.authButton = null
-    
+
     this.init()
   }
 
@@ -38,9 +38,9 @@ export class GitHubUserMenu {
     this.element = document.createElement('div')
     this.element.className = 'github-user-menu'
     this.element.style.display = 'none'
-    
+
     this.updateMenuContent()
-    
+
     // Add to document
     document.body.appendChild(this.overlay)
     document.body.appendChild(this.element)
@@ -54,10 +54,8 @@ export class GitHubUserMenu {
 
     const user = this.githubAuth?.getCurrentUser()
     const config = this.githubStorage?.getConfig() || {}
-    
-    const repositoryText = config.configured 
-      ? config.repo
-      : 'Not configured'
+
+    const repositoryText = config.configured ? config.repo : 'Not configured'
 
     this.element.innerHTML = `
       <div class="github-menu-header">
@@ -112,7 +110,7 @@ export class GitHubUserMenu {
       if (!actionButton) return
 
       const action = actionButton.dataset.action
-      
+
       switch (action) {
         case 'signout':
           if (this.onSignOut) {
@@ -125,7 +123,7 @@ export class GitHubUserMenu {
           }
           break
       }
-      
+
       this.hide()
     })
 
@@ -161,7 +159,7 @@ export class GitHubUserMenu {
     // Calculate position
     const buttonRect = buttonElement.getBoundingClientRect()
     const menuWidth = 280 // Approximate width
-    
+
     // Position below button, aligned to right edge
     let left = buttonRect.right - menuWidth
     let top = buttonRect.bottom + 8
@@ -169,12 +167,13 @@ export class GitHubUserMenu {
     // Ensure menu stays within viewport
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-    
+
     if (left < 8) {
       left = 8
     }
-    
-    if (top + 200 > viewportHeight) { // Approximate menu height
+
+    if (top + 200 > viewportHeight) {
+      // Approximate menu height
       top = buttonRect.top - 8 - 200
     }
 
@@ -185,7 +184,7 @@ export class GitHubUserMenu {
     // Show elements
     this.overlay.style.display = 'block'
     this.element.style.display = 'block'
-    
+
     // Animate in
     requestAnimationFrame(() => {
       this.element.style.opacity = '1'
@@ -209,7 +208,7 @@ export class GitHubUserMenu {
     // Animate out
     this.element.style.opacity = '0'
     this.element.style.transform = 'translateY(-8px)'
-    
+
     setTimeout(() => {
       this.overlay.style.display = 'none'
       this.element.style.display = 'none'

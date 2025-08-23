@@ -9,12 +9,12 @@ export class CommandBar {
     this.selectedIndex = 0
     this.filteredResults = []
     this.currentQuery = ''
-    
+
     this.element = null
     this.overlay = null
     this.input = null
     this.results = null
-    
+
     this.init()
   }
 
@@ -157,12 +157,12 @@ export class CommandBar {
     this.isVisible = true
     this.selectedIndex = 0
     this.currentQuery = ''
-    
+
     this.input.value = ''
-    
+
     // Show element
     this.element.classList.add('show')
-    
+
     // Show sidebar when command bar opens
     const sidebar = document.querySelector('.sidebar')
     const appMain = document.querySelector('.app-main')
@@ -172,7 +172,7 @@ export class CommandBar {
     if (appMain) {
       appMain.classList.remove('sidebar-hidden')
     }
-    
+
     // Focus input and update results
     setTimeout(() => {
       this.input.focus()
@@ -190,11 +190,10 @@ export class CommandBar {
     if (!this.isVisible) return
 
     this.isVisible = false
-    
-    
+
     // Hide element
     this.element.classList.remove('show')
-    
+
     // Hide sidebar when command bar closes
     const sidebar = document.querySelector('.sidebar')
     const appMain = document.querySelector('.app-main')
@@ -204,7 +203,7 @@ export class CommandBar {
     if (appMain) {
       appMain.classList.add('sidebar-hidden')
     }
-    
+
     // Return focus to editor quickly
     setTimeout(() => {
       const app = window.fantasyEditor
@@ -257,7 +256,7 @@ export class CommandBar {
    */
   updateResults() {
     const query = this.currentQuery.trim()
-    
+
     if (!query) {
       this.filteredResults = this.commandRegistry.getAllCommands()
     } else {
@@ -281,11 +280,12 @@ export class CommandBar {
       return
     }
 
-    this.results.innerHTML = this.filteredResults.map((command, index) => {
-      const parametersDisplay = this.formatParameters(command.parameters)
-      const aliasDisplay = this.formatAliases(command.aliases, this.currentQuery)
-      
-      return `
+    this.results.innerHTML = this.filteredResults
+      .map((command, index) => {
+        const parametersDisplay = this.formatParameters(command.parameters)
+        const aliasDisplay = this.formatAliases(command.aliases, this.currentQuery)
+
+        return `
         <div class="command-result ${index === this.selectedIndex ? 'selected' : ''}" data-index="${index}">
           <div class="command-result-icon">
             ${command.icon || '⚡'}
@@ -303,7 +303,8 @@ export class CommandBar {
           ${command.shortcut ? `<div class="command-result-shortcut">${command.shortcut}</div>` : ''}
         </div>
       `
-    }).join('')
+      })
+      .join('')
 
     // Add click listeners to results
     this.results.querySelectorAll('.command-result').forEach((result, index) => {
@@ -321,25 +322,25 @@ export class CommandBar {
    */
   formatParameters(parameters) {
     if (!parameters || parameters.length === 0) return ''
-    
-    const paramStrings = parameters.map(param => {
+
+    const paramStrings = parameters.map((param) => {
       const name = param.required ? `<${param.name}>` : `[${param.name}]`
       const desc = param.description ? ` ${param.description}` : ''
       return `${name}${desc}`
     })
-    
+
     return `<em>${paramStrings.join(' ')}</em>`
   }
 
   /**
-   * Format command aliases for display 
+   * Format command aliases for display
    * @param {Array} aliases Command aliases
    * @param {string} query Current query
    * @returns {string} Formatted aliases string
    */
   formatAliases(aliases, query) {
     if (!aliases || aliases.length === 0) return ''
-    
+
     // Since all aliases are now colon shortcuts, show them all
     return `<small>(${aliases.join(', ')})</small>`
   }
@@ -360,7 +361,7 @@ export class CommandBar {
    */
   selectNext() {
     if (this.filteredResults.length === 0) return
-    
+
     this.selectedIndex = (this.selectedIndex + 1) % this.filteredResults.length
     this.updateSelection()
   }
@@ -370,10 +371,9 @@ export class CommandBar {
    */
   selectPrevious() {
     if (this.filteredResults.length === 0) return
-    
-    this.selectedIndex = this.selectedIndex === 0 
-      ? this.filteredResults.length - 1 
-      : this.selectedIndex - 1
+
+    this.selectedIndex =
+      this.selectedIndex === 0 ? this.filteredResults.length - 1 : this.selectedIndex - 1
     this.updateSelection()
   }
 
@@ -414,26 +414,24 @@ export class CommandBar {
     if (!selectedCommand) return
 
     this.hide()
-    
+
     // Parse command and arguments
     let commandInput
     const userInput = this.input.value.trim()
-    
+
     if (!userInput) {
       // No user input, just execute the selected command
       commandInput = selectedCommand.name
     } else {
       // Check if user input exactly matches the full command name or alias
       const commandNames = [selectedCommand.name, ...selectedCommand.aliases]
-      const exactMatch = commandNames.find(name => 
-        userInput.toLowerCase() === name.toLowerCase()
-      )
-      
+      const exactMatch = commandNames.find((name) => userInput.toLowerCase() === name.toLowerCase())
+
       // Check if user input starts with the command name or alias (with space after)
-      const prefixMatch = commandNames.find(name => 
+      const prefixMatch = commandNames.find((name) =>
         userInput.toLowerCase().startsWith(name.toLowerCase() + ' ')
       )
-      
+
       if (exactMatch) {
         // User typed exact command name, execute it
         commandInput = exactMatch
@@ -443,8 +441,12 @@ export class CommandBar {
       } else {
         // User typed partial/fuzzy match or just selected from dropdown
         // Check if the user input is a substring of the selected command
-        if (selectedCommand.name.toLowerCase().includes(userInput.toLowerCase()) || 
-            selectedCommand.aliases.some(alias => alias.toLowerCase().includes(userInput.toLowerCase()))) {
+        if (
+          selectedCommand.name.toLowerCase().includes(userInput.toLowerCase()) ||
+          selectedCommand.aliases.some((alias) =>
+            alias.toLowerCase().includes(userInput.toLowerCase())
+          )
+        ) {
           // User typed a partial match, execute the selected command without extra args
           commandInput = selectedCommand.name
         } else {
@@ -453,9 +455,9 @@ export class CommandBar {
         }
       }
     }
-    
+
     this.commandRegistry.executeCommand(commandInput)
-    
+
     // Dispatch execution event
     this.dispatchEvent('execute', { command: selectedCommand, input: commandInput })
   }
@@ -485,7 +487,7 @@ export class CommandBar {
     if (this.element) {
       this.element.remove()
     }
-    
+
     // Remove event listeners
     document.removeEventListener('keydown', this.globalKeyHandler)
   }

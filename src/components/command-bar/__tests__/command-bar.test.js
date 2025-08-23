@@ -42,7 +42,10 @@ describe('CommandBar', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
+    // Set up DOM environment for CommandBar
+    document.body.innerHTML = ''
+
     registry = new CommandRegistry()
     mockCommand = {
       name: 'test',
@@ -52,7 +55,7 @@ describe('CommandBar', () => {
       handler: jest.fn().mockResolvedValue({ success: true })
     }
     registry.registerCommand(mockCommand)
-    
+
     commandBar = new CommandBar(registry)
   })
 
@@ -60,6 +63,8 @@ describe('CommandBar', () => {
     if (commandBar) {
       commandBar.destroy()
     }
+    // Clean up DOM
+    document.body.innerHTML = ''
   })
 
   describe('initialization', () => {
@@ -82,23 +87,23 @@ describe('CommandBar', () => {
   describe('visibility', () => {
     it('should show command bar', () => {
       commandBar.show()
-      
+
       expect(commandBar.isVisible).toBe(true)
     })
 
     it('should hide command bar', () => {
       commandBar.show()
       commandBar.hide()
-      
+
       expect(commandBar.isVisible).toBe(false)
     })
 
     it('should toggle visibility', () => {
       expect(commandBar.isVisible).toBe(false)
-      
+
       commandBar.toggle()
       expect(commandBar.isVisible).toBe(true)
-      
+
       commandBar.toggle()
       expect(commandBar.isVisible).toBe(false)
     })
@@ -110,7 +115,7 @@ describe('CommandBar', () => {
           type: 'commandbar:show'
         })
       )
-      
+
       commandBar.hide()
       expect(document.dispatchEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -133,22 +138,22 @@ describe('CommandBar', () => {
     it('should update results when query changes', () => {
       commandBar.currentQuery = 'save'
       commandBar.updateResults()
-      
+
       expect(commandBar.filteredResults.length).toBeGreaterThan(0)
     })
 
     it('should show all commands when query is empty', () => {
       commandBar.currentQuery = ''
       commandBar.updateResults()
-      
+
       expect(commandBar.filteredResults.length).toBe(2) // test + save
     })
 
     it('should filter commands based on query', () => {
       commandBar.currentQuery = 'test'
       commandBar.updateResults()
-      
-      expect(commandBar.filteredResults.some(c => c.name === 'test')).toBe(true)
+
+      expect(commandBar.filteredResults.some((c) => c.name === 'test')).toBe(true)
     })
 
     it('should highlight matching text', () => {
@@ -169,34 +174,34 @@ describe('CommandBar', () => {
     it('should select next result', () => {
       commandBar.selectedIndex = 0
       commandBar.selectNext()
-      
+
       expect(commandBar.selectedIndex).toBe(1)
     })
 
     it('should wrap to first when selecting next at end', () => {
       commandBar.selectedIndex = 2
       commandBar.selectNext()
-      
+
       expect(commandBar.selectedIndex).toBe(0)
     })
 
     it('should select previous result', () => {
       commandBar.selectedIndex = 1
       commandBar.selectPrevious()
-      
+
       expect(commandBar.selectedIndex).toBe(0)
     })
 
     it('should wrap to last when selecting previous at start', () => {
       commandBar.selectedIndex = 0
       commandBar.selectPrevious()
-      
+
       expect(commandBar.selectedIndex).toBe(2)
     })
 
     it('should select specific index', () => {
       commandBar.selectIndex(1)
-      
+
       expect(commandBar.selectedIndex).toBe(1)
     })
 
@@ -204,7 +209,7 @@ describe('CommandBar', () => {
       const originalIndex = commandBar.selectedIndex
       commandBar.selectIndex(-1)
       commandBar.selectIndex(10)
-      
+
       expect(commandBar.selectedIndex).toBe(originalIndex)
     })
   })
@@ -218,7 +223,7 @@ describe('CommandBar', () => {
     it('should execute selected command', () => {
       commandBar.input = { value: 'test' }
       commandBar.executeSelected()
-      
+
       expect(registry.executeCommand).toHaveBeenCalledWith('test')
       expect(commandBar.isVisible).toBe(false)
     })
@@ -226,7 +231,7 @@ describe('CommandBar', () => {
     it('should dispatch execution event', () => {
       commandBar.input = { value: 'test' }
       commandBar.executeSelected()
-      
+
       expect(document.dispatchEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'commandbar:execute'
@@ -237,7 +242,7 @@ describe('CommandBar', () => {
     it('should handle empty selection', () => {
       commandBar.filteredResults = []
       commandBar.executeSelected()
-      
+
       // Should not crash or throw
       expect(commandBar.isVisible).toBe(true)
     })
@@ -247,17 +252,17 @@ describe('CommandBar', () => {
     it('should update registry reference', () => {
       const newRegistry = new CommandRegistry()
       commandBar.setCommandRegistry(newRegistry)
-      
+
       expect(commandBar.commandRegistry).toBe(newRegistry)
     })
 
     it('should update results when registry changes', () => {
       commandBar.isVisible = true
       jest.spyOn(commandBar, 'updateResults')
-      
+
       const newRegistry = new CommandRegistry()
       commandBar.setCommandRegistry(newRegistry)
-      
+
       expect(commandBar.updateResults).toHaveBeenCalled()
     })
   })
@@ -265,7 +270,7 @@ describe('CommandBar', () => {
   describe('cleanup', () => {
     it('should destroy command bar properly', () => {
       commandBar.destroy()
-      
+
       expect(commandBar.element.remove).toHaveBeenCalled()
       expect(commandBar.overlay.remove).toHaveBeenCalled()
     })
@@ -276,9 +281,7 @@ describe('CommandBar', () => {
 
     beforeEach(() => {
       // Get the keydown handler that was registered
-      keydownHandler = document.addEventListener.mock.calls.find(
-        call => call[0] === 'keydown'
-      )[1]
+      keydownHandler = document.addEventListener.mock.calls.find((call) => call[0] === 'keydown')[1]
     })
 
     it('should handle Ctrl+Space to toggle', () => {
@@ -287,23 +290,23 @@ describe('CommandBar', () => {
         code: 'Space',
         preventDefault: jest.fn()
       }
-      
+
       keydownHandler(event)
-      
+
       expect(event.preventDefault).toHaveBeenCalled()
       expect(commandBar.isVisible).toBe(true)
     })
 
     it('should handle Escape to close', () => {
       commandBar.isVisible = true
-      
+
       const event = {
         key: 'Escape',
         preventDefault: jest.fn()
       }
-      
+
       keydownHandler(event)
-      
+
       expect(event.preventDefault).toHaveBeenCalled()
       expect(commandBar.isVisible).toBe(false)
     })
@@ -314,9 +317,9 @@ describe('CommandBar', () => {
         key: 'a',
         preventDefault: jest.fn()
       }
-      
+
       keydownHandler(event)
-      
+
       expect(event.preventDefault).not.toHaveBeenCalled()
     })
   })
@@ -326,14 +329,14 @@ describe('CommandBar', () => {
       commandBar.filteredResults = []
       commandBar.currentQuery = 'nonexistent'
       commandBar.renderResults()
-      
+
       expect(commandBar.results.innerHTML).toContain('No commands found')
     })
 
     it('should render command results', () => {
       commandBar.filteredResults = [mockCommand]
       commandBar.renderResults()
-      
+
       expect(commandBar.results.innerHTML).toContain('test')
       expect(commandBar.results.innerHTML).toContain('Test command')
     })
@@ -342,7 +345,7 @@ describe('CommandBar', () => {
       commandBar.filteredResults = [mockCommand, { name: 'other', description: 'Other' }]
       commandBar.selectedIndex = 1
       commandBar.renderResults()
-      
+
       expect(commandBar.results.innerHTML).toContain('selected')
     })
   })

@@ -238,7 +238,9 @@ export class GitHubErrorHandler {
    */
   handleRateLimit(response, context) {
     const resetTime = this.rateLimitInfo.resetTime
-    const timeUntilReset = resetTime ? Math.ceil((resetTime.getTime() - Date.now()) / 1000 / 60) : 'unknown'
+    const timeUntilReset = resetTime
+      ? Math.ceil((resetTime.getTime() - Date.now()) / 1000 / 60)
+      : 'unknown'
 
     return {
       success: false,
@@ -277,8 +279,7 @@ export class GitHubErrorHandler {
    * @returns {boolean} Whether response indicates rate limiting
    */
   isRateLimited(response) {
-    return response.status === 403 && 
-           response.headers.get('X-RateLimit-Remaining') === '0'
+    return response.status === 403 && response.headers.get('X-RateLimit-Remaining') === '0'
   }
 
   /**
@@ -299,7 +300,7 @@ export class GitHubErrorHandler {
     return {
       ...this.rateLimitInfo,
       isLimited: this.rateLimitInfo.remaining === 0,
-      timeUntilReset: this.rateLimitInfo.resetTime 
+      timeUntilReset: this.rateLimitInfo.resetTime
         ? Math.max(0, this.rateLimitInfo.resetTime.getTime() - Date.now())
         : null
     }
@@ -373,14 +374,14 @@ export class GitHubErrorHandler {
     return async (url, options = {}) => {
       try {
         const response = await fetch(url, options)
-        
+
         // Update rate limit info for all responses
         this.updateRateLimitInfo(response)
-        
+
         if (!response.ok) {
           throw response
         }
-        
+
         return response
       } catch (error) {
         const errorResponse = await this.handleError(error, `Request to ${url}`)

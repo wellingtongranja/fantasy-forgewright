@@ -23,7 +23,7 @@ export class GitHubStorage {
     if (!config.owner || !config.repo) {
       throw new Error('Repository owner and name are required')
     }
-    
+
     this.owner = config.owner
     this.repo = config.repo
     this.branch = config.branch || 'main'
@@ -56,13 +56,13 @@ export class GitHubStorage {
       const filename = this.generateFilename(document)
       const filepath = `${this.documentsPath}/${filename}`
       const content = this.formatDocumentContent(document)
-      
+
       // Check if file already exists (using GUID-based filename)
       const existingFile = await this.getFileInfo(filepath)
-      
+
       const requestBody = {
-        message: existingFile 
-          ? `Update document: ${document.title}` 
+        message: existingFile
+          ? `Update document: ${document.title}`
           : `Create document: ${document.title}`,
         content: btoa(unescape(encodeURIComponent(content))), // Base64 encode UTF-8
         branch: this.branch
@@ -89,7 +89,7 @@ export class GitHubStorage {
       }
 
       const result = await response.json()
-      
+
       return {
         ...result,
         document: {
@@ -119,7 +119,7 @@ export class GitHubStorage {
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           headers: {
-            'Accept': 'application/vnd.github.v3+json'
+            Accept: 'application/vnd.github.v3+json'
           }
         }
       )
@@ -133,7 +133,7 @@ export class GitHubStorage {
 
       const fileData = await response.json()
       const content = decodeURIComponent(escape(atob(fileData.content)))
-      
+
       return this.parseDocumentContent(content, {
         githubSha: fileData.sha,
         githubPath: filepath,
@@ -158,7 +158,7 @@ export class GitHubStorage {
         `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}`,
         {
           headers: {
-            'Accept': 'application/vnd.github.v3+json'
+            Accept: 'application/vnd.github.v3+json'
           }
         }
       )
@@ -172,7 +172,7 @@ export class GitHubStorage {
       }
 
       const files = await response.json()
-      
+
       if (!Array.isArray(files)) {
         return []
       }
@@ -252,7 +252,7 @@ export class GitHubStorage {
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           headers: {
-            'Accept': 'application/vnd.github.v3.object'
+            Accept: 'application/vnd.github.v3.object'
           }
         }
       )
@@ -260,7 +260,7 @@ export class GitHubStorage {
       if (response.ok) {
         return await response.json()
       }
-      
+
       return null
     } catch (error) {
       return null
@@ -277,10 +277,8 @@ export class GitHubStorage {
     }
 
     try {
-      const response = await this.auth.makeAuthenticatedRequest(
-        `/repos/${this.owner}/${this.repo}`
-      )
-      
+      const response = await this.auth.makeAuthenticatedRequest(`/repos/${this.owner}/${this.repo}`)
+
       return response.ok
     } catch (error) {
       return false
@@ -305,7 +303,7 @@ export class GitHubStorage {
       if (response.status === 404) {
         // Create README.md in documents directory
         const readmeContent = '# Documents\n\nThis directory contains Fantasy Editor documents.\n'
-        
+
         await this.auth.makeAuthenticatedRequest(
           `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}/README.md`,
           {
@@ -344,7 +342,7 @@ export class GitHubStorage {
   formatDocumentContent(document) {
     const frontMatter = this.generateFrontMatter(document)
     const content = document.content || ''
-    
+
     return `${frontMatter}\n\n${content}`
   }
 
@@ -362,10 +360,10 @@ export class GitHubStorage {
     let hash = 0
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
+      hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
-    
+
     return Math.abs(hash).toString(16).padStart(8, '0')
   }
 
@@ -420,7 +418,7 @@ export class GitHubStorage {
       .map(([key, value]) => {
         if (Array.isArray(value)) {
           if (value.length === 0) return `${key}: []`
-          return `${key}:\n${value.map(item => `  - ${item}`).join('\n')}`
+          return `${key}:\n${value.map((item) => `  - ${item}`).join('\n')}`
         }
         if (typeof value === 'string' && value.includes('\n')) {
           return `${key}: |\n  ${value.replace(/\n/g, '\n  ')}`
@@ -440,14 +438,14 @@ export class GitHubStorage {
    */
   parseDocumentContent(content, metadata = {}) {
     const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/)
-    
+
     if (!frontMatterMatch) {
       throw new Error('Invalid document format: missing front matter')
     }
 
     const [, frontMatterYaml, documentContent] = frontMatterMatch
     const frontMatter = this.parseYamlFrontMatter(frontMatterYaml)
-    
+
     return {
       id: frontMatter.id,
       title: frontMatter.title,
@@ -468,13 +466,13 @@ export class GitHubStorage {
   parseYamlFrontMatter(yaml) {
     const result = {}
     const lines = yaml.trim().split('\n')
-    
+
     let currentKey = null
     let currentArray = null
-    
+
     for (const line of lines) {
       const trimmed = line.trim()
-      
+
       if (trimmed.startsWith('- ')) {
         // Array item
         if (currentArray) {
@@ -485,10 +483,10 @@ export class GitHubStorage {
         const colonIndex = trimmed.indexOf(':')
         const key = trimmed.substring(0, colonIndex).trim()
         const value = trimmed.substring(colonIndex + 1).trim()
-        
+
         currentKey = key
         currentArray = null
-        
+
         if (value === '[]') {
           result[key] = []
         } else if (value === '') {
@@ -504,7 +502,7 @@ export class GitHubStorage {
         }
       }
     }
-    
+
     return result
   }
 
@@ -542,7 +540,9 @@ export class GitHubStorage {
     try {
       // First check if repository already exists
       try {
-        const checkResponse = await this.auth.makeAuthenticatedRequest(`/repos/${username}/fantasy-editor`)
+        const checkResponse = await this.auth.makeAuthenticatedRequest(
+          `/repos/${username}/fantasy-editor`
+        )
         if (checkResponse.ok) {
           console.log('Repository fantasy-editor already exists, configuring...')
           this.updateConfig({
@@ -550,14 +550,14 @@ export class GitHubStorage {
             repo: 'fantasy-editor',
             branch: 'main'
           })
-          
+
           // Try to ensure documents directory exists
           try {
             await this.ensureDocumentsDirectory()
           } catch (error) {
             console.log('Could not initialize documents directory, but repository is configured')
           }
-          
+
           return true
         }
       } catch (error) {
@@ -567,7 +567,8 @@ export class GitHubStorage {
 
       const repoData = {
         name: 'fantasy-editor',
-        description: 'Documents created with Fantasy Editor - A distraction-free markdown editor for creative writers',
+        description:
+          'Documents created with Fantasy Editor - A distraction-free markdown editor for creative writers',
         private: true,
         auto_init: false, // We'll initialize it ourselves
         gitignore_template: null,
@@ -585,7 +586,7 @@ export class GitHubStorage {
       if (response.ok) {
         const repo = await response.json()
         console.log('Default repository created:', repo.full_name)
-        
+
         // Configure Fantasy Editor to use this repository
         this.updateConfig({
           owner: username,
@@ -594,7 +595,7 @@ export class GitHubStorage {
         })
 
         // Wait a moment for GitHub to set up the repository
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise((resolve) => setTimeout(resolve, 2000))
 
         // Initialize the repository with documents directory
         await this.ensureDocumentsDirectory()
@@ -603,21 +604,24 @@ export class GitHubStorage {
       } else if (response.status === 422) {
         // Repository already exists, check the error message
         const errorData = await response.json()
-        if (errorData.errors && errorData.errors.some(err => err.message && err.message.includes('already exists'))) {
+        if (
+          errorData.errors &&
+          errorData.errors.some((err) => err.message && err.message.includes('already exists'))
+        ) {
           console.log('Repository fantasy-editor already exists, configuring...')
           this.updateConfig({
             owner: username,
             repo: 'fantasy-editor',
             branch: 'main'
           })
-          
+
           // Still try to ensure documents directory exists
           try {
             await this.ensureDocumentsDirectory()
           } catch (error) {
             console.log('Could not initialize documents directory, but repository is configured')
           }
-          
+
           return true
         } else {
           throw new Error(`Repository creation failed: ${JSON.stringify(errorData)}`)

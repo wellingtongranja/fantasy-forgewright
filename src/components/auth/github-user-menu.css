@@ -163,38 +163,38 @@
 }
 
 /* Sign Out Action - Special styling */
-.github-menu-action[data-action="signout"] {
+.github-menu-action[data-action='signout'] {
   color: var(--color-danger);
 }
 
-.github-menu-action[data-action="signout"]:hover {
+.github-menu-action[data-action='signout']:hover {
   background-color: rgba(231, 76, 60, 0.1);
 }
 
-.github-menu-action[data-action="signout"] .github-menu-icon {
+.github-menu-action[data-action='signout'] .github-menu-icon {
   opacity: 0.8;
 }
 
 /* Dark Theme Adjustments */
-[data-theme="dark"] .github-user-menu {
+[data-theme='dark'] .github-user-menu {
   background: var(--color-bg-secondary);
   border-color: var(--color-border);
   box-shadow: var(--shadow-xl);
 }
 
-[data-theme="dark"] .github-menu-header {
+[data-theme='dark'] .github-menu-header {
   background: var(--color-bg-tertiary);
 }
 
-[data-theme="dark"] .github-menu-avatar {
+[data-theme='dark'] .github-menu-avatar {
   border-color: var(--color-border);
 }
 
-[data-theme="dark"] .github-menu-action:hover {
+[data-theme='dark'] .github-menu-action:hover {
   background-color: var(--color-bg);
 }
 
-[data-theme="dark"] .github-menu-action[data-action="signout"]:hover {
+[data-theme='dark'] .github-menu-action[data-action='signout']:hover {
   background-color: rgba(231, 76, 60, 0.2);
 }
 
@@ -214,17 +214,17 @@
 }
 
 /* Animation States */
-.github-user-menu[data-state="entering"] {
+.github-user-menu[data-state='entering'] {
   opacity: 0;
   transform: translateY(-8px);
 }
 
-.github-user-menu[data-state="entered"] {
+.github-user-menu[data-state='entered'] {
   opacity: 1;
   transform: translateY(0);
 }
 
-.github-user-menu[data-state="exiting"] {
+.github-user-menu[data-state='exiting'] {
   opacity: 0;
   transform: translateY(-8px);
 }

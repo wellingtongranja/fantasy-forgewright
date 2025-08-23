@@ -164,16 +164,18 @@ export class ConflictResolutionDialog {
           </div>
 
           <div class="dialog-nav">
-            ${this.currentConflictIndex > 0 ? 
-              '<button class="nav-btn prev-conflict">← Previous</button>' : 
-              '<div></div>'
+            ${
+              this.currentConflictIndex > 0
+                ? '<button class="nav-btn prev-conflict">← Previous</button>'
+                : '<div></div>'
             }
             
             <button class="cancel-btn">Cancel All</button>
             
-            ${this.currentConflictIndex < total - 1 ? 
-              '<button class="nav-btn next-conflict">Skip →</button>' : 
-              '<div></div>'
+            ${
+              this.currentConflictIndex < total - 1
+                ? '<button class="nav-btn next-conflict">Skip →</button>'
+                : '<div></div>'
             }
           </div>
         </div>
@@ -188,22 +190,22 @@ export class ConflictResolutionDialog {
    */
   getContentPreview(content) {
     if (!content) return '<em>Empty document</em>'
-    
+
     // Limit preview to first 500 characters
     const preview = content.substring(0, 500)
     const truncated = content.length > 500
-    
+
     // Basic markdown highlighting
     let highlighted = this.escapeHtml(preview)
       .replace(/^(#{1,6})\s(.+)$/gm, '<span class="md-heading">$1 $2</span>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/`(.+?)`/g, '<code>$1</code>')
-    
+
     if (truncated) {
       highlighted += '\n<span class="truncated">... (truncated)</span>'
     }
-    
+
     return `<pre class="content-preview">${highlighted}</pre>`
   }
 
@@ -230,7 +232,7 @@ export class ConflictResolutionDialog {
     if (local.checksum !== remote.checksum) {
       const localWords = (local.content || '').split(/\s+/).length
       const remoteWords = (remote.content || '').split(/\s+/).length
-      
+
       changes.push(`<div class="diff-item content-diff">
         <strong>Content:</strong> 
         Local: ${localWords} words, GitHub: ${remoteWords} words
@@ -241,7 +243,7 @@ export class ConflictResolutionDialog {
     const localTags = local.tags || []
     const remoteTags = remote.tags || []
     const tagsDiffer = JSON.stringify(localTags.sort()) !== JSON.stringify(remoteTags.sort())
-    
+
     if (tagsDiffer) {
       changes.push(`<div class="diff-item tags-diff">
         <strong>Tags:</strong> 
@@ -267,7 +269,7 @@ export class ConflictResolutionDialog {
 
     // Resolution buttons
     const resolutionBtns = this.element.querySelectorAll('.resolution-btn')
-    resolutionBtns.forEach(btn => {
+    resolutionBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const resolution = e.currentTarget.dataset.resolution
         this.handleResolve(resolution)
@@ -347,7 +349,7 @@ export class ConflictResolutionDialog {
    */
   navigateConflict(direction) {
     const newIndex = this.currentConflictIndex + direction
-    
+
     if (newIndex >= 0 && newIndex < this.conflicts.length) {
       this.currentConflictIndex = newIndex
       this.render()
@@ -361,7 +363,7 @@ export class ConflictResolutionDialog {
    */
   handleResolve(resolution) {
     const conflict = this.conflicts[this.currentConflictIndex]
-    
+
     if (this.onResolve) {
       this.onResolve(conflict.id, resolution)
     }
@@ -377,7 +379,7 @@ export class ConflictResolutionDialog {
       if (this.currentConflictIndex >= this.conflicts.length) {
         this.currentConflictIndex = this.conflicts.length - 1
       }
-      
+
       this.render()
       this.attachEventListeners()
     }

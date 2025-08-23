@@ -11,7 +11,7 @@ describe('ThemeManager', () => {
       setItem: jest.fn(),
       removeItem: jest.fn()
     }
-    
+
     mockDocument = {
       documentElement: {
         setAttribute: jest.fn(),
@@ -22,18 +22,18 @@ describe('ThemeManager', () => {
         setAttribute: jest.fn()
       }))
     }
-    
+
     global.localStorage = mockLocalStorage
     global.document = mockDocument
-    
-    themeManager = new ThemeManager()
+
+    // Note: ThemeManager is created individually in each test for proper mock setup
   })
 
   describe('initialization', () => {
     it('should initialize with saved theme from localStorage', () => {
       mockLocalStorage.getItem.mockReturnValue('dark')
       const manager = new ThemeManager()
-      
+
       expect(manager.currentTheme).toBe('dark')
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith('theme-preference')
     })
@@ -41,30 +41,32 @@ describe('ThemeManager', () => {
     it('should initialize with light theme if no saved preference', () => {
       mockLocalStorage.getItem.mockReturnValue(null)
       const manager = new ThemeManager()
-      
+
       expect(manager.currentTheme).toBe('light')
     })
   })
 
   describe('theme switching', () => {
     it('should apply theme and save preference', () => {
-      themeManager.applyTheme('dark')
-      
-      expect(themeManager.currentTheme).toBe('dark')
+      const manager = new ThemeManager()
+      manager.applyTheme('dark')
+
+      expect(manager.currentTheme).toBe('dark')
       expect(mockDocument.documentElement.setAttribute).toHaveBeenCalledWith('data-theme', 'dark')
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith('theme-preference', 'dark')
     })
 
     it('should toggle through themes in order', () => {
-      themeManager.currentTheme = 'light'
-      themeManager.toggleTheme()
-      expect(themeManager.currentTheme).toBe('dark')
-      
-      themeManager.toggleTheme()
-      expect(themeManager.currentTheme).toBe('fantasy')
-      
-      themeManager.toggleTheme()
-      expect(themeManager.currentTheme).toBe('light')
+      const manager = new ThemeManager()
+      manager.currentTheme = 'light'
+      manager.toggleTheme()
+      expect(manager.currentTheme).toBe('dark')
+
+      manager.toggleTheme()
+      expect(manager.currentTheme).toBe('fantasy')
+
+      manager.toggleTheme()
+      expect(manager.currentTheme).toBe('light')
     })
   })
 
@@ -72,10 +74,10 @@ describe('ThemeManager', () => {
     it('should return the next theme in cycle', () => {
       themeManager.currentTheme = 'light'
       expect(themeManager.getNextTheme()).toBe('dark')
-      
+
       themeManager.currentTheme = 'dark'
       expect(themeManager.getNextTheme()).toBe('fantasy')
-      
+
       themeManager.currentTheme = 'fantasy'
       expect(themeManager.getNextTheme()).toBe('light')
     })

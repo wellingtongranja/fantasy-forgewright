@@ -6,7 +6,19 @@ export class I18nManager {
   constructor() {
     this.currentLanguage = 'en'
     this.supportedLanguages = [
-      'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 'ar', 'he', 'fa'
+      'en',
+      'es',
+      'fr',
+      'de',
+      'it',
+      'pt',
+      'ru',
+      'ja',
+      'ko',
+      'zh',
+      'ar',
+      'he',
+      'fa'
     ]
     this.rtlLanguages = ['ar', 'he', 'fa', 'ur', 'yi']
     this.translations = new Map()
@@ -31,10 +43,10 @@ export class I18nManager {
 
       // Load translations for current language
       await this.loadTranslations(this.currentLanguage)
-      
+
       // Apply language settings to DOM
       this.applyLanguageToDOM()
-      
+
       this.isInitialized = true
     } catch (error) {
       console.warn('I18nManager initialization failed:', error)
@@ -66,7 +78,7 @@ export class I18nManager {
       this.applyLanguageToDOM()
       this.saveLanguage(languageCode)
       this.notifyLanguageChange(languageCode, previousLanguage)
-      
+
       return true
     } catch (error) {
       console.error('Failed to set language:', error)
@@ -86,7 +98,7 @@ export class I18nManager {
     }
 
     let translation = this.getTranslation(key)
-    
+
     // Handle pluralization
     if (typeof translation === 'object' && translation !== null && 'count' in variables) {
       const pluralRule = this.getPluralRule(this.currentLanguage, variables.count)
@@ -100,7 +112,7 @@ export class I18nManager {
 
     // Cache the result
     this.translationCache.set(cacheKey, translation)
-    
+
     return translation || key
   }
 
@@ -116,7 +128,7 @@ export class I18nManager {
     // Support nested keys like 'menu.file.new'
     const keys = key.split('.')
     let value = translations
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k]
@@ -124,7 +136,7 @@ export class I18nManager {
         return null
       }
     }
-    
+
     return value
   }
 
@@ -170,7 +182,7 @@ export class I18nManager {
   getRussianPluralRule(count) {
     const mod10 = count % 10
     const mod100 = count % 100
-    
+
     if (count === 1) return 'one'
     if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'few'
     return 'many'
@@ -201,11 +213,11 @@ export class I18nManager {
   applyLanguageToDOM() {
     // Set language attribute
     document.documentElement.lang = this.currentLanguage
-    
+
     // Set direction
     const direction = this.isRTL() ? 'rtl' : 'ltr'
     document.documentElement.dir = direction
-    
+
     // Add/remove CSS classes
     document.documentElement.classList.remove('rtl', 'ltr')
     document.documentElement.classList.add(direction)
@@ -328,13 +340,13 @@ export class I18nManager {
       const formatter = new Intl.RelativeTimeFormat(this.currentLanguage, {
         numeric: 'auto'
       })
-      
+
       const now = new Date()
       const diffInSeconds = Math.floor((date - now) / 1000)
       const diffInMinutes = Math.floor(diffInSeconds / 60)
       const diffInHours = Math.floor(diffInMinutes / 60)
       const diffInDays = Math.floor(diffInHours / 24)
-      
+
       if (Math.abs(diffInDays) >= 1) {
         return formatter.format(diffInDays, 'day')
       } else if (Math.abs(diffInHours) >= 1) {
@@ -411,7 +423,7 @@ export class I18nManager {
    * Get all language metadata
    */
   getAllLanguageMetadata() {
-    return this.supportedLanguages.map(code => ({
+    return this.supportedLanguages.map((code) => ({
       code,
       ...this.getLanguageMetadata(code)
     }))
@@ -430,7 +442,7 @@ export class I18nManager {
    * Notify language change listeners
    */
   notifyLanguageChange(newLanguage, previousLanguage) {
-    this.eventCallbacks.forEach(callback => {
+    this.eventCallbacks.forEach((callback) => {
       try {
         callback(newLanguage, previousLanguage)
       } catch (error) {

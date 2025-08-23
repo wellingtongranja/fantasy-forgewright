@@ -51,7 +51,7 @@ describe('GuidManager', () => {
         '6ba7b810-9dad-41d1-80b4-00c04fd430c8'
       ]
 
-      validGuids.forEach(guid => {
+      validGuids.forEach((guid) => {
         expect(manager.isValidGuid(guid)).toBe(true)
       })
     })
@@ -68,7 +68,7 @@ describe('GuidManager', () => {
         'doc_1648125632_a1b2c3d4' // Old UID format
       ]
 
-      invalidGuids.forEach(guid => {
+      invalidGuids.forEach((guid) => {
         expect(manager.isValidGuid(guid)).toBe(false)
       })
     })
@@ -78,24 +78,25 @@ describe('GuidManager', () => {
     it('should generate Git-safe filenames', () => {
       const title = 'My Epic Fantasy Tale'
       const guid = '550e8400-e29b-41d4-a716-446655440000'
-      
+
       const filename = manager.generateFilename(title, guid)
       expect(filename).toBe('my-epic-fantasy-tale-550e8400.md')
       expect(filename).toMatch(/^[a-z0-9-]+\.md$/)
     })
 
     it('should handle special characters in titles', () => {
-      const title = 'The Dragon\'s Quest: A Tale of Magic & Wonder!'
+      const title = "The Dragon's Quest: A Tale of Magic & Wonder!"
       const guid = '550e8400-e29b-41d4-a716-446655440000'
-      
+
       const filename = manager.generateFilename(title, guid)
       expect(filename).toBe('the-dragons-quest-a-tale-of-magic-wonder-550e8400.md')
     })
 
     it('should limit filename length', () => {
-      const longTitle = 'This is an extremely long document title that exceeds the reasonable length limit for filenames'
+      const longTitle =
+        'This is an extremely long document title that exceeds the reasonable length limit for filenames'
       const guid = '550e8400-e29b-41d4-a716-446655440000'
-      
+
       const filename = manager.generateFilename(longTitle, guid)
       expect(filename.length).toBeLessThan(70) // 50 + 8 + extension
       expect(filename.endsWith('-550e8400.md')).toBe(true)
@@ -103,10 +104,10 @@ describe('GuidManager', () => {
 
     it('should handle empty or invalid titles', () => {
       const guid = '550e8400-e29b-41d4-a716-446655440000'
-      
+
       const filename1 = manager.generateFilename('', guid)
       expect(filename1).toBe('document-550e8400.md')
-      
+
       const filename2 = manager.generateFilename('   ', guid)
       expect(filename2).toBe('document-550e8400.md')
     })
@@ -126,14 +127,9 @@ describe('GuidManager', () => {
     })
 
     it('should return null for invalid filenames', () => {
-      const invalidFilenames = [
-        'document.md',
-        'document-invalid.md',
-        'document-123.txt',
-        ''
-      ]
+      const invalidFilenames = ['document.md', 'document-invalid.md', 'document-123.txt', '']
 
-      invalidFilenames.forEach(filename => {
+      invalidFilenames.forEach((filename) => {
         expect(manager.extractGuidFromFilename(filename)).toBeNull()
       })
     })
@@ -144,9 +140,9 @@ describe('GuidManager', () => {
       const title = 'Test Document'
       const content = '# Hello World'
       const tags = ['test', 'example']
-      
+
       const doc = manager.createDocumentWithGuid(title, content, tags)
-      
+
       expect(manager.isValidGuid(doc.id)).toBe(true)
       expect(doc.title).toBe(title)
       expect(doc.content).toBe(content)
@@ -177,8 +173,8 @@ describe('GuidManager', () => {
       const originalVersion = doc.metadata.version
 
       // Wait a bit to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 2))
-      
+      await new Promise((resolve) => setTimeout(resolve, 2))
+
       const updated = manager.updateDocument(doc, {
         title: 'Updated Title',
         content: 'Updated content'
@@ -207,7 +203,7 @@ describe('GuidManager', () => {
       const content = '# Test Document\n\nThis is test content.'
       const checksum1 = manager.generateChecksum(content)
       const checksum2 = manager.generateChecksum(content)
-      
+
       expect(checksum1).toBe(checksum2)
       expect(checksum1).toMatch(/^[0-9a-f]{8}$/)
     })
@@ -215,7 +211,7 @@ describe('GuidManager', () => {
     it('should generate different checksums for different content', () => {
       const content1 = 'Content A'
       const content2 = 'Content B'
-      
+
       expect(manager.generateChecksum(content1)).not.toBe(manager.generateChecksum(content2))
     })
 
@@ -228,12 +224,9 @@ describe('GuidManager', () => {
 
   describe('UID Migration', () => {
     it('should identify old UID format', () => {
-      const oldIds = [
-        'doc_1648125632_a1b2c3d4',
-        'doc_1234567890_deadbeef'
-      ]
+      const oldIds = ['doc_1648125632_a1b2c3d4', 'doc_1234567890_deadbeef']
 
-      oldIds.forEach(id => {
+      oldIds.forEach((id) => {
         expect(manager.isOldUidFormat(id)).toBe(true)
       })
     })
@@ -244,7 +237,7 @@ describe('GuidManager', () => {
         'f47ac10b-58cc-4372-a567-0e02b2c3d479'
       ]
 
-      newIds.forEach(id => {
+      newIds.forEach((id) => {
         expect(manager.isOldUidFormat(id)).toBe(false)
       })
     })
@@ -252,7 +245,7 @@ describe('GuidManager', () => {
     it('should migrate old UID to new GUID', () => {
       const oldId = 'doc_1648125632_a1b2c3d4'
       const newGuid = manager.migrateUidToGuid(oldId)
-      
+
       expect(manager.isValidGuid(newGuid)).toBe(true)
       expect(manager.isOldUidFormat(newGuid)).toBe(false)
     })
@@ -261,7 +254,7 @@ describe('GuidManager', () => {
   describe('Statistics', () => {
     it('should return GUID system statistics', () => {
       const stats = manager.getStats()
-      
+
       expect(stats.guidRegex).toBeDefined()
       expect(stats.nativeSupport).toBeDefined()
       expect(stats.timestamp).toBeDefined()

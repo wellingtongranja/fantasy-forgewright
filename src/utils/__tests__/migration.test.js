@@ -18,7 +18,7 @@ class MockStorageManager {
 
   async saveDocument(doc) {
     this.validateDocument(doc)
-    const existingIndex = this.documents.findIndex(d => d.id === doc.id)
+    const existingIndex = this.documents.findIndex((d) => d.id === doc.id)
     if (existingIndex >= 0) {
       this.documents[existingIndex] = doc
     } else {
@@ -28,7 +28,7 @@ class MockStorageManager {
   }
 
   async deleteDocument(id) {
-    const index = this.documents.findIndex(d => d.id === id)
+    const index = this.documents.findIndex((d) => d.id === id)
     if (index >= 0) {
       this.documents.splice(index, 1)
     }
@@ -61,17 +61,17 @@ describe('MigrationManager', () => {
   beforeEach(() => {
     mockStorage = new MockStorageManager()
     migrationManager = new MigrationManager(mockStorage)
-    
+
     // Mock localStorage
     originalLocalStorage = global.localStorage
     global.localStorage = {
       storage: {},
       getItem: jest.fn((key) => global.localStorage.storage[key] || null),
-      setItem: jest.fn((key, value) => { 
-        global.localStorage.storage[key] = value 
+      setItem: jest.fn((key, value) => {
+        global.localStorage.storage[key] = value
       }),
-      removeItem: jest.fn((key) => { 
-        delete global.localStorage.storage[key] 
+      removeItem: jest.fn((key) => {
+        delete global.localStorage.storage[key]
       })
     }
   })
@@ -128,7 +128,7 @@ describe('MigrationManager', () => {
       })
 
       const stats = await migrationManager.getMigrationStats()
-      
+
       expect(stats.total).toBe(3)
       expect(stats.needsMigration).toBe(2)
       expect(stats.alreadyMigrated).toBe(1)
@@ -139,7 +139,7 @@ describe('MigrationManager', () => {
     it('should handle database errors gracefully', async () => {
       // Mock storage error
       mockStorage.getAllDocuments = jest.fn().mockRejectedValue(new Error('Database error'))
-      
+
       const stats = await migrationManager.getMigrationStats()
       expect(stats.error).toBe('Database error')
       expect(stats.total).toBe(0)
@@ -172,8 +172,8 @@ describe('MigrationManager', () => {
 
       // Old document should be deleted
       const allDocs = await mockStorage.getAllDocuments()
-      expect(allDocs.find(d => d.id === oldDoc.id)).toBeUndefined()
-      expect(allDocs.find(d => d.id === migratedDoc.id)).toBeDefined()
+      expect(allDocs.find((d) => d.id === oldDoc.id)).toBeUndefined()
+      expect(allDocs.find((d) => d.id === migratedDoc.id)).toBeDefined()
     })
 
     it('should throw error for document that does not need migration', async () => {
@@ -182,8 +182,9 @@ describe('MigrationManager', () => {
         title: 'New Document'
       }
 
-      await expect(migrationManager.migrateDocument(newDoc))
-        .rejects.toThrow('Document does not need migration')
+      await expect(migrationManager.migrateDocument(newDoc)).rejects.toThrow(
+        'Document does not need migration'
+      )
     })
 
     it('should handle documents with missing fields', async () => {
@@ -210,7 +211,7 @@ describe('MigrationManager', () => {
         { id: 'doc_1648125634_c3d4e5f6', title: 'Document 3', content: 'Content 3' }
       ]
 
-      oldDocs.forEach(doc => mockStorage.addDocument(doc))
+      oldDocs.forEach((doc) => mockStorage.addDocument(doc))
 
       const result = await migrationManager.migrateAllDocuments({
         backupFirst: false // Skip backup for test
@@ -223,7 +224,7 @@ describe('MigrationManager', () => {
       // Verify all documents have been migrated
       const allDocs = await mockStorage.getAllDocuments()
       expect(allDocs.length).toBe(3)
-      allDocs.forEach(doc => {
+      allDocs.forEach((doc) => {
         expect(guidManager.isValidGuid(doc.id)).toBe(true)
       })
     })
@@ -236,7 +237,7 @@ describe('MigrationManager', () => {
       })
 
       const result = await migrationManager.migrateAllDocuments()
-      
+
       expect(result.success).toBe(true)
       expect(result.migrated).toBe(0)
       expect(result.message).toContain('No migration needed')
@@ -274,17 +275,19 @@ describe('MigrationManager', () => {
         title: '', // Will cause validation error
         content: 'Test'
       })
-      
+
       mockStorage.addDocument({
         id: 'doc_1648125633_b2c3d4e5',
         title: 'Valid Document',
         content: 'Test'
       })
 
-      await expect(migrationManager.migrateAllDocuments({
-        backupFirst: false,
-        continueOnError: false
-      })).rejects.toThrow('Migration stopped due to error')
+      await expect(
+        migrationManager.migrateAllDocuments({
+          backupFirst: false,
+          continueOnError: false
+        })
+      ).rejects.toThrow('Migration stopped due to error')
     })
 
     it('should prevent concurrent migrations', async () => {
@@ -295,10 +298,11 @@ describe('MigrationManager', () => {
 
       // Start first migration
       const migration1 = migrationManager.migrateAllDocuments({ backupFirst: false })
-      
+
       // Try to start second migration
-      await expect(migrationManager.migrateAllDocuments({ backupFirst: false }))
-        .rejects.toThrow('Migration already in progress')
+      await expect(migrationManager.migrateAllDocuments({ backupFirst: false })).rejects.toThrow(
+        'Migration already in progress'
+      )
 
       // Wait for first migration to complete
       await migration1
@@ -315,11 +319,11 @@ describe('MigrationManager', () => {
       mockStorage.addDocument(testDoc)
 
       const backupId = await migrationManager.createBackup()
-      
+
       expect(backupId).toMatch(/^backup_\d+_[a-f0-9]{8}$/)
       expect(global.localStorage.getItem).toHaveBeenCalledWith('migration_backups')
       expect(global.localStorage.setItem).toHaveBeenCalledWith(
-        backupId, 
+        backupId,
         expect.stringContaining('"documents"')
       )
     })
@@ -341,7 +345,7 @@ describe('MigrationManager', () => {
 
       expect(result.success).toBe(true)
       expect(result.restored).toBe(2)
-      
+
       const allDocs = await mockStorage.getAllDocuments()
       expect(allDocs).toHaveLength(2)
       expect(allDocs[0].title).toBe('Document 1')
@@ -386,30 +390,30 @@ describe('MigrationManager', () => {
   describe('Status and Logging', () => {
     it('should track migration status', () => {
       expect(migrationManager.getStatus().status).toBe('ready')
-      
+
       migrationManager.migrationStatus = 'running'
       expect(migrationManager.getStatus().status).toBe('running')
     })
 
     it('should log migration events', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation()
-      
+
       migrationManager.log('info', 'Test message')
-      
+
       expect(migrationManager.migrationLog).toHaveLength(1)
       expect(migrationManager.migrationLog[0].level).toBe('info')
       expect(migrationManager.migrationLog[0].message).toBe('Test message')
       expect(consoleSpy).toHaveBeenCalledWith('[Migration:INFO] Test message')
-      
+
       consoleSpy.mockRestore()
     })
 
     it('should reset migration state', () => {
       migrationManager.migrationStatus = 'error'
       migrationManager.log('error', 'Test error')
-      
+
       migrationManager.reset()
-      
+
       expect(migrationManager.getStatus().status).toBe('ready')
       expect(migrationManager.migrationLog).toHaveLength(0)
     })

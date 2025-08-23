@@ -1,4 +1,6 @@
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -44,7 +46,6 @@ body {
   white-space: nowrap;
 }
 
-
 /* Navigation buttons removed - all functionality through command palette */
 
 .app-main {
@@ -64,7 +65,9 @@ body {
   overflow-y: auto;
   padding: var(--spacing-lg);
   z-index: 10;
-  transition: transform var(--transition-medium) ease, opacity var(--transition-medium) ease;
+  transition:
+    transform var(--transition-medium) ease,
+    opacity var(--transition-medium) ease;
   transform: translateX(0);
   opacity: 1;
 }
@@ -277,38 +280,38 @@ body {
   .app-title {
     font-size: var(--font-size-base);
   }
-  
+
   .command-input-container {
     max-width: 200px;
   }
-  
+
   .global-command-input {
     font-size: var(--font-size-xs);
     padding: var(--spacing-xs) var(--spacing-sm);
   }
-  
+
   .command-hint {
     display: none;
   }
-  
+
   .sidebar {
     width: 90vw;
     max-width: 320px;
   }
-  
+
   .editor {
     padding: var(--spacing-sm);
   }
-  
+
   .editor-content {
     max-width: 100%;
     padding: var(--spacing-md);
   }
-  
+
   .editor-codemirror {
     padding: var(--spacing-sm);
   }
-  
+
   .doc-title {
     font-size: var(--font-size-base);
   }
@@ -368,7 +371,7 @@ body {
 }
 
 /* Dark theme notification adjustments */
-[data-theme="dark"] .notification-info {
+[data-theme='dark'] .notification-info {
   background-color: var(--color-bg-secondary);
   color: var(--color-text);
   border-color: var(--color-secondary);
@@ -379,7 +382,7 @@ body {
     padding: var(--spacing-sm);
     font-size: var(--font-size-sm);
   }
-  
+
   .doc-title {
     font-size: var(--font-size-sm);
     padding: var(--spacing-xs);

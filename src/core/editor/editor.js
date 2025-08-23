@@ -23,7 +23,7 @@ export class EditorManager {
         EditorView.theme({
           '&': { height: '100%' },
           '.cm-scroller': { overflow: 'auto' },
-          '.cm-content': { 
+          '.cm-content': {
             padding: '16px',
             fontFamily: 'var(--font-family-mono)',
             fontSize: 'var(--font-size-base)',
@@ -41,7 +41,7 @@ export class EditorManager {
 
   setContent(content) {
     if (!this.view) return
-    
+
     const transaction = this.view.state.update({
       changes: {
         from: 0,
@@ -49,7 +49,7 @@ export class EditorManager {
         insert: content
       }
     })
-    
+
     this.view.dispatch(transaction)
   }
 

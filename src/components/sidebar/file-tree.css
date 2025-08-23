@@ -36,8 +36,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty State */
@@ -222,40 +226,40 @@
   .file-tree {
     font-size: var(--font-size-xs);
   }
-  
+
   .file-tree-item {
     padding: var(--spacing-xs);
   }
-  
+
   .file-item-tags {
     display: none; /* Hide tags on mobile to save space */
   }
 }
 
 /* Dark Theme Adjustments */
-[data-theme="dark"] .file-tree-item.selected {
+[data-theme='dark'] .file-tree-item.selected {
   background-color: rgba(var(--color-primary-rgb), 0.15);
 }
 
-[data-theme="dark"] .loading-spinner {
+[data-theme='dark'] .loading-spinner {
   border-color: var(--color-border);
   border-top-color: var(--color-primary);
 }
 
 /* Fantasy Theme Adjustments */
-[data-theme="fantasy"] .file-tree-item.selected {
+[data-theme='fantasy'] .file-tree-item.selected {
   background-color: rgba(255, 111, 0, 0.1);
   border-color: var(--color-secondary);
 }
 
-[data-theme="fantasy"] .group-title {
+[data-theme='fantasy'] .group-title {
   color: var(--color-secondary);
 }
 
-[data-theme="fantasy"] .loading-spinner {
+[data-theme='fantasy'] .loading-spinner {
   border-top-color: var(--color-secondary);
 }
 
-[data-theme="fantasy"] .retry-btn {
+[data-theme='fantasy'] .retry-btn {
   background: var(--color-secondary);
 }

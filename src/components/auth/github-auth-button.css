@@ -103,7 +103,9 @@
 .github-dropdown-icon {
   flex-shrink: 0;
   opacity: 0.6;
-  transition: transform var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .github-user-btn:hover .github-dropdown-icon {
@@ -115,15 +117,15 @@
   .github-signin-btn {
     padding: var(--spacing-xs) var(--spacing-sm);
   }
-  
+
   .github-signin-text {
     display: none;
   }
-  
+
   .github-user-btn {
     max-width: 120px;
   }
-  
+
   .github-username {
     max-width: 80px;
   }
@@ -133,21 +135,21 @@
   .github-user-btn {
     max-width: 100px;
   }
-  
+
   .github-username {
     max-width: 60px;
   }
 }
 
 /* Dark theme adjustments */
-[data-theme="dark"] .github-avatar {
+[data-theme='dark'] .github-avatar {
   border-color: var(--color-border);
 }
 
-[data-theme="dark"] .github-signin-btn:hover {
+[data-theme='dark'] .github-signin-btn:hover {
   background-color: var(--color-bg-tertiary);
 }
 
-[data-theme="dark"] .github-user-btn:hover {
+[data-theme='dark'] .github-user-btn:hover {
   background-color: var(--color-bg-tertiary);
 }
