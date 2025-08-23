@@ -32,6 +32,8 @@
 
 ### Recent Improvements
 
+- **GitHub UI Integration** - Authentication button in header with user dropdown menu
+- **Sync Status Indicators** - Real-time document sync status in status bar (🟢🟡🔴)
 - **GitHub OAuth Integration** - Secure authentication with automatic private repository creation
 - **Backend API Proxy** - CORS-free GitHub API access with Express server
 - **Document Synchronization** - Bidirectional sync between local IndexedDB and GitHub
@@ -174,22 +176,56 @@ Ctrl+Space → ":f dragons"    # Search documents
 }
 ```
 
-## GitHub Repository Status Indicators
+## 🐙 GitHub Integration UI
 
-Fantasy Editor provides visual feedback about your document's sync status with GitHub.
+Fantasy Editor provides a complete GitHub integration experience with visual feedback and seamless authentication.
 
-### Status Bar Icons (Bottom-right corner)
-- 🟢 **Synced**: Document matches remote repository - all changes saved to GitHub
-- 🟡 **Out of sync**: Local changes not pushed to remote - use `:gpu` to sync  
-- 🔴 **Local only**: Document never synced to GitHub - use `:gpu` to push
+### GitHub Authentication Button (Header - Top-right)
 
-### Usage
-- Status appears in bottom-right of status bar when GitHub is configured
-- Click the GitHub user button (top-right) to manage repository settings
-- Repository name shows which repo your documents sync to
+**When not signed in:**
+- "Sign in with GitHub" button with GitHub icon
+- Clicking redirects to GitHub OAuth authorization
 
-### Document GUID Label
-When a document is synced to GitHub, a discrete GUID label appears below the document title showing the first 8 characters of the document's unique identifier.
+**When signed in:**
+- Shows user avatar, username, and dropdown arrow
+- Click to open user dropdown menu
+
+### GitHub User Dropdown Menu
+
+**Repository Information:**
+- Current configured repository name
+- "Not configured" if no repository set up
+- Hint to use `:gcf` (GitHub Configure) command
+
+**Menu Actions:**
+- **Sign out** - Log out from GitHub
+- **Help** - Show GitHub command documentation
+
+### Sync Status Indicators (Status Bar - Bottom-right)
+
+**Pill-shaped status labels with discrete styling:**
+- 🟢 **Synced**: Document matches remote repository
+- 🟡 **Out of sync**: Local changes need push to GitHub
+- 🔴 **Local only**: Document never synced to GitHub
+- **Hidden**: When not authenticated or not configured
+
+**Features:**
+- Real-time updates every 5 seconds
+- Updates when tab regains focus
+- Updates after authentication changes
+- Shows repository name next to status icon
+
+### UI Integration Details
+
+**Responsive Design:**
+- Mobile-friendly dropdown positioning
+- Username truncation on smaller screens
+- Proper touch targets for mobile devices
+
+**Theme Compatibility:**
+- Adapts to Light, Dark, and Fantasy themes
+- Consistent styling with editor theme
+- Proper contrast ratios for accessibility
 
 ## 🚀 Next Sprint Priorities
 
