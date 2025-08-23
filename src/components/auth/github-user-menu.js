@@ -12,6 +12,7 @@ export class GitHubUserMenu {
     this.element = null
     this.isVisible = false
     this.overlay = null
+    this.authButton = null
     
     this.init()
   }
@@ -55,7 +56,7 @@ export class GitHubUserMenu {
     const config = this.githubStorage?.getConfig() || {}
     
     const repositoryText = config.configured 
-      ? `${config.owner}/${config.repo}`
+      ? config.repo
       : 'Not configured'
 
     this.element.innerHTML = `
@@ -94,7 +95,7 @@ export class GitHubUserMenu {
       
       <button class="github-menu-item github-menu-action" data-action="help">
         <svg class="github-menu-icon" viewBox="0 0 16 16" width="16" height="16">
-          <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8ZM6.92 6.085c.081-.16.19-.299.327-.415.388-.331.93-.372 1.324-.238.394.134.671.48.671.921 0 .342-.2.63-.544.772-.193.08-.3.25-.3.456v.413a.75.75 0 0 0 1.5 0V7.88c.567-.251.875-.816.875-1.459 0-.75-.508-1.394-1.26-1.556-.753-.162-1.584.047-2.08.616a2.52 2.52 0 0 0-.415.13V6.85a.75.75 0 0 0-1.098-.235ZM8 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+          <path fill="currentColor" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.92 6.085c.081-.16.19-.299.327-.415a1.469 1.469 0 0 1 1.324-.238c.394.134.671.48.671.921 0 .342-.2.63-.544.772-.193.08-.3.25-.3.456v.413a.75.75 0 0 0 1.5 0V7.88c.567-.251.875-.816.875-1.459 0-.75-.508-1.394-1.26-1.556-.753-.162-1.584.047-2.08.616-.162.186-.267.407-.316.645a.75.75 0 0 0 1.478.238Zm.091 4.665a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/>
         </svg>
         <span>Help</span>
       </button>
@@ -142,6 +143,13 @@ export class GitHubUserMenu {
   }
 
   /**
+   * Set reference to auth button for arrow control
+   */
+  setAuthButton(authButton) {
+    this.authButton = authButton
+  }
+
+  /**
    * Show the menu positioned relative to a button
    */
   show(buttonElement) {
@@ -184,6 +192,11 @@ export class GitHubUserMenu {
       this.element.style.transform = 'translateY(0)'
     })
 
+    // Rotate arrow to down position
+    if (this.authButton) {
+      this.authButton.setMenuOpen(true)
+    }
+
     this.isVisible = true
   }
 
@@ -201,6 +214,11 @@ export class GitHubUserMenu {
       this.overlay.style.display = 'none'
       this.element.style.display = 'none'
     }, 150)
+
+    // Rotate arrow back to up position
+    if (this.authButton) {
+      this.authButton.setMenuOpen(false)
+    }
 
     this.isVisible = false
   }

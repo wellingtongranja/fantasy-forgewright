@@ -83,7 +83,7 @@ export class GitHubAuthButton {
         />
         <span class="github-username">${this.currentUser.name || this.currentUser.login}</span>
         <svg class="github-dropdown-icon" viewBox="0 0 16 16" width="12" height="12">
-          <path fill="currentColor" d="M4.427 9.573L8 6l3.573 3.573 1.427-1.427L8 3.146 3 8.146l1.427 1.427z"/>
+          <path fill="currentColor" d="M4.427 6.427L8 10l3.573-3.573L13 7.854 8 12.854l-5-5 1.427-1.427z"/>
         </svg>
       </button>
     `
@@ -109,6 +109,16 @@ export class GitHubAuthButton {
    */
   refresh() {
     this.updateDisplay()
+  }
+
+  /**
+   * Set menu open state (rotates dropdown arrow)
+   */
+  setMenuOpen(isOpen) {
+    const icon = this.element.querySelector('.github-dropdown-icon')
+    if (icon) {
+      icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+    }
   }
 
   /**

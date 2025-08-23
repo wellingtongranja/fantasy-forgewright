@@ -103,7 +103,7 @@
 .github-dropdown-icon {
   flex-shrink: 0;
   opacity: 0.6;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .github-user-btn:hover .github-dropdown-icon {

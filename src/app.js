@@ -308,6 +308,11 @@ class FantasyEditorApp {
       authContainer.appendChild(this.githubAuthButton.getElement())
     }
 
+    // Connect auth button and menu for arrow control
+    if (this.githubUserMenu && this.githubAuthButton) {
+      this.githubUserMenu.setAuthButton(this.githubAuthButton)
+    }
+
     // Update GitHub UI on auth state changes
     this.updateGitHubUI()
   }
@@ -560,22 +565,13 @@ class FantasyEditorApp {
    */
   updateGuidLabel() {
     const guidLabel = document.getElementById('doc-guid-label')
-    const guidText = document.getElementById('doc-guid-text')
     
-    if (!guidLabel || !guidText || !this.currentDocument) {
+    if (!guidLabel) {
       return
     }
 
-    // Show GUID label if document has been synced to GitHub
-    const hasGitHubSync = this.currentDocument.githubSha && this.currentDocument.githubPath
-    
-    if (hasGitHubSync) {
-      const guidPrefix = this.currentDocument.id.substring(0, 8)
-      guidText.textContent = guidPrefix
-      guidLabel.style.display = 'flex'
-    } else {
-      guidLabel.style.display = 'none'
-    }
+    // Always hide GUID label (per user request)
+    guidLabel.style.display = 'none'
   }
 
   /**
