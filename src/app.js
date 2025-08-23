@@ -12,6 +12,8 @@ import { devHelpers } from './utils/dev-helpers.js'
 import { GitHubAuth } from './core/auth/github-auth.js'
 import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
+import { GitHubAuthButton } from './components/auth/github-auth-button.js'
+import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -36,6 +38,8 @@ class FantasyEditorApp {
     this.githubAuth = null
     this.githubStorage = null
     this.syncManager = null
+    this.githubAuthButton = null
+    this.githubUserMenu = null
   }
 
   async init() {
@@ -136,14 +140,27 @@ class FantasyEditorApp {
     if (result.success === false) {
       this.showNotification(result.message, 'error')
     } else if (result.data) {
-      // Format data for display
+      // Simplify data display for better UX
       let message = result.message || 'Command completed'
+      
       if (Array.isArray(result.data)) {
-        message += '\n• ' + result.data.join('\n• ')
+        // For lists, show count summary instead of full list
+        if (result.data.length > 3) {
+          message = `${message} (${result.data.length} items)`
+        } else {
+          message += '\n• ' + result.data.join('\n• ')
+        }
       } else if (typeof result.data === 'object') {
-        const lines = Object.entries(result.data).map(([key, value]) => `${key}: ${value}`)
-        message += '\n• ' + lines.join('\n• ')
+        // For objects, format key-value pairs concisely
+        const entries = Object.entries(result.data)
+        if (entries.length <= 3) {
+          const lines = entries.map(([key, value]) => `${key}: ${value}`)
+          message += '\n• ' + lines.join('\n• ')
+        } else {
+          message += ` (${entries.length} properties)`
+        }
       }
+      
       this.showNotification(message, result.success ? 'success' : 'info')
     } else {
       this.showNotification(result.message, result.success ? 'success' : 'info')
@@ -188,6 +205,9 @@ class FantasyEditorApp {
       
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
       console.log('GitHub authentication successful:', user)
+
+      // Update GitHub UI
+      this.updateGitHubUI()
 
       // Automatically create and configure default repository
       this.setupDefaultRepository(user)
@@ -249,10 +269,102 @@ class FantasyEditorApp {
 
       console.log('✅ GitHub Device Flow integration initialized')
       
+      // Initialize GitHub UI components
+      this.initializeGitHubUI()
+      
     } catch (error) {
       console.error('❌ Failed to initialize GitHub integration:', error)
       this.showNotification('GitHub integration failed to initialize', 'warning')
     }
+  }
+
+  /**
+   * Initialize GitHub UI components
+   */
+  initializeGitHubUI() {
+    if (!this.githubAuth || !this.githubStorage) {
+      console.warn('GitHub integration not initialized, skipping UI setup')
+      return
+    }
+
+    // Initialize GitHub auth button
+    this.githubAuthButton = new GitHubAuthButton(
+      this.githubAuth,
+      () => this.handleGitHubLogin(),
+      (event, user) => this.handleGitHubUserClick(event, user)
+    )
+
+    // Initialize GitHub user menu
+    this.githubUserMenu = new GitHubUserMenu(
+      this.githubAuth,
+      this.githubStorage,
+      () => this.handleGitHubSignOut(),
+      () => this.handleGitHubHelp()
+    )
+
+    // Add auth button to header
+    const authContainer = document.getElementById('github-auth-container')
+    if (authContainer && this.githubAuthButton) {
+      authContainer.appendChild(this.githubAuthButton.getElement())
+    }
+
+    // Update GitHub UI on auth state changes
+    this.updateGitHubUI()
+  }
+
+  /**
+   * Handle GitHub login button click
+   */
+  async handleGitHubLogin() {
+    try {
+      await this.githubAuth.login()
+      this.showNotification('Redirecting to GitHub for authorization...', 'info')
+    } catch (error) {
+      console.error('GitHub login failed:', error)
+      this.showNotification(`GitHub login failed: ${error.message}`, 'error')
+    }
+  }
+
+  /**
+   * Handle GitHub user button click (show menu)
+   */
+  handleGitHubUserClick(event, user) {
+    if (this.githubUserMenu) {
+      this.githubUserMenu.show(event.currentTarget)
+    }
+  }
+
+  /**
+   * Handle GitHub sign out
+   */
+  handleGitHubSignOut() {
+    if (this.githubAuth) {
+      const user = this.githubAuth.getCurrentUser()
+      this.githubAuth.logout()
+      this.showNotification(`Signed out from GitHub (was: ${user?.name || 'Unknown'})`, 'info')
+      this.updateGitHubUI()
+    }
+  }
+
+  /**
+   * Handle GitHub help
+   */
+  handleGitHubHelp() {
+    // Execute help command through command system
+    this.executeCommand('help github')
+  }
+
+  /**
+   * Update GitHub UI components
+   */
+  updateGitHubUI() {
+    if (this.githubAuthButton) {
+      this.githubAuthButton.refresh()
+    }
+    if (this.githubUserMenu) {
+      this.githubUserMenu.refresh()
+    }
+    this.updateGitHubSyncStatus()
   }
 
 
@@ -443,9 +555,84 @@ class FantasyEditorApp {
     document.getElementById('sync-status').textContent = status
   }
 
+  /**
+   * Update document GUID label visibility and content
+   */
+  updateGuidLabel() {
+    const guidLabel = document.getElementById('doc-guid-label')
+    const guidText = document.getElementById('doc-guid-text')
+    
+    if (!guidLabel || !guidText || !this.currentDocument) {
+      return
+    }
+
+    // Show GUID label if document has been synced to GitHub
+    const hasGitHubSync = this.currentDocument.githubSha && this.currentDocument.githubPath
+    
+    if (hasGitHubSync) {
+      const guidPrefix = this.currentDocument.id.substring(0, 8)
+      guidText.textContent = guidPrefix
+      guidLabel.style.display = 'flex'
+    } else {
+      guidLabel.style.display = 'none'
+    }
+  }
+
+  /**
+   * Update GitHub sync status indicator in footer
+   */
+  updateGitHubSyncStatus() {
+    const syncIndicator = document.getElementById('github-sync-indicator')
+    const repoName = document.getElementById('repo-name')
+    const syncIcon = document.getElementById('sync-status-icon')
+    
+    if (!syncIndicator || !repoName || !syncIcon) {
+      return
+    }
+
+    // Check if GitHub is configured
+    const config = this.githubStorage?.getConfig() || {}
+    const isConfigured = config.configured && config.owner && config.repo
+    
+    if (!isConfigured || !this.githubAuth?.isAuthenticated()) {
+      syncIndicator.style.display = 'none'
+      return
+    }
+
+    // Show repository name
+    repoName.textContent = `${config.owner}/${config.repo}`
+    
+    // Determine sync status
+    let status = 'local-only'
+    let icon = '🔴'
+    
+    if (this.currentDocument) {
+      const hasGitHubMetadata = this.currentDocument.githubSha && this.currentDocument.githubPath
+      
+      if (hasGitHubMetadata) {
+        const lastSynced = this.currentDocument.lastSyncedAt ? new Date(this.currentDocument.lastSyncedAt) : null
+        const lastModified = this.currentDocument.metadata?.modified ? new Date(this.currentDocument.metadata.modified) : null
+        
+        if (lastSynced && lastModified && lastSynced >= lastModified) {
+          status = 'synced'
+          icon = '🟢'
+        } else {
+          status = 'out-of-sync'
+          icon = '🟡'
+        }
+      }
+    }
+    
+    syncIcon.textContent = icon
+    syncIcon.setAttribute('data-status', status)
+    syncIndicator.style.display = 'flex'
+  }
+
   updateUI() {
     this.updateWordCount()
     this.updateSyncStatus('Ready')
+    this.updateGuidLabel()
+    this.updateGitHubSyncStatus()
   }
 
   showNotification(message, type = 'info', duration = 3000) {
@@ -471,8 +658,8 @@ class FantasyEditorApp {
     
     notification.style.cssText = `
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      bottom: calc(var(--footer-height) + var(--spacing-md));
+      right: var(--spacing-lg);
       background: var(--color-bg);
       color: var(--color-text);
       border: 1px solid var(--color-border);

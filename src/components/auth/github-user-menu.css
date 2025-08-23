@@ -1,0 +1,230 @@
+/**
+ * GitHub User Menu Styles
+ * Dropdown menu styles for authenticated users
+ */
+
+.github-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: var(--z-index-dropdown);
+}
+
+.github-user-menu {
+  position: fixed;
+  z-index: calc(var(--z-index-dropdown) + 1);
+  width: 280px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: all var(--transition-fast);
+  overflow: hidden;
+}
+
+/* Menu Header with User Info */
+.github-menu-header {
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.github-menu-user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.github-menu-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--color-border);
+  object-fit: cover;
+}
+
+.github-menu-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.github-menu-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.github-menu-login {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Menu Divider */
+.github-menu-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0;
+}
+
+/* Menu Items */
+.github-menu-item {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-md);
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: default;
+  transition: background-color var(--transition-fast);
+}
+
+.github-menu-item.github-menu-action {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text);
+}
+
+.github-menu-item.github-menu-action:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.github-menu-item.github-menu-action:focus {
+  outline: none;
+  background-color: var(--color-bg-tertiary);
+}
+
+.github-menu-item.github-menu-action:active {
+  background-color: var(--color-border);
+}
+
+/* Repository Item */
+.github-menu-repo {
+  cursor: default;
+}
+
+.github-menu-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.github-menu-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  font-family: var(--font-family-mono);
+  word-break: break-all;
+}
+
+.github-menu-value-inactive {
+  color: var(--color-text-secondary);
+  font-style: italic;
+  font-family: inherit;
+}
+
+.github-menu-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  opacity: 0.8;
+}
+
+/* Action Icons */
+.github-menu-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.github-menu-action:hover .github-menu-icon {
+  opacity: 0.9;
+}
+
+.github-menu-action span {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Sign Out Action - Special styling */
+.github-menu-action[data-action="signout"] {
+  color: var(--color-danger);
+}
+
+.github-menu-action[data-action="signout"]:hover {
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+.github-menu-action[data-action="signout"] .github-menu-icon {
+  opacity: 0.8;
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .github-user-menu {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-xl);
+}
+
+[data-theme="dark"] .github-menu-header {
+  background: var(--color-bg-tertiary);
+}
+
+[data-theme="dark"] .github-menu-avatar {
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .github-menu-action:hover {
+  background-color: var(--color-bg);
+}
+
+[data-theme="dark"] .github-menu-action[data-action="signout"]:hover {
+  background-color: rgba(231, 76, 60, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .github-user-menu {
+    width: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .github-user-menu {
+    width: calc(100vw - 32px);
+    left: 16px !important;
+    right: 16px;
+  }
+}
+
+/* Animation States */
+.github-user-menu[data-state="entering"] {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.github-user-menu[data-state="entered"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.github-user-menu[data-state="exiting"] {
+  opacity: 0;
+  transform: translateY(-8px);
+}

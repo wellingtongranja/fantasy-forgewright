@@ -174,11 +174,26 @@ Ctrl+Space → ":f dragons"    # Search documents
 }
 ```
 
+## GitHub Repository Status Indicators
+
+Fantasy Editor provides visual feedback about your document's sync status with GitHub.
+
+### Status Bar Icons (Bottom-right corner)
+- 🟢 **Synced**: Document matches remote repository - all changes saved to GitHub
+- 🟡 **Out of sync**: Local changes not pushed to remote - use `:gpu` to sync  
+- 🔴 **Local only**: Document never synced to GitHub - use `:gpu` to push
+
+### Usage
+- Status appears in bottom-right of status bar when GitHub is configured
+- Click the GitHub user button (top-right) to manage repository settings
+- Repository name shows which repo your documents sync to
+
+### Document GUID Label
+When a document is synced to GitHub, a discrete GUID label appears below the document title showing the first 8 characters of the document's unique identifier.
+
 ## 🚀 Next Sprint Priorities
 
-- [ ] IndexedDB storage implementation
 - [ ] Document persistence system  
-- [ ] GitHub OAuth integration
 - [ ] Project Gutenberg integration
 - [ ] Text-to-speech capabilities
 - [ ] Internationalization (i18n)

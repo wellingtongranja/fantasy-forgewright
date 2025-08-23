@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="/src/styles/variables.css">
   <link rel="stylesheet" href="/src/components/sidebar/file-tree.css">
   <link rel="stylesheet" href="/src/components/search/search-results.css">
+  <link rel="stylesheet" href="/src/components/auth/github-auth-button.css">
+  <link rel="stylesheet" href="/src/components/auth/github-user-menu.css">
   
   <script type="module" src="/src/app.js"></script>
 </head>
@@ -28,6 +30,7 @@
   <div id="app" class="app-container">
     <header class="app-header">
       <h1 class="app-title">Fantasy Editor</h1>
+      <div id="github-auth-container"></div>
     </header>
     
     <main class="app-main">
@@ -45,9 +48,13 @@
       
       <section class="editor-container">
         <div class="editor">
-          <div id="editor" class="editor-content">
+          <div class="doc-title-container">
             <input type="text" id="doc-title" class="doc-title" placeholder="Untitled Document" />
+            <div class="doc-guid-label" id="doc-guid-label" style="display: none;">
+              <span class="doc-guid-text" id="doc-guid-text"></span>
+            </div>
           </div>
+          <div id="editor" class="editor-content"></div>
         </div>
       </section>
     </main>
@@ -55,7 +62,13 @@
     <footer class="app-footer">
       <span id="word-count">0 words</span>
       <span class="command-hint-footer">Press Ctrl+Space for commands</span>
-      <span id="sync-status">Ready</span>
+      <div class="sync-status-container">
+        <div class="github-sync-indicator" id="github-sync-indicator" style="display: none;">
+          <span class="repo-name" id="repo-name"></span>
+          <span class="sync-status-icon" id="sync-status-icon"></span>
+        </div>
+        <span id="sync-status">Ready</span>
+      </div>
     </footer>
   </div>
   

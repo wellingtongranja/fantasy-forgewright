@@ -29,7 +29,7 @@ body {
 
 .app-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 0 var(--spacing-lg);
   height: var(--header-height);
@@ -146,6 +146,14 @@ body {
   gap: var(--spacing-sm);
 }
 
+.doc-title-container {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
 .doc-title {
   width: 100%;
   padding: var(--spacing-sm) 0;
@@ -156,8 +164,25 @@ body {
   color: var(--color-text);
   text-align: center;
   font-family: inherit;
-  flex-shrink: 0;
   outline: none;
+}
+
+.doc-guid-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  opacity: 0.8;
+}
+
+.doc-guid-text {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .doc-title:focus {
@@ -180,6 +205,36 @@ body {
   border-top: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+}
+
+.sync-status-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-self: end;
+}
+
+.github-sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  opacity: 0.9;
+}
+
+.repo-name {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.sync-status-icon {
+  font-size: var(--font-size-xs);
+  line-height: 1;
 }
 
 .app-footer > span:first-child {
@@ -249,6 +304,66 @@ body {
   .doc-title {
     font-size: var(--font-size-base);
   }
+}
+
+/* Notification Styles */
+.notification {
+  position: fixed;
+  bottom: calc(var(--footer-height) + var(--spacing-md));
+  right: var(--spacing-lg);
+  max-width: 400px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  z-index: var(--z-index-toast);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border);
+  white-space: pre-line;
+  word-wrap: break-word;
+}
+
+.notification-info {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border-color: var(--color-secondary);
+}
+
+.notification-success {
+  background-color: var(--color-success);
+  color: var(--color-text-inverse);
+  border-color: var(--color-success);
+}
+
+.notification-warning {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+  border-color: var(--color-warning);
+}
+
+.notification-error {
+  background-color: var(--color-danger);
+  color: var(--color-text-inverse);
+  border-color: var(--color-danger);
+}
+
+/* Responsive notification positioning */
+@media (max-width: 768px) {
+  .notification {
+    left: var(--spacing-md);
+    right: var(--spacing-md);
+    max-width: none;
+  }
+}
+
+/* Dark theme notification adjustments */
+[data-theme="dark"] .notification-info {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text);
+  border-color: var(--color-secondary);
 }
 
 @media (max-width: 480px) {
