@@ -17,6 +17,9 @@
 - [x] Full-text search and document tagging
 - [x] Writer-focused UI with optimal 65ch layout
 - [x] GitHub OAuth integration with automatic repository setup
+- [x] **Navigator Component** - Tabbed sidebar with Documents, Outline, Search
+- [x] **Auto-unhide functionality** - Mouse-triggered Navigator appearance
+- [x] **RECENT/PREVIOUS document organization** - Simplified grouping system
 - [ ] Project Gutenberg integration
 - [ ] Internationalization support
 
@@ -32,14 +35,16 @@
 
 ### Recent Improvements
 
+- **Navigator Component** - Complete tabbed sidebar replacing legacy sidebar with Documents, Outline, and Search tabs
+- **Auto-unhide System** - Mouse proximity detection (10px from left edge) with smooth animations
+- **Enhanced Pin Button** - Left seven-eighths block icon (▊) with CSS border styling for clear sidebar representation
+- **RECENT/PREVIOUS Organization** - Simplified document grouping without complex time-based categories
+- **Smooth Animations** - 0.4s cubic-bezier transitions for polished Navigator show/hide effects
+- **Integrated Commands** - `:d`, `:f`, `:l` commands with proper focus management and filtering
 - **GitHub UI Integration** - Authentication button in header with user dropdown menu
 - **Sync Status Indicators** - Real-time document sync status in status bar (🟢🟡🔴)
-- **GitHub OAuth Integration** - Secure authentication with automatic private repository creation
-- **Backend API Proxy** - CORS-free GitHub API access with Express server
 - **Document Synchronization** - Bidirectional sync between local IndexedDB and GitHub
 - **Command System Enhancement** - All GitHub operations via colon shortcuts
-- **YAML Front Matter** - Proper document metadata in GitHub storage
-- **Automatic Repository Setup** - Zero-configuration GitHub integration upon login
 
 ## 🛠️ Development Standards
 
@@ -59,8 +64,15 @@ src/
 │   ├── editor/             # CodeMirror integration
 │   ├── storage/            # IndexedDB + GitHub sync
 │   ├── search/             # Full-text search + tags
+│   ├── commands/           # Command registry & handlers
 │   └── themes/             # Theme management
 ├── components/             # UI components
+│   ├── navigator/          # Tabbed sidebar (Documents/Outline/Search)
+│   │   ├── tabs/          # Individual tab components
+│   │   └── utils/         # Navigator utilities (outline parser)
+│   ├── command-bar/       # Command palette interface
+│   ├── auth/              # GitHub authentication UI
+│   └── sidebar/           # Legacy sidebar (fallback)
 ├── styles/                 # CSS themes & base styles
 ├── workers/               # Service worker + PWA
 └── utils/                 # Validation, security, logging
@@ -84,7 +96,9 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:tt`** | `toggle theme` | `:tt` |
 | **`:i`** | `info` | `:i` |
 | **`:h`** | `help` | `:h` |
-| **`:d`** | `documents` | `:d` |
+| **`:d`** | `documents` | `:d` or `:d filter` |
+| **`:l`** | `outline` | `:l` |
+| **`:f`** | `search` | `:f` or `:f query` |
 | **`:fs`** | `focus search` | `:fs` |
 | **`:fd`** | `focus documents` | `:fd` |
 | **`:ts`** | `toggle sidebar` | `:ts` |
@@ -226,6 +240,81 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 - Adapts to Light, Dark, and Fantasy themes
 - Consistent styling with editor theme
 - Proper contrast ratios for accessibility
+
+## 🧭 Navigator Component
+
+Fantasy Editor features a comprehensive Navigator component that replaces the traditional sidebar with a modern, tabbed interface.
+
+### Navigator Architecture
+
+**Three Primary Tabs:**
+- **Documents** - RECENT/PREVIOUS organization with filtering capability
+- **Outline** - Live document structure with clickable navigation
+- **Search** - Full-text search across all documents with discrete results
+
+### Auto-unhide System
+
+**Smart Proximity Detection:**
+- **Left edge trigger** - Mouse within 10px of browser left edge
+- **Instant show** - Navigator slides in with smooth animation
+- **Auto-hide delay** - 1-second delay after mouse leaves Navigator area
+- **Pin state respect** - No auto-hide when Navigator is pinned
+
+### Pin Button Design
+
+**Enhanced Visual Representation:**
+- **Icon**: Left seven-eighths block (▊) representing sidebar panel
+- **CSS styling**: Border with hover effects for button-like appearance
+- **States**: Default, hover, and active/pinned visual feedback
+- **Position**: Top-right corner of Navigator for easy access
+
+### Document Organization
+
+**RECENT Section:**
+- Shows 3 most recently accessed documents
+- Based on actual user interaction (opening documents)
+- Excludes documents shown in PREVIOUS to avoid duplication
+
+**PREVIOUS Section:**
+- All other documents sorted by modification date (newest first)
+- Clean, simple organization without complex time-based grouping
+
+### Animation System
+
+**Smooth Transitions:**
+- **Duration**: 0.4s for balanced responsiveness and smoothness
+- **Easing**: cubic-bezier(0.25, 0.46, 0.45, 0.94) for natural motion
+- **Coordinated**: Navigator slide and content shift move in harmony
+- **Opacity fades**: Polished appearance/disappearance effects
+
+### Command Integration
+
+**Navigator Commands:**
+- **`:d [filter]`** - Open Documents tab with optional filtering, focus on search input
+- **`:l`** - Open Outline tab for document structure navigation  
+- **`:f [query]`** - Open Search tab with optional query, focus on search input
+
+**Focus Management:**
+- Commands automatically focus appropriate input fields
+- Seamless keyboard workflow integration
+- Maintains editor focus after Navigator operations
+
+### Technical Features
+
+**Responsive Design:**
+- Mobile-friendly interaction patterns
+- Touch-optimized controls and spacing
+- Proper viewport handling for different screen sizes
+
+**Performance:**
+- Lazy-loaded tab components for faster initialization
+- Efficient document filtering and search algorithms
+- Minimal DOM manipulation for smooth interactions
+
+**Accessibility:**
+- ARIA labels and roles for screen readers
+- Keyboard navigation support
+- High contrast ratios across all themes
 
 ## 🚀 Next Sprint Priorities
 
