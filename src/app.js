@@ -15,6 +15,7 @@ import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
 import { GitHubAuthButton } from './components/auth/github-auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
+import { ExportManager } from './core/export/export-manager.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -42,6 +43,9 @@ class FantasyEditorApp {
     this.syncManager = null
     this.githubAuthButton = null
     this.githubUserMenu = null
+
+    // Writer enhancements
+    this.exportManager = null
   }
 
   async init() {
@@ -91,11 +95,19 @@ class FantasyEditorApp {
   }
 
   async initializeManagers() {
-    const editorElement = document.getElementById('editor')
-    this.editor = new EditorManager(editorElement)
+    // Initialize theme manager first (needed by other components)
     this.themeManager = new ThemeManager()
+    
+    // Initialize storage
     this.storageManager = new StorageManager()
     this.searchEngine = new SearchEngine(this.storageManager)
+
+    // Initialize editor with theme manager integration
+    const editorElement = document.getElementById('editor')
+    this.editor = new EditorManager(editorElement, this.themeManager)
+
+    // Initialize writer enhancements
+    this.exportManager = new ExportManager(this)
 
     // Initialize GitHub integration
     await this.initializeGitHubIntegration()
@@ -136,53 +148,8 @@ class FantasyEditorApp {
    * Setup command event handlers
    */
   setupCommandEventHandlers() {
-    // Listen for command execution results
-    document.addEventListener('commandregistry:execute', (event) => {
-      const { result } = event.detail
-      if (result) {
-        this.displayCommandResult(result)
-      }
-    })
-
-    // Listen for command execution errors
-    document.addEventListener('commandregistry:error', (event) => {
-      const { error } = event.detail
-      this.showNotification(`Command failed: ${error}`, 'error')
-    })
-  }
-
-  /**
-   * Display command execution result
-   */
-  displayCommandResult(result) {
-    if (result.success === false) {
-      this.showNotification(result.message, 'error')
-    } else if (result.data) {
-      // Simplify data display for better UX
-      let message = result.message || 'Command completed'
-
-      if (Array.isArray(result.data)) {
-        // For lists, show count summary instead of full list
-        if (result.data.length > 3) {
-          message = `${message} (${result.data.length} items)`
-        } else {
-          message += '\n• ' + result.data.join('\n• ')
-        }
-      } else if (typeof result.data === 'object') {
-        // For objects, format key-value pairs concisely
-        const entries = Object.entries(result.data)
-        if (entries.length <= 3) {
-          const lines = entries.map(([key, value]) => `${key}: ${value}`)
-          message += '\n• ' + lines.join('\n• ')
-        } else {
-          message += ` (${entries.length} properties)`
-        }
-      }
-
-      this.showNotification(message, result.success ? 'success' : 'info')
-    } else {
-      this.showNotification(result.message, result.success ? 'success' : 'info')
-    }
+    // Command event handling is now done in core-commands.js
+    // This avoids duplicate event listeners and inconsistent formatting
   }
 
   /**

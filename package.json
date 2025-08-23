@@ -38,8 +38,14 @@
     "@codemirror/state": "^6.4.0",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.23.0",
+    "@codemirror/search": "^6.5.4",
+    "@codemirror/autocomplete": "^6.11.1",
+    "@codemirror/language": "^6.9.3",
     "codemirror": "^6.0.1",
+    "@lezer/highlight": "^1.1.6",
     "dompurify": "^3.0.5",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "lunr": "^2.3.9"
   },
   "devDependencies": {

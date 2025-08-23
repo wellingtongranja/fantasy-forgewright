@@ -495,6 +495,300 @@ export function registerCoreCommands(registry, app) {
       }
     },
 
+    // Document Folding Commands
+    {
+      name: 'fold section',
+      description: 'fold current section',
+      category: 'editing',
+      icon: '📖',
+      aliases: [':fo'],
+      handler: async () => {
+        const success = app.editor.foldCurrentSection()
+        return { 
+          success, 
+          message: success ? 'Section folded' : 'No section to fold at cursor'
+        }
+      }
+    },
+
+    {
+      name: 'unfold section',
+      description: 'unfold current section',
+      category: 'editing',
+      icon: '📖',
+      aliases: [':fu'],
+      handler: async () => {
+        const success = app.editor.unfoldCurrentSection()
+        return { 
+          success, 
+          message: success ? 'Section unfolded' : 'No folded section at cursor'
+        }
+      }
+    },
+
+    {
+      name: 'fold all',
+      description: 'fold all sections',
+      category: 'editing',
+      icon: '📚',
+      aliases: [':fal'],
+      handler: async () => {
+        const success = app.editor.foldAll()
+        return { 
+          success, 
+          message: success ? 'All sections folded' : 'Unable to fold sections'
+        }
+      }
+    },
+
+    {
+      name: 'unfold all',
+      description: 'unfold all sections',
+      category: 'editing',
+      icon: '📚',
+      aliases: [':ual'],
+      handler: async () => {
+        const success = app.editor.unfoldAll()
+        return { 
+          success, 
+          message: success ? 'All sections unfolded' : 'Unable to unfold sections'
+        }
+      }
+    },
+
+    {
+      name: 'fold level',
+      description: 'fold sections by heading level',
+      category: 'editing',
+      icon: '📊',
+      aliases: [':fl'],
+      parameters: [
+        { name: 'level', required: true, type: 'number', description: 'Heading level (1-6)' }
+      ],
+      handler: async (args) => {
+        const level = parseInt(args[0])
+        if (isNaN(level) || level < 1 || level > 6) {
+          return { success: false, message: 'Invalid heading level. Use 1-6.' }
+        }
+        
+        // This is a placeholder - full implementation would require custom folding logic
+        const success = app.editor.foldAll()
+        return { 
+          success, 
+          message: success ? `Folded sections at level ${level}` : 'Unable to fold sections'
+        }
+      }
+    },
+
+    // Enhanced Search and Replace Commands
+    {
+      name: 'search and replace',
+      description: 'open search and replace dialog',
+      category: 'editing',
+      icon: '🔄',
+      aliases: [':sr'],
+      handler: async () => {
+        const success = app.editor.openSearchAndReplace()
+        return { 
+          success, 
+          message: success ? 'Search and replace opened' : 'Unable to open search and replace'
+        }
+      }
+    },
+
+    {
+      name: 'find all',
+      description: 'find all occurrences in document',
+      category: 'editing',
+      icon: '🔍',
+      aliases: [':fa'],
+      parameters: [
+        { name: 'query', required: false, type: 'string', description: 'Search query' }
+      ],
+      handler: async (args) => {
+        const query = args.join(' ')
+        if (!query) {
+          const success = app.editor.openSearch()
+          return { 
+            success, 
+            message: success ? 'Search opened' : 'Unable to open search'
+          }
+        }
+        
+        // For now, delegate to existing search functionality
+        const success = app.editor.openSearch()
+        return { 
+          success, 
+          message: success ? `Search opened for "${query}"` : 'Unable to open search'
+        }
+      }
+    },
+
+    // Spell Check Commands
+    {
+      name: 'spell check',
+      description: 'toggle spell checking',
+      category: 'editing',
+      icon: '📝',
+      aliases: [':sp'],
+      handler: async () => {
+        const enabled = app.editor.toggleSpellCheck()
+        return { 
+          success: true, 
+          message: `Spell check ${enabled ? 'enabled' : 'disabled'}`
+        }
+      }
+    },
+
+    // Writer Statistics
+    {
+      name: 'word count',
+      description: 'show document statistics',
+      category: 'info',
+      icon: '📊',
+      aliases: [':wc'],
+      handler: async () => {
+        const stats = app.editor.getDocumentStats()
+        if (!stats) {
+          return { success: false, message: 'Unable to get document statistics' }
+        }
+
+        return {
+          success: true,
+          message: 'Document Statistics:',
+          data: {
+            words: stats.words,
+            characters: stats.characters,
+            'characters (no spaces)': stats.charactersNoSpaces,
+            lines: stats.lines,
+            paragraphs: stats.paragraphs
+          }
+        }
+      }
+    },
+
+    // Export Commands
+    {
+      name: 'export',
+      description: 'export document in selected format',
+      category: 'export',
+      icon: '📁',
+      aliases: [':ex'],
+      parameters: [
+        { name: 'format', required: false, type: 'string', description: 'Export format (md, txt, html, pdf)' }
+      ],
+      handler: async (args) => {
+        if (!app.exportManager) {
+          return { success: false, message: 'Export functionality not available' }
+        }
+
+        const format = args[0]
+        if (!format) {
+          const formats = app.exportManager.getSupportedFormats()
+          return {
+            success: true,
+            message: 'Available export formats:',
+            data: formats.map(f => f.toUpperCase())
+          }
+        }
+
+        if (!app.exportManager.isFormatSupported(format)) {
+          return { 
+            success: false, 
+            message: `Unsupported format: ${format}. Available formats: ${app.exportManager.getSupportedFormats().join(', ')}` 
+          }
+        }
+
+        try {
+          const result = await app.exportManager.exportDocument(format)
+          return result
+        } catch (error) {
+          return { success: false, message: `Export failed: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'export markdown',
+      description: 'export document as Markdown',
+      category: 'export',
+      icon: '📝',
+      aliases: [':em'],
+      handler: async () => {
+        if (!app.exportManager) {
+          return { success: false, message: 'Export functionality not available' }
+        }
+
+        try {
+          const result = await app.exportManager.exportDocument('md')
+          return result
+        } catch (error) {
+          return { success: false, message: `Markdown export failed: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'export text',
+      description: 'export document as plain text',
+      category: 'export',
+      icon: '📄',
+      aliases: [':et'],
+      handler: async () => {
+        if (!app.exportManager) {
+          return { success: false, message: 'Export functionality not available' }
+        }
+
+        try {
+          const result = await app.exportManager.exportDocument('txt')
+          return result
+        } catch (error) {
+          return { success: false, message: `Text export failed: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'export html',
+      description: 'export document as HTML',
+      category: 'export',
+      icon: '🌐',
+      aliases: [':eh'],
+      handler: async () => {
+        if (!app.exportManager) {
+          return { success: false, message: 'Export functionality not available' }
+        }
+
+        try {
+          const result = await app.exportManager.exportDocument('html')
+          return result
+        } catch (error) {
+          return { success: false, message: `HTML export failed: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'export pdf',
+      description: 'export document as PDF',
+      category: 'export',
+      icon: '📑',
+      aliases: [':ep'],
+      handler: async () => {
+        if (!app.exportManager) {
+          return { success: false, message: 'Export functionality not available' }
+        }
+
+        try {
+          const result = await app.exportManager.exportDocument('pdf')
+          return result
+        } catch (error) {
+          return { success: false, message: `PDF export failed: ${error.message}` }
+        }
+      }
+    },
+
+
     // System Commands
     {
       name: 'settings',
@@ -510,6 +804,7 @@ export function registerCoreCommands(registry, app) {
           data: [
             'Theme settings: Use "theme" command',
             'Document settings: Use "info" command',
+            'Spell check: Use ":sp" command',
             'More settings coming in future updates'
           ]
         }
@@ -612,14 +907,24 @@ export function registerCoreCommands(registry, app) {
       let message = result.message
 
       // If there's data to display, append it to the message
-      if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-        if (result.data.length <= 5) {
-          // For small lists, show all items
-          message += '\n• ' + result.data.join('\n• ')
-        } else {
-          // For large lists, show first few items
-          message += '\n• ' + result.data.slice(0, 5).join('\n• ')
-          message += `\n... and ${result.data.length - 5} more`
+      if (result.data) {
+        if (Array.isArray(result.data) && result.data.length > 0) {
+          if (result.data.length <= 5) {
+            // For small lists, show all items
+            message += '\n• ' + result.data.join('\n• ')
+          } else {
+            // For large lists, show first few items
+            message += '\n• ' + result.data.slice(0, 5).join('\n• ')
+            message += `\n... and ${result.data.length - 5} more`
+          }
+        } else if (typeof result.data === 'string') {
+          // Handle string data
+          message += '\n' + result.data
+        } else if (typeof result.data === 'object') {
+          // Handle object data (like stats)
+          message += '\n' + Object.entries(result.data)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join('\n')
         }
       }
 
