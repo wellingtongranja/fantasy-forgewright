@@ -1,4 +1,4 @@
-import { EditorState } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { EditorExtensions } from './editor-extensions.js'
 import { foldAll, unfoldAll, foldCode, unfoldCode } from '@codemirror/language'
@@ -11,6 +11,7 @@ export class EditorManager {
     this.state = null
     this.themeManager = themeManager
     this.editorExtensions = new EditorExtensions(themeManager)
+    this.extensionCompartment = new Compartment()
     this.initialize()
   }
 
@@ -19,8 +20,10 @@ export class EditorManager {
     this.state = EditorState.create({
       doc: '',
       extensions: [
-        ...this.editorExtensions.getExtensions(),
-        ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
+        this.extensionCompartment.of([
+          ...this.editorExtensions.getExtensions(),
+          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
+        ])
       ]
     })
 
@@ -179,7 +182,7 @@ export class EditorManager {
   reconfigure() {
     if (this.view && this.editorExtensions) {
       this.view.dispatch({
-        effects: EditorView.reconfigure.of([
+        effects: this.extensionCompartment.reconfigure([
           ...this.editorExtensions.getExtensions(),
           ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
         ])
