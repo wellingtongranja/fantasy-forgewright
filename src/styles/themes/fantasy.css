@@ -91,7 +91,7 @@
 }
 
 [data-theme='fantasy'] .app-title {
-  color: var(--accent-color);
+  color: var(--accent-color) !important;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   font-weight: 600;
   letter-spacing: 0.5px;

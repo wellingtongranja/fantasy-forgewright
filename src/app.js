@@ -648,14 +648,7 @@ class FantasyEditorApp {
     const existingIndicators = titleContainer.querySelectorAll('.readonly-indicator, .system-document-indicator')
     existingIndicators.forEach(indicator => indicator.remove())
 
-    // Add readonly indicator for user documents marked as readonly (not system docs)
-    if (doc.readonly === true && doc.type !== 'system') {
-      const readonlyIndicator = document.createElement('div')
-      readonlyIndicator.className = 'readonly-indicator'
-      readonlyIndicator.textContent = 'Readonly'
-      readonlyIndicator.title = 'Document is readonly'
-      titleContainer.appendChild(readonlyIndicator)
-    }
+    // No indicators needed here - readonly status is shown in the status bar
   }
 
   /**

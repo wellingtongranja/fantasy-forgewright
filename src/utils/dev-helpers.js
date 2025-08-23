@@ -25,10 +25,20 @@ export class DevHelpers {
     try {
       console.log('🧹 Cleaning all storage...')
 
-      // Clear localStorage
+      // Clear localStorage (preserve some keys if needed)
       const localStorageKeys = Object.keys(localStorage)
+      const preserveKeys = [] // Add keys here if you want to preserve any
       console.log(`📦 Clearing ${localStorageKeys.length} localStorage items:`, localStorageKeys)
-      localStorage.clear()
+      
+      localStorageKeys.forEach(key => {
+        if (!preserveKeys.includes(key)) {
+          localStorage.removeItem(key)
+        }
+      })
+      
+      if (preserveKeys.length > 0) {
+        console.log(`🔒 Preserved localStorage keys:`, preserveKeys)
+      }
 
       // Clear sessionStorage
       const sessionStorageKeys = Object.keys(sessionStorage)
@@ -320,6 +330,77 @@ export class DevHelpers {
   }
 
   /**
+   * Test readonly and system document features
+   */
+  async testReadonlyFeatures() {
+    if (!this.app) {
+      console.error('❌ App not initialized. Use devHelpers.init(app) first.')
+      return { success: false, message: 'App not initialized' }
+    }
+
+    try {
+      console.log('🔒 Testing readonly and system document features...')
+
+      // Test creating a regular document
+      console.log('1. Creating regular document...')
+      const regularDoc = {
+        title: 'Regular Test Document',
+        content: '# Regular Document\n\nThis document can be edited.',
+        tags: ['test', 'regular']
+      }
+      const savedRegular = await this.app.storageManager.saveDocument(regularDoc)
+      console.log('✅ Regular document created:', savedRegular.id)
+
+      // Test making it readonly
+      console.log('2. Making document readonly...')
+      const readonlyDoc = await this.app.storageManager.setDocumentReadonly(savedRegular.id, true)
+      console.log('✅ Document is now readonly:', readonlyDoc.readonly)
+
+      // Test trying to save a readonly document
+      console.log('3. Testing readonly protection...')
+      try {
+        readonlyDoc.content = 'This should fail'
+        await this.app.storageManager.saveDocument(readonlyDoc)
+        console.error('❌ Readonly protection failed - document was saved!')
+      } catch (error) {
+        console.log('✅ Readonly protection working:', error.message)
+      }
+
+      // Test system documents
+      console.log('4. Testing system documents...')
+      if (!this.app.systemDocumentsManager) {
+        const { SystemDocumentsManager } = await import('../core/storage/system-documents.js')
+        this.app.systemDocumentsManager = new SystemDocumentsManager(this.app.storageManager)
+      }
+
+      const helpDoc = await this.app.systemDocumentsManager.getSystemDocument('help')
+      console.log('✅ System document loaded:', helpDoc?.title)
+
+      // List all system documents
+      console.log('5. Available system documents:')
+      const systemDocs = ['help', 'license-agpl', 'license-commercial', 'eula', 'privacy', 'release-notes']
+      systemDocs.forEach(id => {
+        console.log(`  - ${id}`)
+      })
+
+      console.log('🎉 Readonly features test completed!')
+
+      return {
+        success: true,
+        message: 'Readonly features test completed',
+        tests: ['regular document', 'readonly conversion', 'readonly protection', 'system documents']
+      }
+    } catch (error) {
+      console.error('❌ Readonly features test failed:', error)
+      return {
+        success: false,
+        message: `Readonly features test failed: ${error.message}`,
+        error
+      }
+    }
+  }
+
+  /**
    * Show help for dev helpers
    */
   help() {
@@ -327,14 +408,15 @@ export class DevHelpers {
 🛠️ Fantasy Editor Development Helpers
 
 Available Methods:
-┌─────────────────────────────────────────────────────────────┐
-│ devHelpers.cleanStorage()        - Clean all storage       │
-│ devHelpers.freshStart()          - Clean storage & reload  │
-│ devHelpers.generateTestDocuments(5) - Create test docs     │
-│ devHelpers.showStorageInfo()     - Show storage stats      │
-│ devHelpers.testDocumentOperations() - Test CRUD operations │
-│ devHelpers.help()                - Show this help          │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ devHelpers.cleanStorage()        - Clean all storage        │
+│ devHelpers.freshStart()          - Clean storage & reload   │
+│ devHelpers.generateTestDocuments(5) - Create test docs      │
+│ devHelpers.showStorageInfo()     - Show storage stats       │
+│ devHelpers.testDocumentOperations() - Test CRUD operations  │
+│ devHelpers.testReadonlyFeatures() - Test readonly system    │
+│ devHelpers.help()                - Show this help           │
+└──────────────────────────────────────────────────────────────┘
 
 Usage Examples:
   devHelpers.cleanStorage()           // Clean all data

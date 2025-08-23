@@ -605,8 +605,19 @@ export class StorageManager {
       throw new Error('Cannot modify readonly status of system documents')
     }
 
+    // Update readonly status
     document.readonly = readonly
-    return await this.saveDocument(document)
+    document.updatedAt = new Date().toISOString()
+    
+    // Save directly to database, bypassing the saveDocument validation
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.put(document)
+
+      transaction.oncomplete = () => resolve(document)
+      transaction.onerror = () => reject(new Error('Failed to update readonly status'))
+    })
   }
 
   /**

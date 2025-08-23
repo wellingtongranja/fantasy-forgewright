@@ -100,6 +100,7 @@ export class DocumentsTab {
     }
     
     let html = '<div class="documents-list">'
+    const renderedDocumentIds = new Set()
     
     // Always show Recent section if there are recent documents
     if (this.recentDocuments.length > 0) {
@@ -112,12 +113,15 @@ export class DocumentsTab {
       
       if (recentToShow.length > 0) {
         html += this.renderRecentSection(recentToShow)
+        // Track rendered document IDs
+        recentToShow.forEach(doc => renderedDocumentIds.add(doc.id))
       }
     }
     
-    // Previous documents group
+    // Previous documents group - exclude already rendered recent documents
     const allDocuments = this.filter ? this.filterDocuments(this.documents) : this.documents
-    const groups = this.groupDocuments(allDocuments)
+    const filteredDocuments = allDocuments.filter(doc => !renderedDocumentIds.has(doc.id))
+    const groups = this.groupDocuments(filteredDocuments)
     
     for (const [groupName, docs] of Object.entries(groups)) {
       html += this.renderGroup(groupName, docs)
@@ -187,15 +191,15 @@ export class DocumentsTab {
           <div class="document-title-row">
             <span class="document-title">${this.escapeHtml(doc.title)}</span>
             ${this.renderDocumentIndicators(doc)}
-          </div>
-          <div class="document-meta">
-            <span class="document-time">${timeAgo}</span>
             ${syncStatus.icon ? `
               <span class="document-sync-status ${syncStatus.class}" 
                     title="${syncStatus.tooltip}">
                 ${syncStatus.icon}
               </span>
             ` : ''}
+          </div>
+          <div class="document-meta">
+            <span class="document-time">${timeAgo}</span>
             ${doc.tags && doc.tags.length > 0 ? `
               <div class="document-tags">
                 ${doc.tags.slice(0, 3)
@@ -282,25 +286,21 @@ export class DocumentsTab {
 
   groupDocuments(documents) {
     // Simple grouping: just "PREVIOUS" for non-recent documents
-    // Recent documents are handled separately in renderDocuments()
+    // Documents are already filtered at the caller level to exclude recent docs
     
-    // Filter out recent documents from the previous group
-    const recentIds = this.recentDocuments.map(doc => doc.id)
-    const previousDocuments = documents.filter(doc => !recentIds.includes(doc.id))
-    
-    if (previousDocuments.length === 0) {
+    if (documents.length === 0) {
       return {}
     }
     
-    // Sort previous documents by modification date (newest first)
-    const sortedPreviousDocuments = [...previousDocuments].sort((a, b) => {
+    // Sort documents by modification date (newest first)
+    const sortedDocuments = [...documents].sort((a, b) => {
       const dateA = new Date(a.metadata?.modified || a.updatedAt || 0)
       const dateB = new Date(b.metadata?.modified || b.updatedAt || 0)
       return dateB - dateA
     })
     
     return {
-      'Previous': sortedPreviousDocuments
+      'Previous': sortedDocuments
     }
   }
 
@@ -566,23 +566,8 @@ export class DocumentsTab {
   }
 
   renderDocumentIndicators(doc) {
-    let indicators = ''
-    
-    if (doc.type === 'system') {
-      indicators += `
-        <span class="document-indicator system-indicator" title="System document - readonly">
-          📖
-        </span>
-      `
-    } else if (doc.readonly === true) {
-      indicators += `
-        <span class="document-indicator readonly-indicator" title="Readonly document">
-          🔒
-        </span>
-      `
-    }
-    
-    return indicators
+    // No indicators shown in document list
+    return ''
   }
 
   escapeHtml(text) {

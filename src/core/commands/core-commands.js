@@ -343,6 +343,11 @@ export function registerCoreCommands(registry, app) {
             if (!tagName) {
               return { success: false, message: 'tag name required. Usage: tag add <tagname>' }
             }
+            // Validate tag name - reject emoji-only tags
+            const emojiRegex = /^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]+$/u
+            if (emojiRegex.test(tagName)) {
+              return { success: false, message: 'Tags cannot be emoji-only. Please use text.' }
+            }
             if (doc.tags.includes(tagName)) {
               return { success: false, message: `Tag "${tagName}" already exists` }
             }
@@ -1184,7 +1189,7 @@ export function registerCoreCommands(registry, app) {
             app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
 
-          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license')
+          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license-agpl')
           if (licenseDoc) {
             app.loadDocument(licenseDoc)
             return { success: true, message: 'AGPL v3 license loaded' }
@@ -1210,7 +1215,7 @@ export function registerCoreCommands(registry, app) {
             app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
 
-          const commercialDoc = await app.systemDocumentsManager.getSystemDocument('commercial')
+          const commercialDoc = await app.systemDocumentsManager.getSystemDocument('license-commercial')
           if (commercialDoc) {
             app.loadDocument(commercialDoc)
             return { success: true, message: 'Commercial license terms loaded' }
@@ -1236,7 +1241,7 @@ export function registerCoreCommands(registry, app) {
             app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
 
-          const releaseDoc = await app.systemDocumentsManager.getSystemDocument('release')
+          const releaseDoc = await app.systemDocumentsManager.getSystemDocument('release-notes')
           if (releaseDoc) {
             app.loadDocument(releaseDoc)
             return { success: true, message: 'Release notes loaded' }

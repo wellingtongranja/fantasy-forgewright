@@ -930,8 +930,12 @@
 
 [data-theme="fantasy"] .navigator-tab.active {
   background: rgba(61, 40, 97, 0.9);
-  color: var(--color-secondary);
-  border-bottom-color: var(--color-secondary);
+  color: var(--color-text);
+  border-bottom-color: var(--color-primary);
+}
+
+[data-theme="fantasy"] .group-title {
+  color: #f0e68c !important;
 }
 
 [data-theme="fantasy"] .document-item.selected {
