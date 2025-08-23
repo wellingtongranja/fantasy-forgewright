@@ -92,35 +92,45 @@ describe('SearchTab', () => {
       }
     }
 
+    // Create persistent mock elements to maintain state
+    const mockSearchInput = { 
+      value: '', 
+      addEventListener: jest.fn(), 
+      focus: jest.fn() 
+    }
+    const mockSearchButton = { 
+      addEventListener: jest.fn(),
+      style: { display: 'block' }
+    }
+    const mockSearchStop = { 
+      addEventListener: jest.fn(),
+      style: { display: 'none' }
+    }
+    const mockSearchContent = { 
+      innerHTML: '',
+      querySelector: jest.fn().mockReturnValue({ addEventListener: jest.fn() })
+    }
+    const mockSearchProgress = { 
+      style: { display: 'none' },
+      querySelector: jest.fn((subselector) => {
+        if (subselector === '.progress-fill') {
+          return { style: { width: '0%' } }
+        }
+        if (subselector === '.progress-count') {
+          return { textContent: '' }
+        }
+        return new HTMLElement()
+      })
+    }
+    
     // Mock container DOM structure
     mockContainer.querySelector = jest.fn((selector) => {
       const mockElements = {
-        '.search-input': { 
-          value: '', 
-          addEventListener: jest.fn(), 
-          focus: jest.fn() 
-        },
-        '.search-button': { 
-          addEventListener: jest.fn(),
-          style: { display: 'block' }
-        },
-        '.search-stop': { 
-          addEventListener: jest.fn(),
-          style: { display: 'none' }
-        },
-        '.search-progress': { 
-          style: { display: 'none' },
-          querySelector: jest.fn((subselector) => {
-            if (subselector === '.progress-fill') {
-              return { style: { width: '0%' } }
-            }
-            if (subselector === '.progress-count') {
-              return { textContent: '' }
-            }
-            return new HTMLElement()
-          })
-        },
-        '.search-content': { innerHTML: '' },
+        '.search-input': mockSearchInput,
+        '.search-button': mockSearchButton,
+        '.search-stop': mockSearchStop,
+        '.search-progress': mockSearchProgress,
+        '.search-content': mockSearchContent,
         '.clear-results': { addEventListener: jest.fn() },
         '.search-result-item.selected': { 
           classList: { remove: jest.fn() },
@@ -129,6 +139,15 @@ describe('SearchTab', () => {
       }
       return mockElements[selector] || new HTMLElement()
     })
+    
+    // Store references for tests to access
+    mockContainer._mockElements = {
+      searchInput: mockSearchInput,
+      searchButton: mockSearchButton, 
+      searchStop: mockSearchStop,
+      searchContent: mockSearchContent,
+      searchProgress: mockSearchProgress
+    }
 
     mockContainer.querySelectorAll = jest.fn((selector) => {
       if (selector === '.search-result-item') {
@@ -334,7 +353,7 @@ describe('SearchTab', () => {
     it('should display search results', () => {
       searchTab.displayResults()
 
-      const content = mockContainer.querySelector('.search-content')
+      const content = mockContainer._mockElements.searchContent
       expect(content.innerHTML).toContain('search-results-header')
       expect(content.innerHTML).toContain('Found 1 document')
       expect(content.innerHTML).toContain('The Epic Adventure')
@@ -346,7 +365,7 @@ describe('SearchTab', () => {
 
       searchTab.displayResults()
 
-      const content = mockContainer.querySelector('.search-content')
+      const content = mockContainer._mockElements.searchContent
       expect(content.innerHTML).toContain('No results found')
       expect(content.innerHTML).toContain('nonexistent')
     })
@@ -380,7 +399,7 @@ describe('SearchTab', () => {
       searchTab.displayResults()
 
       // Title matches should come first
-      const content = mockContainer.querySelector('.search-content')
+      const content = mockContainer._mockElements.searchContent
       expect(content.innerHTML.indexOf('The Epic Adventure')).toBeLessThan(
         content.innerHTML.indexOf('Mystery of the Lost Treasure')
       )
@@ -472,7 +491,7 @@ describe('SearchTab', () => {
 
   describe('search progress and cancellation', () => {
     it('should show progress during search', async () => {
-      const progressElement = mockContainer.querySelector('.search-progress')
+      const progressElement = mockContainer._mockElements.searchProgress
       
       const searchPromise = searchTab.performSearch('test')
       
@@ -482,7 +501,7 @@ describe('SearchTab', () => {
     })
 
     it('should hide progress after search completion', async () => {
-      const progressElement = mockContainer.querySelector('.search-progress')
+      const progressElement = mockContainer._mockElements.searchProgress
       
       await searchTab.performSearch('test')
       
@@ -507,8 +526,8 @@ describe('SearchTab', () => {
     })
 
     it('should toggle search/stop buttons correctly', () => {
-      const searchButton = mockContainer.querySelector('.search-button')
-      const stopButton = mockContainer.querySelector('.search-stop')
+      const searchButton = mockContainer._mockElements.searchButton
+      const stopButton = mockContainer._mockElements.searchStop
       
       searchTab.toggleSearchButtons(true)
       
@@ -535,13 +554,13 @@ describe('SearchTab', () => {
     it('should reset search interface to welcome state', () => {
       searchTab.clearResults()
 
-      const content = mockContainer.querySelector('.search-content')
+      const content = mockContainer._mockElements.searchContent
       expect(content.innerHTML).toContain('search-welcome')
       expect(content.innerHTML).toContain('Search across all documents')
     })
 
     it('should focus search input after clearing', () => {
-      const searchInput = mockContainer.querySelector('.search-input')
+      const searchInput = mockContainer._mockElements.searchInput
       
       searchTab.clearResults()
 
@@ -606,7 +625,7 @@ describe('SearchTab', () => {
 
   describe('activation and focus', () => {
     it('should focus search input on activation', () => {
-      const searchInput = mockContainer.querySelector('.search-input')
+      const searchInput = mockContainer._mockElements.searchInput
       
       searchTab.onActivate()
 
@@ -614,7 +633,7 @@ describe('SearchTab', () => {
     })
 
     it('should set query and perform search', () => {
-      const searchInput = mockContainer.querySelector('.search-input')
+      const searchInput = mockContainer._mockElements.searchInput
       jest.spyOn(searchTab, 'performSearch')
 
       searchTab.setQuery('test query')
@@ -624,7 +643,7 @@ describe('SearchTab', () => {
     })
 
     it('should only focus input for empty query', () => {
-      const searchInput = mockContainer.querySelector('.search-input')
+      const searchInput = mockContainer._mockElements.searchInput
       jest.spyOn(searchTab, 'performSearch')
 
       searchTab.setQuery('')
@@ -694,7 +713,7 @@ describe('SearchTab', () => {
     it('should show appropriate error messages', () => {
       searchTab.showError('Test error message')
 
-      const content = mockContainer.querySelector('.search-content')
+      const content = mockContainer._mockElements.searchContent
       expect(content.innerHTML).toContain('search-error')
       expect(content.innerHTML).toContain('Test error message')
     })
