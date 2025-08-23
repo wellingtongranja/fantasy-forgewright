@@ -186,6 +186,7 @@ export class DocumentsTab {
         <div class="document-main">
           <div class="document-title-row">
             <span class="document-title">${this.escapeHtml(doc.title)}</span>
+            ${this.renderDocumentIndicators(doc)}
           </div>
           <div class="document-meta">
             <span class="document-time">${timeAgo}</span>
@@ -562,6 +563,26 @@ export class DocumentsTab {
     separator.addEventListener('mousedown', this.separatorMouseDown)
     document.addEventListener('mousemove', this.documentMouseMove)
     document.addEventListener('mouseup', this.documentMouseUp)
+  }
+
+  renderDocumentIndicators(doc) {
+    let indicators = ''
+    
+    if (doc.type === 'system') {
+      indicators += `
+        <span class="document-indicator system-indicator" title="System document - readonly">
+          📖
+        </span>
+      `
+    } else if (doc.readonly === true) {
+      indicators += `
+        <span class="document-indicator readonly-indicator" title="Readonly document">
+          🔒
+        </span>
+      `
+    }
+    
+    return indicators
   }
 
   escapeHtml(text) {

@@ -1,6 +1,7 @@
 import { EditorState, Compartment } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { EditorExtensions } from './editor-extensions.js'
+import { ReadonlyExtensions } from './readonly-extensions.js'
 import { foldAll, unfoldAll, foldCode, unfoldCode } from '@codemirror/language'
 import { openSearchPanel } from '@codemirror/search'
 
@@ -11,7 +12,9 @@ export class EditorManager {
     this.state = null
     this.themeManager = themeManager
     this.editorExtensions = new EditorExtensions(themeManager)
+    this.readonlyExtensions = new ReadonlyExtensions()
     this.extensionCompartment = new Compartment()
+    this.isReadonly = false
     this.initialize()
   }
 
@@ -22,6 +25,7 @@ export class EditorManager {
       extensions: [
         this.extensionCompartment.of([
           ...this.editorExtensions.getExtensions(),
+          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
           ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
         ])
       ]
@@ -289,6 +293,83 @@ export class EditorManager {
       charactersNoSpaces,
       lines,
       paragraphs
+    }
+  }
+
+  /**
+   * Set readonly mode
+   * @param {boolean} readonly - Whether editor should be readonly
+   */
+  setReadonlyMode(readonly = true) {
+    if (!this.view) return false
+
+    this.isReadonly = readonly
+    
+    try {
+      // Update readonly extensions
+      this.readonlyExtensions.updateReadonlyState(this.view, readonly)
+
+      // Reconfigure editor with updated extensions
+      this.view.dispatch({
+        effects: this.extensionCompartment.reconfigure([
+          ...this.editorExtensions.getExtensions(),
+          ...this.readonlyExtensions.getReadonlyExtensions(readonly),
+          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
+        ])
+      })
+
+      return true
+    } catch (error) {
+      console.error('Failed to set readonly mode:', error)
+      return false
+    }
+  }
+
+  /**
+   * Get readonly status
+   * @returns {boolean} Whether editor is readonly
+   */
+  isReadonlyMode() {
+    return this.isReadonly
+  }
+
+  /**
+   * Toggle readonly mode
+   * @returns {boolean} New readonly state
+   */
+  toggleReadonlyMode() {
+    const newState = !this.isReadonly
+    this.setReadonlyMode(newState)
+    return newState
+  }
+
+  /**
+   * Reconfigure editor with readonly state
+   */
+  reconfigure() {
+    if (this.view && this.editorExtensions) {
+      this.view.dispatch({
+        effects: this.extensionCompartment.reconfigure([
+          ...this.editorExtensions.getExtensions(),
+          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
+          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
+        ])
+      })
+    }
+  }
+
+  /**
+   * Reconfigure editor with specific font size and readonly state
+   */
+  reconfigureWithFontSize(fontSize) {
+    if (this.view && this.editorExtensions && this.themeManager) {
+      this.view.dispatch({
+        effects: this.extensionCompartment.reconfigure([
+          ...this.editorExtensions.getExtensions(),
+          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
+          ...this.themeManager.getCodeMirrorTheme(this.themeManager.currentTheme, { fontSize })
+        ])
+      })
     }
   }
 }

@@ -394,6 +394,23 @@
   font-size: 13px;
 }
 
+/* Document indicators */
+.document-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  margin-left: var(--spacing-xs);
+}
+
+.document-indicator.system-indicator {
+  color: var(--color-primary);
+}
+
+.document-indicator.readonly-indicator {
+  color: var(--color-text-secondary);
+}
+
 .document-sync-status {
   font-size: 8px;
   line-height: 1;
@@ -947,9 +964,6 @@
     font-size: var(--font-size-xs);
   }
   
-  .document-tags {
-    display: none;
-  }
   
   .outline-line {
     display: none;

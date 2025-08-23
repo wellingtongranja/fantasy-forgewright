@@ -500,8 +500,31 @@ class FantasyEditorApp {
     this.updateWordCount()
     this.updateSyncStatus('Ready')
 
-    // Initialize change tracking for the loaded document
-    this.initializeChangeTracking()
+    // Handle readonly mode for system documents and readonly documents
+    const isReadonly = doc.readonly === true || doc.type === 'system'
+    this.editor.setReadonlyMode(isReadonly)
+    
+    // Update title field readonly state and add visual indicators
+    const titleField = document.getElementById('doc-title')
+    const titleContainer = document.querySelector('.doc-title-container')
+    
+    if (titleField) {
+      titleField.readOnly = isReadonly
+      if (isReadonly) {
+        titleField.classList.add('readonly')
+      } else {
+        titleField.classList.remove('readonly')
+      }
+    }
+
+    // Add visual indicators for document status
+    this.updateDocumentIndicators(doc, titleContainer)
+    this.updateReadonlyStatusIndicator(doc)
+
+    // Initialize change tracking for the loaded document (if not readonly)
+    if (!isReadonly) {
+      this.initializeChangeTracking()
+    }
 
     // Update navigator and file tree selection
     if (this.navigator) {
@@ -514,9 +537,9 @@ class FantasyEditorApp {
     // Update all UI components including GitHub sync status
     this.updateUI()
 
-    // Log GUID info for debugging
+    // Log document info for debugging
     if (this.guidManager.isValidGuid(doc.id)) {
-      console.log(`Loaded GUID document: ${doc.filename || doc.title} (${doc.id})`)
+      console.log(`Loaded GUID document: ${doc.filename || doc.title} (${doc.id}) [${doc.type || 'user'}${isReadonly ? ', readonly' : ''}]`)
     } else if (this.guidManager.isOldUidFormat(doc.id)) {
       console.log(`Loaded legacy UID document: ${doc.title} (${doc.id}) - consider migration`)
     }
@@ -524,6 +547,13 @@ class FantasyEditorApp {
 
   async saveDocument() {
     if (!this.currentDocument) return
+
+    // Check if document is readonly
+    const isReadonly = this.currentDocument.readonly === true || this.currentDocument.type === 'system'
+    if (isReadonly) {
+      this.showNotification('Cannot save readonly document', 'warning')
+      return
+    }
 
     try {
       this.updateSyncStatus('Saving...')
@@ -535,16 +565,22 @@ class FantasyEditorApp {
       // Check for actual changes before saving
       const hasContentChanges = this.hasContentChanged(content)
       const hasTitleChanges = this.hasTitleChanged(title)
+      
+      // Check if tags have changed (compare arrays)
+      const oldTags = this.lastSavedState?.tags || []
+      const currentTags = this.currentDocument.tags || []
+      const hasTagChanges = JSON.stringify(oldTags.sort()) !== JSON.stringify(currentTags.sort())
 
-      if (!hasContentChanges && !hasTitleChanges) {
+      if (!hasContentChanges && !hasTitleChanges && !hasTagChanges) {
         this.updateSyncStatus('No changes')
         setTimeout(() => this.updateSyncStatus('Ready'), 1000)
         return
       }
 
-      // Update document
+      // Update document (preserve existing properties like tags)
       this.currentDocument.title = title
       this.currentDocument.content = content
+      // Tags and other properties are preserved from this.currentDocument
 
       const savedDoc = await this.storageManager.saveDocument(this.currentDocument)
       this.currentDocument = savedDoc
@@ -600,6 +636,59 @@ class FantasyEditorApp {
 
   updateSyncStatus(status) {
     document.getElementById('sync-status').textContent = status
+  }
+
+  /**
+   * Update document visual indicators based on document type and status
+   */
+  updateDocumentIndicators(doc, titleContainer) {
+    if (!titleContainer) return
+
+    // Remove existing indicators
+    const existingIndicators = titleContainer.querySelectorAll('.readonly-indicator, .system-document-indicator')
+    existingIndicators.forEach(indicator => indicator.remove())
+
+    // Add readonly indicator for user documents marked as readonly (not system docs)
+    if (doc.readonly === true && doc.type !== 'system') {
+      const readonlyIndicator = document.createElement('div')
+      readonlyIndicator.className = 'readonly-indicator'
+      readonlyIndicator.textContent = 'Readonly'
+      readonlyIndicator.title = 'Document is readonly'
+      titleContainer.appendChild(readonlyIndicator)
+    }
+  }
+
+  /**
+   * Update readonly status indicator in the footer
+   */
+  updateReadonlyStatusIndicator(doc) {
+    const syncContainer = document.querySelector('.sync-status-container')
+    if (!syncContainer) return
+
+    // Remove existing readonly indicator
+    const existingIndicator = syncContainer.querySelector('.readonly-status-indicator')
+    if (existingIndicator) {
+      existingIndicator.remove()
+    }
+
+    // Add readonly indicator if document is readonly
+    const isReadonly = doc.readonly === true || doc.type === 'system'
+    if (isReadonly) {
+      const readonlyStatus = document.createElement('div')
+      readonlyStatus.className = 'readonly-status-indicator'
+      
+      if (doc.type === 'system') {
+        readonlyStatus.innerHTML = '<span class="status-icon">📖</span><span class="status-text">System</span>'
+        readonlyStatus.title = 'System document - readonly'
+      } else {
+        readonlyStatus.innerHTML = '<span class="status-icon">🔒</span><span class="status-text">Readonly</span>'
+        readonlyStatus.title = 'Document is readonly'
+      }
+      
+      // Insert before the sync status
+      const syncStatus = document.getElementById('sync-status')
+      syncContainer.insertBefore(readonlyStatus, syncStatus)
+    }
   }
 
   /**
@@ -1060,11 +1149,19 @@ class FantasyEditorApp {
 
     const content = this.currentDocument.content || ''
     const title = this.currentDocument.title || ''
+    const tags = this.currentDocument.tags || []
 
     this.documentChangeTracking = {
       lastContentChecksum: this.guidManager.generateChecksum(content),
       lastTitleHash: this.simpleHash(title),
       hasUnsavedChanges: false
+    }
+    
+    // Store the last saved state for comparison
+    this.lastSavedState = {
+      title: title,
+      content: content,
+      tags: [...tags] // Clone the array to avoid reference issues
     }
   }
 

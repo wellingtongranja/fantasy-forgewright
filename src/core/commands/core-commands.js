@@ -365,9 +365,10 @@ export function registerCoreCommands(registry, app) {
           case 'list':
             return {
               success: true,
-              message: 'Document tags:',
+              message: `Document tags: ${doc.tags ? doc.tags.join(', ') : 'none'}`,
               data: doc.tags
             }
+
 
           default:
             return {
@@ -1029,6 +1030,345 @@ export function registerCoreCommands(registry, app) {
       }
     },
 
+    // Readonly and System Document Commands
+    {
+      name: 'readonly',
+      description: 'make current document readonly',
+      category: 'document',
+      icon: '🔒',
+      aliases: [':ro'],
+      handler: async () => {
+        if (!app.currentDocument) {
+          return { success: false, message: 'No document is currently open' }
+        }
+
+        try {
+          // Check if document is a system document
+          if (app.currentDocument.type === 'system') {
+            return { success: false, message: 'System documents are always readonly and cannot be modified' }
+          }
+
+          const isCurrentlyReadonly = await app.storageManager.isDocumentReadonly(app.currentDocument.id)
+          
+          if (isCurrentlyReadonly) {
+            return { success: false, message: 'Document is already readonly' }
+          }
+
+          // Set document as readonly
+          const updatedDoc = await app.storageManager.setDocumentReadonly(app.currentDocument.id, true)
+          app.currentDocument = updatedDoc
+
+          // Update editor readonly state
+          app.editor.setReadonlyMode(true)
+
+          // Update title field readonly state
+          const titleField = document.getElementById('doc-title')
+          if (titleField) {
+            titleField.readOnly = true
+            titleField.classList.add('readonly')
+          }
+
+          // Update visual indicators
+          const titleContainer = document.querySelector('.doc-title-container')
+          app.updateDocumentIndicators(app.currentDocument, titleContainer)
+          app.updateReadonlyStatusIndicator(app.currentDocument)
+
+          return { 
+            success: true, 
+            message: `Document "${app.currentDocument.title}" is now readonly` 
+          }
+        } catch (error) {
+          return { 
+            success: false, 
+            message: `Failed to make document readonly: ${error.message}` 
+          }
+        }
+      }
+    },
+
+    {
+      name: 'read-write',
+      description: 'make current document editable',
+      category: 'document',
+      icon: '✏️',
+      aliases: [':rw'],
+      handler: async () => {
+        if (!app.currentDocument) {
+          return { success: false, message: 'No document is currently open' }
+        }
+
+        try {
+          // Check if it's a system document (cannot be made editable)
+          if (app.currentDocument.type === 'system') {
+            return { 
+              success: false, 
+              message: 'System documents cannot be made editable' 
+            }
+          }
+
+          const isCurrentlyReadonly = await app.storageManager.isDocumentReadonly(app.currentDocument.id)
+          
+          if (!isCurrentlyReadonly) {
+            return { success: false, message: 'Document is already editable' }
+          }
+
+          // Set document as editable
+          const updatedDoc = await app.storageManager.setDocumentReadonly(app.currentDocument.id, false)
+          app.currentDocument = updatedDoc
+
+          // Update editor readonly state
+          app.editor.setReadonlyMode(false)
+
+          // Update title field readonly state
+          const titleField = document.getElementById('doc-title')
+          if (titleField) {
+            titleField.readOnly = false
+            titleField.classList.remove('readonly')
+          }
+
+          // Update visual indicators
+          const titleContainer = document.querySelector('.doc-title-container')
+          app.updateDocumentIndicators(app.currentDocument, titleContainer)
+          app.updateReadonlyStatusIndicator(app.currentDocument)
+
+          return { 
+            success: true, 
+            message: `Document "${app.currentDocument.title}" is now editable` 
+          }
+        } catch (error) {
+          return { 
+            success: false, 
+            message: `Failed to make document editable: ${error.message}` 
+          }
+        }
+      }
+    },
+
+    {
+      name: 'help',
+      description: 'open comprehensive help documentation',
+      category: 'system',
+      icon: '❓',
+      aliases: [':help'],
+      handler: async () => {
+        try {
+          // Initialize SystemDocumentsManager if not available
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const helpDoc = await app.systemDocumentsManager.getSystemDocument('help')
+          if (helpDoc) {
+            app.loadDocument(helpDoc)
+            return { success: true, message: 'Help documentation loaded' }
+          } else {
+            return { success: false, message: 'Help documentation not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load help: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'license',
+      description: 'view AGPL v3 license (Community Edition)',
+      category: 'legal',
+      icon: '⚖️',
+      aliases: [':license'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license')
+          if (licenseDoc) {
+            app.loadDocument(licenseDoc)
+            return { success: true, message: 'AGPL v3 license loaded' }
+          } else {
+            return { success: false, message: 'License document not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load license: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'commercial',
+      description: 'view commercial license terms',
+      category: 'legal',
+      icon: '💼',
+      aliases: [':commercial'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const commercialDoc = await app.systemDocumentsManager.getSystemDocument('commercial')
+          if (commercialDoc) {
+            app.loadDocument(commercialDoc)
+            return { success: true, message: 'Commercial license terms loaded' }
+          } else {
+            return { success: false, message: 'Commercial license document not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load commercial license: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'release',
+      description: 'view release notes and version history',
+      category: 'info',
+      icon: '📋',
+      aliases: [':release'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const releaseDoc = await app.systemDocumentsManager.getSystemDocument('release')
+          if (releaseDoc) {
+            app.loadDocument(releaseDoc)
+            return { success: true, message: 'Release notes loaded' }
+          } else {
+            return { success: false, message: 'Release notes not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load release notes: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'eula',
+      description: 'view End User License Agreement',
+      category: 'legal',
+      icon: '📄',
+      aliases: [':eula'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const eulaDoc = await app.systemDocumentsManager.getSystemDocument('eula')
+          if (eulaDoc) {
+            app.loadDocument(eulaDoc)
+            return { success: true, message: 'End User License Agreement loaded' }
+          } else {
+            return { success: false, message: 'EULA not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load EULA: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'privacy',
+      description: 'view Privacy Policy',
+      category: 'legal',
+      icon: '🔐',
+      aliases: [':privacy'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const privacyDoc = await app.systemDocumentsManager.getSystemDocument('privacy')
+          if (privacyDoc) {
+            app.loadDocument(privacyDoc)
+            return { success: true, message: 'Privacy Policy loaded' }
+          } else {
+            return { success: false, message: 'Privacy Policy not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load Privacy Policy: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'edition',
+      description: 'show current Fantasy Editor edition',
+      category: 'info',
+      icon: 'ℹ️',
+      aliases: [':edition'],
+      handler: async () => {
+        // Determine edition based on available features
+        const hasGitHubIntegration = !!app.githubAuth && !!app.githubStorage
+        const edition = hasGitHubIntegration ? 'Premium' : 'Community'
+        
+        const features = {
+          Community: [
+            'Core markdown editor',
+            'Local document storage', 
+            'Export to multiple formats',
+            'Three built-in themes',
+            'Width and zoom controls',
+            'Command palette system',
+            'Offline functionality'
+          ],
+          Premium: [
+            'All Community features',
+            'GitHub integration and sync',
+            'Cloud storage and backup',
+            'Priority email support',
+            'Advanced themes',
+            'SLA guarantees'
+          ]
+        }
+
+        return {
+          success: true,
+          message: `Fantasy Editor ${edition} Edition`,
+          data: {
+            edition,
+            license: edition === 'Community' ? 'AGPL v3' : 'Commercial',
+            features: features[edition]
+          }
+        }
+      }
+    },
+
+    {
+      name: 'upgrade',
+      description: 'information about Premium Edition features',
+      category: 'info',
+      icon: '⬆️',
+      aliases: [':upgrade'],
+      handler: async () => {
+        return {
+          success: true,
+          message: 'Fantasy Editor Premium Edition',
+          data: [
+            'GitHub integration with OAuth authentication',
+            'Bidirectional document synchronization', 
+            'Cloud storage with automatic backup',
+            'Priority email support with SLA',
+            'Advanced themes and customization',
+            'Enterprise features and SSO',
+            '',
+            'Visit https://forgewright.io/premium for pricing',
+            'Contact sales@forgewright.io for enterprise inquiries'
+          ]
+        }
+      }
+    },
+
     {
       name: 'version',
       description: 'show version',
@@ -1042,7 +1382,7 @@ export function registerCoreCommands(registry, app) {
           data: {
             version: '1.0.0',
             build: 'development',
-            features: ['PWA', 'Offline Storage', 'Multi-theme', 'Command Palette', 'GUID System']
+            features: ['PWA', 'Offline Storage', 'Multi-theme', 'Command Palette', 'GUID System', 'Readonly Documents']
           }
         }
       }

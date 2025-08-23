@@ -192,6 +192,58 @@ body {
   border-radius: var(--border-radius-sm);
 }
 
+.doc-title.readonly {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  cursor: default;
+  opacity: 0.7;
+}
+
+.doc-title.readonly:focus {
+  background-color: var(--color-bg-tertiary);
+  outline: none;
+}
+
+/* Readonly indicator badge */
+.readonly-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px var(--spacing-sm);
+  background-color: var(--readonly-indicator);
+  color: var(--color-text-inverse);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  opacity: 0.8;
+  margin-left: var(--spacing-sm);
+}
+
+.readonly-indicator::before {
+  content: '🔒';
+  font-size: var(--font-size-xs);
+}
+
+/* System document indicator */
+.system-document-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px var(--spacing-sm);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  opacity: 0.9;
+  margin-left: var(--spacing-sm);
+}
+
+.system-document-indicator::before {
+  content: '📖';
+  font-size: var(--font-size-xs);
+}
+
 .editor-content:focus-within {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
@@ -238,6 +290,29 @@ body {
 .sync-status-icon {
   font-size: var(--font-size-xs);
   line-height: 1;
+}
+
+.readonly-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.readonly-status-indicator .status-icon {
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}
+
+.readonly-status-indicator .status-text {
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
 .app-footer > span:first-child {

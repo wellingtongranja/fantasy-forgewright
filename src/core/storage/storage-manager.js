@@ -58,6 +58,21 @@ export class StorageManager {
       throw new Error('Document tags must be an array')
     }
 
+    // Validate readonly property
+    if (doc.readonly !== undefined && typeof doc.readonly !== 'boolean') {
+      throw new Error('Document readonly must be a boolean')
+    }
+
+    // Validate document type
+    if (doc.type !== undefined && !['user', 'system'].includes(doc.type)) {
+      throw new Error('Document type must be "user" or "system"')
+    }
+
+    // Validate system ID for system documents
+    if (doc.type === 'system' && (!doc.systemId || typeof doc.systemId !== 'string')) {
+      throw new Error('System documents must have a valid systemId')
+    }
+
     return true
   }
 
@@ -133,6 +148,11 @@ export class StorageManager {
       throw new Error('Invalid document')
     }
 
+    // Check if document is readonly (system documents cannot be modified)
+    if (document.readonly === true || document.type === 'system') {
+      throw new Error('Cannot modify readonly or system documents')
+    }
+
     let processedDoc
 
     // Check if this is a new document or existing one
@@ -143,8 +163,20 @@ export class StorageManager {
         document.content,
         document.tags
       )
+      
+      // Set default properties for new documents
+      processedDoc.readonly = document.readonly || false
+      processedDoc.type = document.type || 'user'
+      if (document.systemId) {
+        processedDoc.systemId = document.systemId
+      }
     } else {
-      // Update existing document
+      // Update existing document - check if it's readonly first
+      const existingDoc = await this.getDocument(document.id)
+      if (existingDoc && (existingDoc.readonly === true || existingDoc.type === 'system')) {
+        throw new Error('Cannot modify readonly or system documents')
+      }
+
       this.validateDocument(document)
       const sanitizedDoc = this.sanitizeDocument(document)
 
@@ -165,6 +197,13 @@ export class StorageManager {
         if (!processedDoc.tags) {
           processedDoc.tags = []
         }
+      }
+      
+      // Preserve readonly and type properties
+      processedDoc.readonly = document.readonly !== undefined ? document.readonly : (existingDoc?.readonly || false)
+      processedDoc.type = document.type || existingDoc?.type || 'user'
+      if (document.systemId || existingDoc?.systemId) {
+        processedDoc.systemId = document.systemId || existingDoc.systemId
       }
     }
 
@@ -545,5 +584,90 @@ export class StorageManager {
     delete document.lastSyncedAt
 
     await this.saveDocument(document)
+  }
+
+  /**
+   * Set document readonly status
+   * @param {string} documentId - Document ID
+   * @param {boolean} readonly - Whether document should be readonly
+   * @returns {Promise<Object>} Updated document
+   */
+  async setDocumentReadonly(documentId, readonly = true) {
+    await this.ensureDatabase()
+
+    const document = await this.getDocument(documentId)
+    if (!document) {
+      throw new Error('Document not found')
+    }
+
+    // System documents are always readonly
+    if (document.type === 'system') {
+      throw new Error('Cannot modify readonly status of system documents')
+    }
+
+    document.readonly = readonly
+    return await this.saveDocument(document)
+  }
+
+  /**
+   * Check if document is readonly
+   * @param {string} documentId - Document ID
+   * @returns {Promise<boolean>} Whether document is readonly
+   */
+  async isDocumentReadonly(documentId) {
+    await this.ensureDatabase()
+
+    const document = await this.getDocument(documentId)
+    if (!document) {
+      return false
+    }
+
+    return document.readonly === true || document.type === 'system'
+  }
+
+  /**
+   * Get documents by type
+   * @param {string} type - Document type ('user' or 'system')
+   * @returns {Promise<Array>} Documents of specified type
+   */
+  async getDocumentsByType(type) {
+    await this.ensureDatabase()
+
+    const documents = await this.getAllDocuments()
+    return documents.filter(doc => (doc.type || 'user') === type)
+  }
+
+  /**
+   * Get system document by systemId
+   * @param {string} systemId - System document identifier
+   * @returns {Promise<Object|null>} System document or null
+   */
+  async getSystemDocument(systemId) {
+    await this.ensureDatabase()
+
+    const documents = await this.getAllDocuments()
+    return documents.find(doc => doc.type === 'system' && doc.systemId === systemId) || null
+  }
+
+  /**
+   * Get readonly documents
+   * @returns {Promise<Array>} All readonly documents
+   */
+  async getReadonlyDocuments() {
+    await this.ensureDatabase()
+
+    const documents = await this.getAllDocuments()
+    return documents.filter(doc => doc.readonly === true || doc.type === 'system')
+  }
+
+  /**
+   * Get user documents (editable documents)
+   * @returns {Promise<Array>} All user documents
+   */
+  async getUserDocuments() {
+    await this.ensureDatabase()
+
+    const documents = await this.getAllDocuments()
+    return documents.filter(doc => (doc.type || 'user') === 'user' && doc.readonly !== true)
   }
 }
