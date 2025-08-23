@@ -186,13 +186,15 @@ export class DocumentsTab {
         <div class="document-main">
           <div class="document-title-row">
             <span class="document-title">${this.escapeHtml(doc.title)}</span>
-            <span class="document-sync-status ${syncStatus.class}" 
-                  title="${syncStatus.tooltip}">
-              ${syncStatus.icon}
-            </span>
           </div>
           <div class="document-meta">
             <span class="document-time">${timeAgo}</span>
+            ${syncStatus.icon ? `
+              <span class="document-sync-status ${syncStatus.class}" 
+                    title="${syncStatus.tooltip}">
+                ${syncStatus.icon}
+              </span>
+            ` : ''}
             ${doc.tags && doc.tags.length > 0 ? `
               <div class="document-tags">
                 ${doc.tags.slice(0, 3)

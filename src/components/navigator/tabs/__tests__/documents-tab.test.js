@@ -549,4 +549,188 @@ describe('DocumentsTab', () => {
       expect(documentsTab.filter).toBe(filterValue)
     })
   })
+
+  describe('GitHub Sync Status Indicators', () => {
+    let mockGitHubAuth
+    let mockGitHubStorage
+
+    beforeEach(() => {
+      mockGitHubAuth = {
+        isAuthenticated: jest.fn()
+      }
+      
+      mockGitHubStorage = {
+        getConfig: jest.fn()
+      }
+      
+      mockApp.githubAuth = mockGitHubAuth
+      mockApp.githubStorage = mockGitHubStorage
+    })
+
+    it('should show 🔴 indicator for local-only documents when authenticated', () => {
+      // Setup: authenticated and configured
+      mockGitHubAuth.isAuthenticated.mockReturnValue(true)
+      mockGitHubStorage.getConfig.mockReturnValue({
+        configured: true,
+        owner: 'testuser',
+        repo: 'testrepo'
+      })
+
+      const localDoc = {
+        id: 'local1',
+        title: 'Local Document',
+        content: 'test',
+        // No githubSha or githubPath = local only
+        updatedAt: new Date().toISOString()
+      }
+
+      const html = documentsTab.renderDocumentItem(localDoc)
+      
+      expect(html).toContain('🔴')
+      expect(html).toContain('document-sync-status')
+      expect(html).toContain('local-only')
+    })
+
+    it('should show 🟢 indicator for synced documents', () => {
+      mockGitHubAuth.isAuthenticated.mockReturnValue(true)
+      mockGitHubStorage.getConfig.mockReturnValue({
+        configured: true,
+        owner: 'testuser',
+        repo: 'testrepo'
+      })
+
+      const syncedTime = new Date()
+      const syncedDoc = {
+        id: 'synced1',
+        title: 'Synced Document',
+        content: 'test',
+        githubSha: 'abc123',
+        githubPath: 'documents/synced.md',
+        lastSyncedAt: syncedTime.toISOString(),
+        metadata: { modified: new Date(syncedTime.getTime() - 1000).toISOString() }
+      }
+
+      const html = documentsTab.renderDocumentItem(syncedDoc)
+      
+      expect(html).toContain('🟢')
+      expect(html).toContain('synced')
+    })
+
+    it('should show 🟡 indicator for out-of-sync documents', () => {
+      mockGitHubAuth.isAuthenticated.mockReturnValue(true)
+      mockGitHubStorage.getConfig.mockReturnValue({
+        configured: true,
+        owner: 'testuser',
+        repo: 'testrepo'
+      })
+
+      const modifiedTime = new Date()
+      const outOfSyncDoc = {
+        id: 'outofsync1',
+        title: 'Out of Sync Document',
+        content: 'test',
+        githubSha: 'abc123',
+        githubPath: 'documents/outofsync.md',
+        lastSyncedAt: new Date(modifiedTime.getTime() - 1000).toISOString(),
+        metadata: { modified: modifiedTime.toISOString() }
+      }
+
+      const html = documentsTab.renderDocumentItem(outOfSyncDoc)
+      
+      expect(html).toContain('🟡')
+      expect(html).toContain('out-of-sync')
+    })
+
+    it('should NOT show any sync indicator when not authenticated', () => {
+      // Setup: not authenticated
+      mockGitHubAuth.isAuthenticated.mockReturnValue(false)
+      mockGitHubStorage.getConfig.mockReturnValue({
+        configured: true,
+        owner: 'testuser',
+        repo: 'testrepo'
+      })
+
+      const doc = {
+        id: 'test1',
+        title: 'Test Document',
+        content: 'test',
+        updatedAt: new Date().toISOString()
+      }
+
+      const html = documentsTab.renderDocumentItem(doc)
+      
+      // Should not contain any sync status span
+      expect(html).not.toContain('document-sync-status')
+      expect(html).not.toContain('🔴')
+      expect(html).not.toContain('🟡')
+      expect(html).not.toContain('🟢')
+    })
+
+    it('should NOT show any sync indicator when not configured', () => {
+      // Setup: authenticated but not configured
+      mockGitHubAuth.isAuthenticated.mockReturnValue(true)
+      mockGitHubStorage.getConfig.mockReturnValue({
+        configured: false,
+        owner: null,
+        repo: null
+      })
+
+      const doc = {
+        id: 'test1',
+        title: 'Test Document',
+        content: 'test',
+        updatedAt: new Date().toISOString()
+      }
+
+      const html = documentsTab.renderDocumentItem(doc)
+      
+      // Should not contain any sync status span
+      expect(html).not.toContain('document-sync-status')
+      expect(html).not.toContain('🔴')
+      expect(html).not.toContain('🟡')
+      expect(html).not.toContain('🟢')
+    })
+
+    it('should NOT show sync indicator when GitHub services are not available', () => {
+      // Setup: no GitHub auth or storage available
+      mockApp.githubAuth = null
+      mockApp.githubStorage = null
+
+      const doc = {
+        id: 'test1',
+        title: 'Test Document',
+        content: 'test',
+        updatedAt: new Date().toISOString()
+      }
+
+      const html = documentsTab.renderDocumentItem(doc)
+      
+      expect(html).not.toContain('document-sync-status')
+      expect(html).not.toContain('🔴')
+      expect(html).not.toContain('🟡')
+      expect(html).not.toContain('🟢')
+    })
+
+    it('should handle edge cases gracefully', () => {
+      mockGitHubAuth.isAuthenticated.mockReturnValue(true)
+      mockGitHubStorage.getConfig.mockReturnValue({
+        configured: true,
+        owner: 'testuser',
+        repo: 'testrepo'
+      })
+
+      // Document with no metadata
+      const docNoMeta = {
+        id: 'nometa1',
+        title: 'No Metadata Document',
+        content: 'test'
+        // No updatedAt, no metadata
+      }
+
+      expect(() => {
+        const html = documentsTab.renderDocumentItem(docNoMeta)
+        expect(html).toContain('🔴') // Should default to local-only
+      }).not.toThrow()
+    })
+  })
 })
