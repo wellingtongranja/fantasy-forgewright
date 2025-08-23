@@ -191,6 +191,20 @@ export class EditorManager {
   }
 
   /**
+   * Reconfigure editor with specific font size
+   */
+  reconfigureWithFontSize(fontSize) {
+    if (this.view && this.editorExtensions && this.themeManager) {
+      this.view.dispatch({
+        effects: this.extensionCompartment.reconfigure([
+          ...this.editorExtensions.getExtensions(),
+          ...this.themeManager.getCodeMirrorTheme(this.themeManager.currentTheme, { fontSize })
+        ])
+      })
+    }
+  }
+
+  /**
    * Get current cursor position for context-aware commands
    */
   getCursorPosition() {

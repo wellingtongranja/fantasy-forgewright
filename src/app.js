@@ -16,6 +16,7 @@ import { SyncManager } from './core/storage/sync-manager.js'
 import { GitHubAuthButton } from './components/auth/github-auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 import { ExportManager } from './core/export/export-manager.js'
+import { WidthManager } from './core/editor/width-manager.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -46,6 +47,7 @@ class FantasyEditorApp {
 
     // Writer enhancements
     this.exportManager = null
+    this.widthManager = null
   }
 
   async init() {
@@ -108,6 +110,7 @@ class FantasyEditorApp {
 
     // Initialize writer enhancements
     this.exportManager = new ExportManager(this)
+    this.widthManager = new WidthManager(this)
 
     // Initialize GitHub integration
     await this.initializeGitHubIntegration()
@@ -142,6 +145,9 @@ class FantasyEditorApp {
 
     // Handle command execution results
     this.setupCommandEventHandlers()
+
+    // Setup window resize handler for responsive width behavior
+    this.setupResizeHandler()
   }
 
   /**
@@ -150,6 +156,21 @@ class FantasyEditorApp {
   setupCommandEventHandlers() {
     // Command event handling is now done in core-commands.js
     // This avoids duplicate event listeners and inconsistent formatting
+  }
+
+  /**
+   * Setup window resize handler for responsive behavior
+   */
+  setupResizeHandler() {
+    if (this.widthManager) {
+      // Handle resize for responsive width behavior
+      window.addEventListener('resize', () => {
+        this.widthManager.handleResize()
+      })
+
+      // Initial resize handling
+      this.widthManager.handleResize()
+    }
   }
 
   /**

@@ -10,12 +10,13 @@ import { tags as t } from '@lezer/highlight'
 /**
  * Creates a CodeMirror theme that reads CSS custom properties
  */
-function createUnifiedTheme(themeName) {
+function createUnifiedTheme(themeName, options = {}) {
+  const { fontSize } = options
   return EditorView.theme({
     '&': {
       color: 'var(--text-primary)',
       backgroundColor: 'var(--background-primary)',
-      fontSize: 'var(--font-size-base)',
+      fontSize: fontSize || 'var(--codemirror-font-size)',
       fontFamily: 'var(--font-family-mono)'
     },
     
@@ -23,7 +24,8 @@ function createUnifiedTheme(themeName) {
       padding: '16px',
       lineHeight: 'var(--line-height-relaxed)',
       caretColor: 'var(--text-primary)',
-      minHeight: '100%'
+      minHeight: '100%',
+      fontSize: fontSize || 'var(--codemirror-font-size)'
     },
     
     '.cm-focused': {
@@ -305,9 +307,18 @@ export const fantasyTheme = [
 ]
 
 /**
- * Get theme extension by name
+ * Get theme extension by name with optional font size
  */
-export function getThemeExtension(themeName) {
+export function getThemeExtension(themeName, options = {}) {
+  if (options.fontSize) {
+    // Create theme with specific font size
+    return [
+      createUnifiedTheme(themeName, options),
+      createSyntaxHighlighting(themeName)
+    ]
+  }
+  
+  // Use default themes
   const themes = {
     light: fantasyLightTheme,
     dark: fantasyDarkTheme,

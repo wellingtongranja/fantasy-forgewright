@@ -788,6 +788,161 @@ export function registerCoreCommands(registry, app) {
       }
     },
 
+    // Editor Width and Zoom Commands
+    {
+      name: 'width 65',
+      description: 'set editor width to 65 columns (optimal reading)',
+      category: 'editor',
+      icon: '📏',
+      aliases: [':65'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Width control not available' }
+        }
+
+        try {
+          const result = app.widthManager.setWidth(65)
+          return result
+        } catch (error) {
+          return { success: false, message: `Failed to set width: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'width 80',
+      description: 'set editor width to 80 columns (standard coding)',
+      category: 'editor',
+      icon: '📏',
+      aliases: [':80'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Width control not available' }
+        }
+
+        try {
+          const result = app.widthManager.setWidth(80)
+          return result
+        } catch (error) {
+          return { success: false, message: `Failed to set width: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'width 90',
+      description: 'set editor width to 90 columns (wide editing)',
+      category: 'editor',
+      icon: '📏',
+      aliases: [':90'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Width control not available' }
+        }
+
+        try {
+          const result = app.widthManager.setWidth(90)
+          return result
+        } catch (error) {
+          return { success: false, message: `Failed to set width: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'zoom in',
+      description: 'increase font size (zoom in)',
+      category: 'editor',
+      icon: '🔍',
+      aliases: [':zi'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Zoom control not available' }
+        }
+
+        try {
+          const result = app.widthManager.zoomIn()
+          return result
+        } catch (error) {
+          return { success: false, message: `Failed to zoom in: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'zoom out',
+      description: 'decrease font size (zoom out)',
+      category: 'editor',
+      icon: '🔍',
+      aliases: [':zo'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Zoom control not available' }
+        }
+
+        try {
+          const result = app.widthManager.zoomOut()
+          return result
+        } catch (error) {
+          return { success: false, message: `Failed to zoom out: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'zoom reset',
+      description: 'reset zoom to 100%',
+      category: 'editor',
+      icon: '🔍',
+      aliases: [':zr'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Zoom control not available' }
+        }
+
+        try {
+          const result = app.widthManager.resetZoom()
+          return result
+        } catch (error) {
+          return { success: false, message: `Failed to reset zoom: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'editor info',
+      description: 'show current editor width and zoom settings',
+      category: 'editor',
+      icon: 'ℹ️',
+      aliases: [':ei'],
+      handler: async () => {
+        if (!app.widthManager) {
+          return { success: false, message: 'Width and zoom control not available' }
+        }
+
+        try {
+          const width = app.widthManager.getCurrentWidth()
+          const zoom = app.widthManager.getCurrentZoom()
+          const availableWidths = app.widthManager.getAvailableWidths()
+          
+          return {
+            success: true,
+            message: 'Editor Configuration:',
+            data: {
+              'Current width': `${width.columns}ch (${width.value})`,
+              'Current zoom': `${zoom.percentage}%`,
+              'Available widths': availableWidths.map(w => 
+                `${w.columns}ch${w.current ? ' (current)' : ''}`
+              ).join(', '),
+              'Zoom range': '85% - 130%'
+            }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to get editor info: ${error.message}` }
+        }
+      }
+    },
+
 
     // System Commands
     {

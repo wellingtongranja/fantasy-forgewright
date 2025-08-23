@@ -55,8 +55,8 @@ export class ThemeManager {
   /**
    * Get CodeMirror theme extensions for initial setup
    */
-  getCodeMirrorTheme(theme = this.currentTheme) {
-    return getThemeExtension(theme)
+  getCodeMirrorTheme(theme = this.currentTheme, options = {}) {
+    return getThemeExtension(theme, options)
   }
 
   toggleTheme() {

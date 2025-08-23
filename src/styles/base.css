@@ -127,14 +127,14 @@ body {
 
 .editor-content {
   width: 100%;
-  max-width: 65ch;
+  max-width: var(--editor-max-width);
   height: 100%;
   padding: var(--spacing-lg);
   border: 1px solid var(--color-border-light);
   border-radius: var(--border-radius-lg);
   background-color: var(--color-bg);
   box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), max-width var(--transition-base);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
@@ -143,7 +143,6 @@ body {
 .editor-codemirror {
   flex: 1;
   font-family: var(--font-family-mono);
-  font-size: var(--font-size-base);
   line-height: var(--line-height-relaxed);
   color: var(--color-text);
   overflow: hidden;

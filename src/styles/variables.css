@@ -82,6 +82,11 @@
   --sidebar-width: 280px;
   --header-height: 60px;
   --footer-height: 40px;
+
+  /* Editor width and zoom controls */
+  --editor-max-width: 65ch;
+  --editor-zoom-level: 1.0;
+  --codemirror-font-size: 16px;
 }
 
 [data-theme='dark'] {
