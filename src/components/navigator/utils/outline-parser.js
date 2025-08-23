@@ -14,7 +14,9 @@ export class OutlineParser {
       return []
     }
 
-    const lines = content.split('\n')
+    // Normalize line endings to handle mixed \r\n, \r, \n
+    const normalizedContent = content.replace(/\r\n?/g, '\n')
+    const lines = normalizedContent.split('\n')
     const outline = []
     const stack = []
     let lineNumber = 0
@@ -31,6 +33,11 @@ export class OutlineParser {
         
         // Remove markdown formatting from header text
         const cleanText = this.cleanHeaderText(text)
+        
+        // Skip headers that are empty after cleaning
+        if (!cleanText) {
+          continue
+        }
         
         const item = {
           id: `heading-${lineNumber}`,
@@ -66,13 +73,20 @@ export class OutlineParser {
    * @returns {string} Clean text
    */
   static cleanHeaderText(text) {
-    return text
+    if (!text || typeof text !== 'string') {
+      return ''
+    }
+    
+    const cleaned = text
       .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold
       .replace(/\*(.*?)\*/g, '$1')      // Remove italic
       .replace(/`(.*?)`/g, '$1')        // Remove inline code
       .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')  // Remove links
       .replace(/[*_~`]/g, '')          // Remove remaining markdown chars
+      .replace(/\s+/g, ' ')            // Normalize whitespace
       .trim()
+    
+    return cleaned || text.trim() // Fallback to original if cleaned is empty
   }
 
   /**

@@ -193,7 +193,11 @@ export class Navigator {
         document.body.style.userSelect = ''
         
         // Save width preference
-        localStorage.setItem('navigator-width', this.width)
+        try {
+          localStorage.setItem('navigator-width', this.width)
+        } catch (error) {
+          console.warn('Failed to save navigator width preference:', error)
+        }
       }
     })
   }
@@ -262,11 +266,17 @@ export class Navigator {
     this.container.classList.toggle('pinned', this.isPinned)
     
     const pinBtn = this.container.querySelector('.navigator-pin')
-    pinBtn.classList.toggle('active', this.isPinned)
-    pinBtn.title = this.isPinned ? 'Unpin Navigator' : 'Pin Navigator'
+    if (pinBtn) {
+      pinBtn.classList.toggle('active', this.isPinned)
+      pinBtn.title = this.isPinned ? 'Unpin Navigator' : 'Pin Navigator'
+    }
     
     // Save pin state
-    localStorage.setItem('navigator-pinned', this.isPinned)
+    try {
+      localStorage.setItem('navigator-pinned', this.isPinned)
+    } catch (error) {
+      console.warn('Failed to save navigator pin state:', error)
+    }
     
     // If unpinning and navigator is visible, hide it
     if (!this.isPinned && this.isVisible) {
@@ -280,21 +290,21 @@ export class Navigator {
       // Focus the appropriate element in the active tab
       if (this.activeTab === 'documents') {
         const firstItem = this.container.querySelector('.document-item')
-        if (firstItem) {
+        if (firstItem && typeof firstItem.focus === 'function') {
           firstItem.focus()
           firstItem.classList.add('selected')
         }
       } else if (this.activeTab === 'outline') {
         const firstItem = this.container.querySelector('.outline-item')
-        if (firstItem) {
+        if (firstItem && typeof firstItem.focus === 'function') {
           firstItem.focus()
-          if (activeTab.selectItem) {
+          if (activeTab.selectItem && firstItem.dataset.itemId) {
             activeTab.selectItem(firstItem.dataset.itemId)
           }
         }
       } else if (this.activeTab === 'search') {
         const searchInput = this.container.querySelector('.search-input')
-        if (searchInput) {
+        if (searchInput && typeof searchInput.focus === 'function') {
           searchInput.focus()
         }
       }
@@ -417,19 +427,30 @@ export class Navigator {
 
   // Restore saved preferences
   restorePreferences() {
-    // Restore width
-    const savedWidth = localStorage.getItem('navigator-width')
-    if (savedWidth) {
-      this.width = parseInt(savedWidth)
-      this.container.style.width = `${this.width}px`
+    try {
+      // Restore width
+      const savedWidth = localStorage.getItem('navigator-width')
+      if (savedWidth) {
+        const parsedWidth = parseInt(savedWidth)
+        if (!isNaN(parsedWidth) && parsedWidth >= this.minWidth && parsedWidth <= this.maxWidth) {
+          this.width = parsedWidth
+          this.container.style.width = `${this.width}px`
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to restore navigator width preference:', error)
     }
     
-    // Restore pin state
-    const savedPinned = localStorage.getItem('navigator-pinned')
-    if (savedPinned === 'true') {
-      this.isPinned = true
-      this.container.classList.add('pinned')
-      this.show()
+    try {
+      // Restore pin state
+      const savedPinned = localStorage.getItem('navigator-pinned')
+      if (savedPinned === 'true') {
+        this.isPinned = true
+        this.container.classList.add('pinned')
+        this.show()
+      }
+    } catch (error) {
+      console.warn('Failed to restore navigator pin state:', error)
     }
   }
 }
