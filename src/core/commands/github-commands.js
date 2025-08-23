@@ -10,7 +10,7 @@ export function registerGitHubCommands(registry, app) {
       description: 'show GitHub connection status',
       category: 'github',
       icon: '🐙',
-      aliases: [':gh'],
+      aliases: [':gst'],
       handler: async () => {
         if (!app.githubAuth) {
           return {
@@ -44,7 +44,7 @@ export function registerGitHubCommands(registry, app) {
             message: 'GitHub Status:',
             data: {
               status: 'Not connected ❌',
-              info: 'Use ":ghl" to log in to GitHub',
+              info: 'Use ":glo" to log in to GitHub',
               note: 'GitHub integration enables document backup and sync'
             }
           }
@@ -57,7 +57,7 @@ export function registerGitHubCommands(registry, app) {
       description: 'log in to GitHub',
       category: 'github',
       icon: '🔑',
-      aliases: [':ghl'],
+      aliases: [':glo'],
       handler: async () => {
         if (!app.githubAuth) {
           return {
@@ -96,7 +96,7 @@ export function registerGitHubCommands(registry, app) {
       description: 'log out from GitHub',
       category: 'github',
       icon: '🚪',
-      aliases: [':gho'],
+      aliases: [':gou'],
       handler: async () => {
         if (!app.githubAuth) {
           return {
@@ -128,7 +128,7 @@ export function registerGitHubCommands(registry, app) {
       description: 'configure GitHub repository',
       category: 'github',
       icon: '⚙️',
-      aliases: [':ghc'],
+      aliases: [':gcf'],
       parameters: [
         { name: 'owner', required: false, type: 'string', description: 'Repository owner' },
         { name: 'repo', required: false, type: 'string', description: 'Repository name' },
@@ -196,19 +196,19 @@ export function registerGitHubCommands(registry, app) {
       description: 'sync documents with GitHub',
       category: 'github',
       icon: '🔄',
-      aliases: [':ghs'],
+      aliases: [':gsy'],
       handler: async () => {
         if (!app.githubAuth?.isAuthenticated()) {
           return {
             success: false,
-            message: 'Not logged in to GitHub. Use ":ghl" to log in first.'
+            message: 'Not logged in to GitHub. Use ":glo" to log in first.'
           }
         }
 
         if (!app.githubStorage?.isConfigured()) {
           return {
             success: false,
-            message: 'GitHub repository not configured. Use ":ghc <owner> <repo>" to configure.'
+            message: 'GitHub repository not configured. Use ":gcf <owner> <repo>" to configure.'
           }
         }
 
@@ -246,19 +246,19 @@ export function registerGitHubCommands(registry, app) {
       description: 'push current document to GitHub',
       category: 'github',
       icon: '⬆️',
-      aliases: [':ghp'],
+      aliases: [':gpu'],
       handler: async () => {
         if (!app.githubAuth?.isAuthenticated()) {
           return {
             success: false,
-            message: 'Not logged in to GitHub. Use ":ghl" to log in first.'
+            message: 'Not logged in to GitHub. Use ":glo" to log in first.'
           }
         }
 
         if (!app.githubStorage?.isConfigured()) {
           return {
             success: false,
-            message: 'GitHub repository not configured. Use ":ghc <owner> <repo>" to configure.'
+            message: 'GitHub repository not configured. Use ":gcf <owner> <repo>" to configure.'
           }
         }
 
@@ -310,7 +310,7 @@ export function registerGitHubCommands(registry, app) {
       description: 'pull documents from GitHub',
       category: 'github',
       icon: '⬇️',
-      aliases: [':ghpl'],
+      aliases: [':gpl'],
       parameters: [
         { name: 'filename', required: false, type: 'string', description: 'Specific document to pull' }
       ],
@@ -318,14 +318,14 @@ export function registerGitHubCommands(registry, app) {
         if (!app.githubAuth?.isAuthenticated()) {
           return {
             success: false,
-            message: 'Not logged in to GitHub. Use ":ghl" to log in first.'
+            message: 'Not logged in to GitHub. Use ":glo" to log in first.'
           }
         }
 
         if (!app.githubStorage?.isConfigured()) {
           return {
             success: false,
-            message: 'GitHub repository not configured. Use ":ghc <owner> <repo>" to configure.'
+            message: 'GitHub repository not configured. Use ":gcf <owner> <repo>" to configure.'
           }
         }
 
@@ -372,7 +372,7 @@ export function registerGitHubCommands(registry, app) {
       description: 'import document from GitHub URL',
       category: 'github',
       icon: '📥',
-      aliases: [':ghi'],
+      aliases: [':gim'],
       parameters: [
         { name: 'url', required: true, type: 'string', description: 'GitHub raw file URL' }
       ],
@@ -462,19 +462,19 @@ export function registerGitHubCommands(registry, app) {
       description: 'list documents in GitHub repository',
       category: 'github',
       icon: '📋',
-      aliases: [':ghls'],
+      aliases: [':gls'],
       handler: async () => {
         if (!app.githubAuth?.isAuthenticated()) {
           return {
             success: false,
-            message: 'Not logged in to GitHub. Use ":ghl" to log in first.'
+            message: 'Not logged in to GitHub. Use ":glo" to log in first.'
           }
         }
 
         if (!app.githubStorage?.isConfigured()) {
           return {
             success: false,
-            message: 'GitHub repository not configured. Use ":ghc <owner> <repo>" to configure.'
+            message: 'GitHub repository not configured. Use ":gcf <owner> <repo>" to configure.'
           }
         }
 
@@ -485,7 +485,7 @@ export function registerGitHubCommands(registry, app) {
             return {
               success: true,
               message: 'No documents found in GitHub repository',
-              data: ['Use ":ghp" to push your current document to GitHub']
+              data: ['Use ":gpu" to push your current document to GitHub']
             }
           }
           
@@ -511,19 +511,19 @@ export function registerGitHubCommands(registry, app) {
       description: 'initialize GitHub repository for documents',
       category: 'github',
       icon: '🚀',
-      aliases: [':ghini'],
+      aliases: [':gin'],
       handler: async () => {
         if (!app.githubAuth?.isAuthenticated()) {
           return {
             success: false,
-            message: 'Not logged in to GitHub. Use ":ghl" to log in first.'
+            message: 'Not logged in to GitHub. Use ":glo" to log in first.'
           }
         }
 
         if (!app.githubStorage?.isConfigured()) {
           return {
             success: false,
-            message: 'GitHub repository not configured. Use ":ghc <owner> <repo>" to configure.'
+            message: 'GitHub repository not configured. Use ":gcf <owner> <repo>" to configure.'
           }
         }
 

@@ -89,16 +89,18 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:tag`** | `tag` | `:tag add fantasy` |
 
 #### GitHub Integration Commands
-| **`:gh`** | `github status` | `:gh` |
-| **`:ghl`** | `github login` | `:ghl` |
-| **`:gho`** | `github logout` | `:gho` |
-| **`:ghc`** | `github config` | `:ghc owner repo` |
-| **`:ghp`** | `github push` | `:ghp` |
-| **`:ghs`** | `github sync` | `:ghs` |
-| **`:ghls`** | `github list` | `:ghls` |
-| **`:ghpl`** | `github pull` | `:ghpl filename` |
-| **`:ghi`** | `github import` | `:ghi https://github.com/...` |
-| **`:ghini`** | `github init` | `:ghini` |
+*Aligned with standard Git aliases (st=status, pu=push, pl=pull, etc.)*
+
+| **`:gst`** | `github status` | `:gst` |
+| **`:glo`** | `github login` | `:glo` |
+| **`:gou`** | `github logout` | `:gou` |
+| **`:gcf`** | `github config` | `:gcf owner repo` |
+| **`:gpu`** | `github push` | `:gpu` |
+| **`:gsy`** | `github sync` | `:gsy` |
+| **`:gls`** | `github list` | `:gls` |
+| **`:gpl`** | `github pull` | `:gpl filename` |
+| **`:gim`** | `github import` | `:gim https://github.com/...` |
+| **`:gin`** | `github init` | `:gin` |
 
 ### Command System Rules (MANDATORY)
 
