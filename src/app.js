@@ -663,7 +663,20 @@ class FantasyEditorApp {
     const isAuthenticated = this.githubAuth?.isAuthenticated()
     const isConfigured = config.configured && config.owner && config.repo
 
-    if (!isConfigured || !isAuthenticated) {
+    if (!isAuthenticated) {
+      syncIndicator.style.display = 'none'
+      return
+    }
+
+    // If authenticated but not configured, try auto-setup
+    if (!isConfigured && this.githubAuth?.getCurrentUser()) {
+      console.log('Authenticated but not configured, attempting auto-setup...')
+      this.setupDefaultRepository(this.githubAuth.getCurrentUser())
+      syncIndicator.style.display = 'none'
+      return
+    }
+
+    if (!isConfigured) {
       syncIndicator.style.display = 'none'
       return
     }
