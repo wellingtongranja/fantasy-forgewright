@@ -48,13 +48,15 @@
       
       <section class="editor-container">
         <div class="editor">
-          <div class="doc-title-container">
-            <input type="text" id="doc-title" class="doc-title" placeholder="Untitled Document" />
-            <div class="doc-guid-label" id="doc-guid-label" style="display: none;">
-              <span class="doc-guid-text" id="doc-guid-text"></span>
+          <div class="editor-content">
+            <div class="doc-title-container">
+              <input type="text" id="doc-title" class="doc-title" placeholder="Untitled Document" />
+              <div class="doc-guid-label" id="doc-guid-label" style="display: none;">
+                <span class="doc-guid-text" id="doc-guid-text"></span>
+              </div>
             </div>
+            <div id="editor" class="editor-codemirror"></div>
           </div>
-          <div id="editor" class="editor-content"></div>
         </div>
       </section>
     </main>

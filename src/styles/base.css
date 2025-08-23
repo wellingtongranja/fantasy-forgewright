@@ -130,20 +130,23 @@ body {
   max-width: 65ch;
   height: 100%;
   padding: var(--spacing-lg);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-relaxed);
-  color: var(--color-text);
   border: 1px solid var(--color-border-light);
   border-radius: var(--border-radius-lg);
   background-color: var(--color-bg);
   box-shadow: var(--shadow-sm);
   transition: border-color var(--transition-fast);
-  resize: none;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+}
+
+.editor-codemirror {
+  flex: 1;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text);
+  overflow: hidden;
 }
 
 .doc-title-container {
@@ -163,7 +166,7 @@ body {
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
   text-align: center;
-  font-family: inherit;
+  font-family: var(--font-family-base);
   outline: none;
 }
 
@@ -299,6 +302,10 @@ body {
   .editor-content {
     max-width: 100%;
     padding: var(--spacing-md);
+  }
+  
+  .editor-codemirror {
+    padding: var(--spacing-sm);
   }
   
   .doc-title {
