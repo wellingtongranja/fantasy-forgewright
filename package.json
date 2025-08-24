@@ -26,7 +26,7 @@
     "analyze-bundle": "npm run bundle-analyzer",
     "deploy:waf": "node scripts/deploy-waf.js",
     "uptime-check": "node scripts/uptime-check.js",
-    "prepare": "husky install"
+    "prepare": "husky install || exit 0"
   },
   "keywords": [
     "markdown",
