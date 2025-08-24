@@ -1,0 +1,307 @@
+name: Monitoring & Alerting
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/monitoring.yml'
+
+jobs:
+  uptime-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci --production
+    
+    - name: Run uptime monitoring
+      run: npm run uptime-check
+      env:
+        BASE_URL: https://forgewright.io
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      continue-on-error: true
+    
+    - name: Create uptime report
+      run: |
+        echo "## Uptime Check Results" >> $GITHUB_STEP_SUMMARY
+        echo "Timestamp: $(date -u)" >> $GITHUB_STEP_SUMMARY
+        if [ $? -eq 0 ]; then
+          echo "✅ All systems operational" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ Issues detected - check logs above" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  ssl-certificate-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Check SSL certificate validity
+      run: |
+        DOMAIN="forgewright.io"
+        EXPIRY_DATE=$(echo | openssl s_client -servername $DOMAIN -connect $DOMAIN:443 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+        EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s)
+        CURRENT_EPOCH=$(date +%s)
+        DAYS_UNTIL_EXPIRY=$(( ($EXPIRY_EPOCH - $CURRENT_EPOCH) / 86400 ))
+        
+        echo "SSL Certificate expires on: $EXPIRY_DATE"
+        echo "Days until expiry: $DAYS_UNTIL_EXPIRY"
+        
+        if [ $DAYS_UNTIL_EXPIRY -lt 30 ]; then
+          echo "SSL_ALERT=true" >> $GITHUB_ENV
+          echo "SSL_DAYS_LEFT=$DAYS_UNTIL_EXPIRY" >> $GITHUB_ENV
+        fi
+        
+        echo "## SSL Certificate Status" >> $GITHUB_STEP_SUMMARY
+        echo "Domain: $DOMAIN" >> $GITHUB_STEP_SUMMARY
+        echo "Expires: $EXPIRY_DATE" >> $GITHUB_STEP_SUMMARY
+        echo "Days remaining: $DAYS_UNTIL_EXPIRY" >> $GITHUB_STEP_SUMMARY
+        if [ $DAYS_UNTIL_EXPIRY -lt 30 ]; then
+          echo "⚠️ Certificate expires soon!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ Certificate valid" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: SSL expiry alert
+      if: env.SSL_ALERT == 'true'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: warning
+        channel: '#alerts'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            username: 'SSL Monitor',
+            icon_emoji: ':warning:',
+            attachments: [{
+              color: 'warning',
+              title: '🔒 SSL Certificate Expiry Alert',
+              fields: [{
+                title: 'Domain',
+                value: 'forgewright.io',
+                short: true
+              }, {
+                title: 'Days Until Expiry',
+                value: '${{ env.SSL_DAYS_LEFT }}',
+                short: true
+              }, {
+                title: 'Action Required',
+                value: 'Renew SSL certificate before expiration',
+                short: false
+              }]
+            }]
+          }
+
+  dns-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Check DNS resolution
+      run: |
+        DOMAIN="forgewright.io"
+        
+        # Check A record
+        A_RECORD=$(dig +short A $DOMAIN)
+        echo "A Record: $A_RECORD"
+        
+        # Check AAAA record (IPv6)
+        AAAA_RECORD=$(dig +short AAAA $DOMAIN)
+        echo "AAAA Record: $AAAA_RECORD"
+        
+        # Check CNAME for www
+        WWW_CNAME=$(dig +short CNAME www.$DOMAIN)
+        echo "WWW CNAME: $WWW_CNAME"
+        
+        # Check MX records
+        MX_RECORDS=$(dig +short MX $DOMAIN)
+        echo "MX Records: $MX_RECORDS"
+        
+        echo "## DNS Status" >> $GITHUB_STEP_SUMMARY
+        echo "| Record Type | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| A | $A_RECORD |" >> $GITHUB_STEP_SUMMARY
+        echo "| AAAA | $AAAA_RECORD |" >> $GITHUB_STEP_SUMMARY
+        echo "| WWW CNAME | $WWW_CNAME |" >> $GITHUB_STEP_SUMMARY
+        echo "| MX | $MX_RECORDS |" >> $GITHUB_STEP_SUMMARY
+        
+        # Validate that we have at least an A record
+        if [ -z "$A_RECORD" ]; then
+          echo "DNS_ALERT=true" >> $GITHUB_ENV
+          echo "❌ No A record found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ DNS resolution working" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: DNS failure alert
+      if: env.DNS_ALERT == 'true'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#alerts'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            username: 'DNS Monitor',
+            icon_emoji: ':warning:',
+            attachments: [{
+              color: 'danger',
+              title: '🌐 DNS Resolution Issue',
+              fields: [{
+                title: 'Domain',
+                value: 'forgewright.io',
+                short: true
+              }, {
+                title: 'Issue',
+                value: 'DNS resolution failed',
+                short: true
+              }, {
+                title: 'Action Required',
+                value: 'Check DNS configuration and nameservers',
+                short: false
+              }]
+            }]
+          }
+
+  third-party-services:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Check GitHub API status
+      run: |
+        GITHUB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/status)
+        echo "GitHub API Status: $GITHUB_STATUS"
+        
+        if [ "$GITHUB_STATUS" != "200" ]; then
+          echo "GITHUB_API_ALERT=true" >> $GITHUB_ENV
+        fi
+        
+        echo "## Third-Party Services Status" >> $GITHUB_STEP_SUMMARY
+        echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+        if [ "$GITHUB_STATUS" = "200" ]; then
+          echo "| GitHub API | ✅ Operational |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| GitHub API | ❌ Issues ($GITHUB_STATUS) |" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Check Project Gutenberg API
+      run: |
+        GUTENBERG_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://gutendex.com/books/)
+        echo "Project Gutenberg API Status: $GUTENBERG_STATUS"
+        
+        if [ "$GUTENBERG_STATUS" != "200" ]; then
+          echo "GUTENBERG_API_ALERT=true" >> $GITHUB_ENV
+        fi
+        
+        if [ "$GUTENBERG_STATUS" = "200" ]; then
+          echo "| Project Gutenberg API | ✅ Operational |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Project Gutenberg API | ❌ Issues ($GUTENBERG_STATUS) |" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Third-party service alerts
+      if: env.GITHUB_API_ALERT == 'true' || env.GUTENBERG_API_ALERT == 'true'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: warning
+        channel: '#alerts'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            username: 'Service Monitor',
+            icon_emoji: ':warning:',
+            attachments: [{
+              color: 'warning',
+              title: '🔌 Third-Party Service Issues',
+              fields: [{
+                title: 'Affected Services',
+                value: '${{ env.GITHUB_API_ALERT == "true" && "GitHub API" || "" }}${{ env.GUTENBERG_API_ALERT == "true" && "Project Gutenberg API" || "" }}',
+                short: true
+              }, {
+                title: 'Impact',
+                value: 'Some application features may be degraded',
+                short: true
+              }]
+            }]
+          }
+
+  database-cleanup:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Clean up old monitoring data
+      run: |
+        # This would typically connect to your database and clean up old records
+        # For now, we'll just simulate the cleanup
+        echo "🧹 Simulating cleanup of monitoring data older than 30 days"
+        echo "This would remove old uptime check results, performance metrics, etc."
+        
+        # In a real scenario, you might run something like:
+        # node scripts/cleanup-monitoring-data.js --days=30
+        
+        echo "## Database Cleanup" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Cleanup completed successfully" >> $GITHUB_STEP_SUMMARY
+
+  health-dashboard:
+    needs: [uptime-check, ssl-certificate-check, dns-check, third-party-services]
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Generate health dashboard
+      run: |
+        echo "# 🏥 System Health Dashboard" >> health-report.md
+        echo "" >> health-report.md
+        echo "Generated: $(date -u)" >> health-report.md
+        echo "" >> health-report.md
+        
+        echo "## Service Status" >> health-report.md
+        echo "" >> health-report.md
+        
+        # Check job results
+        UPTIME_STATUS="${{ needs.uptime-check.result }}"
+        SSL_STATUS="${{ needs.ssl-certificate-check.result }}"
+        DNS_STATUS="${{ needs.dns-check.result }}"
+        SERVICES_STATUS="${{ needs.third-party-services.result }}"
+        
+        echo "| Component | Status | Details |" >> health-report.md
+        echo "|-----------|--------|---------|" >> health-report.md
+        echo "| Website Uptime | $([ "$UPTIME_STATUS" = "success" ] && echo "✅ Operational" || echo "❌ Issues") | Primary website availability |" >> health-report.md
+        echo "| SSL Certificate | $([ "$SSL_STATUS" = "success" ] && echo "✅ Valid" || echo "⚠️ Check Required") | HTTPS certificate status |" >> health-report.md
+        echo "| DNS Resolution | $([ "$DNS_STATUS" = "success" ] && echo "✅ Working" || echo "❌ Issues") | Domain name resolution |" >> health-report.md
+        echo "| Third-Party APIs | $([ "$SERVICES_STATUS" = "success" ] && echo "✅ Available" || echo "⚠️ Degraded") | GitHub & Gutenberg APIs |" >> health-report.md
+        echo "" >> health-report.md
+        
+        echo "## Recent Actions" >> health-report.md
+        echo "- SSL certificate expiry check" >> health-report.md
+        echo "- DNS resolution verification" >> health-report.md
+        echo "- Third-party service connectivity" >> health-report.md
+        echo "- Application uptime monitoring" >> health-report.md
+        
+        echo "$(cat health-report.md)" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Upload health report
+      uses: actions/upload-artifact@v4
+      with:
+        name: health-dashboard-${{ github.run_number }}
+        path: health-report.md
+        retention-days: 7

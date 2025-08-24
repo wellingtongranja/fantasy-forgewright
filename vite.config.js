@@ -1,8 +1,14 @@
-import { defineConfig } from "vite"
+import { defineConfig, loadEnv } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
-export default defineConfig({
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const isProduction = mode === 'production'
+  const isDevelopment = mode === 'development'
+  
+  return {
   publicDir: 'public',
+  base: env.VITE_BASE_PATH || '/',
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
@@ -32,26 +38,31 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        cleanupOutdatedCaches: true,
+        skipWaiting: isProduction,
+        clientsClaim: isProduction,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.github\.com\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "github-api",
+              networkTimeoutSeconds: 10,
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60
+                maxEntries: 100,
+                maxAgeSeconds: 24 * 60 * 60
               }
             }
           },
           {
             urlPattern: /^https:\/\/gutendex\.com\/.*/i,
-            handler: "CacheFirst",
+            handler: "CacheFirst", 
             options: {
               cacheName: "gutenberg-api",
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7
+                maxEntries: 200,
+                maxAgeSeconds: 7 * 24 * 60 * 60
               }
             }
           }
@@ -60,31 +71,125 @@ export default defineConfig({
     })
   ],
   build: {
-    target: "es2018",
-    minify: "terser",
+    target: "es2020",
+    minify: isProduction ? "esbuild" : false,
+    sourcemap: isDevelopment,
+    cssMinify: isProduction,
     rollupOptions: {
       output: {
         manualChunks: {
-          codemirror: ["@codemirror/state", "@codemirror/view", "@codemirror/commands", "@codemirror/lang-markdown"]
+          'vendor-codemirror': [
+            "@codemirror/state", 
+            "@codemirror/view", 
+            "@codemirror/commands", 
+            "@codemirror/lang-markdown",
+            "@codemirror/search",
+            "@codemirror/autocomplete",
+            "@codemirror/language"
+          ],
+          'vendor-ui': [
+            "@codemirror/theme-one-dark",
+            "@lezer/highlight"
+          ],
+          'vendor-utils': [
+            "dompurify",
+            "lunr"
+          ],
+          'vendor-export': [
+            "html2canvas",
+            "jspdf"
+          ]
+        },
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId
+          if (facadeModuleId) {
+            const name = facadeModuleId.split('/').pop().replace(/\.[^.]+$/, '')
+            return `assets/${name}-[hash].js`
+          }
+          return 'assets/[name]-[hash].js'
+        },
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name.split('.')
+          const ext = info[info.length - 1]
+          if (/\.(png|jpe?g|gif|svg|ico|webp)$/i.test(assetInfo.name)) {
+            return `assets/img/[name]-[hash].${ext}`
+          } else if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name)) {
+            return `assets/fonts/[name]-[hash].${ext}`
+          } else if (ext === 'css') {
+            return `assets/css/[name]-[hash].${ext}`
+          }
+          return `assets/[name]-[hash].${ext}`
         }
-      }
+      },
+      external: isProduction ? [] : []
     },
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
+    reportCompressedSize: !isProduction,
+    chunkSizeWarningLimit: 1000,
+    ...(isProduction && {
+      minify: 'esbuild',
+      target: 'es2020',
+      cssMinify: 'esbuild'
+    })
   },
   server: {
     port: 3000,
-    open: true,
+    host: true,
+    open: isDevelopment,
+    cors: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        ws: true
+      }
+    },
+    ...(isDevelopment && {
+      hmr: {
+        overlay: true
+      },
+      watch: {
+        usePolling: process.env.VITE_USE_POLLING === 'true'
+      }
+    })
+  },
+  
+  optimizeDeps: {
+    include: [
+      '@codemirror/state',
+      '@codemirror/view', 
+      '@codemirror/commands',
+      '@codemirror/lang-markdown',
+      '@codemirror/search',
+      '@codemirror/autocomplete',
+      '@codemirror/language',
+      'dompurify',
+      'lunr'
+    ],
+    exclude: ['@vite/client', '@vite/env']
+  },
+  
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.1'),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __DEV__: isDevelopment,
+    __PROD__: isProduction,
+    __ENABLE_DEVTOOLS__: isDevelopment || env.VITE_ENABLE_DEVTOOLS === 'true'
+  },
+  
+  css: {
+    devSourcemap: isDevelopment,
+    preprocessorOptions: {
+      css: {
+        charset: false
       }
     }
+  },
+  
+  preview: {
+    port: 4173,
+    host: true,
+    cors: true
+  }
   }
 })

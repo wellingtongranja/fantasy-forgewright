@@ -1,0 +1,196 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2 AM
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript
+        queries: security-extended,security-and-quality
+    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:javascript"
+
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high --fail-on=upgradable
+        command: test
+    
+    - name: Run Snyk to check Docker image vulnerabilities
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        image: node:18-alpine
+        args: --severity-threshold=high
+      continue-on-error: true
+    
+    - name: Upload Snyk results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: snyk.sarif
+      if: always()
+
+  license-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check for license compliance
+      run: |
+        npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;CC0-1.0' --production --excludePrivatePackages
+      continue-on-error: true
+    
+    - name: Generate license report
+      run: |
+        npx license-checker --production --csv --out licenses.csv
+        echo "## License Report" >> $GITHUB_STEP_SUMMARY
+        echo "| Package | License | Repository |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|---------|------------|" >> $GITHUB_STEP_SUMMARY
+        npx license-checker --production --json | jq -r 'to_entries[] | "| \(.key) | \(.value.licenses) | \(.value.repository // "N/A") |"' >> $GITHUB_STEP_SUMMARY
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Run TruffleHog OSS
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+
+  dast:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Start preview server
+      run: |
+        npm run preview &
+        sleep 10
+        echo "Server started on http://localhost:4173"
+    
+    - name: ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.12.0
+      with:
+        target: 'http://localhost:4173'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a -d -T 5 -m 2'
+        allow_issue_writing: false
+    
+    - name: ZAP Full Scan
+      uses: zaproxy/action-full-scan@v0.10.0
+      with:
+        target: 'https://forgewright.io'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a -d -T 60 -m 10'
+        allow_issue_writing: false
+      if: github.event_name == 'workflow_dispatch'
+      continue-on-error: true
+
+  notify-security:
+    needs: [sast, dependency-scan, license-scan, secrets-scan]
+    runs-on: ubuntu-latest
+    if: always() && (failure() || contains(needs.*.result, 'failure'))
+    steps:
+    - name: Notify security issues
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#security'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            username: 'Security Scanner',
+            icon_emoji: ':warning:',
+            attachments: [{
+              color: 'danger',
+              title: '🚨 Security Issues Detected',
+              fields: [{
+                title: 'Repository',
+                value: '${{ github.repository }}',
+                short: true
+              }, {
+                title: 'Branch',
+                value: '${{ github.ref_name }}',
+                short: true
+              }, {
+                title: 'Scan Types',
+                value: 'SAST, Dependency, License, Secrets',
+                short: true
+              }, {
+                title: 'Action Required',
+                value: 'Review security findings in GitHub Security tab',
+                short: false
+              }]
+            }]
+          }
+      if: env.SLACK_WEBHOOK != ''
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
