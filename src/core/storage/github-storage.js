@@ -544,7 +544,7 @@ export class GitHubStorage {
           `/repos/${username}/fantasy-editor`
         )
         if (checkResponse.ok) {
-          console.log('Repository fantasy-editor already exists, configuring...')
+          // Repository already exists, configure silently
           this.updateConfig({
             owner: username,
             repo: 'fantasy-editor',
@@ -555,14 +555,13 @@ export class GitHubStorage {
           try {
             await this.ensureDocumentsDirectory()
           } catch (error) {
-            console.log('Could not initialize documents directory, but repository is configured')
+            // Silently handle - directory will be created when first document is saved
           }
 
           return true
         }
       } catch (error) {
-        // Repository doesn't exist, continue with creation
-        console.log('Repository does not exist, creating...')
+        // Repository doesn't exist, continue with creation (normal flow)
       }
 
       const repoData = {
@@ -585,7 +584,7 @@ export class GitHubStorage {
 
       if (response.ok) {
         const repo = await response.json()
-        console.log('Default repository created:', repo.full_name)
+        // Repository created successfully
 
         // Configure Fantasy Editor to use this repository
         this.updateConfig({
@@ -608,7 +607,7 @@ export class GitHubStorage {
           errorData.errors &&
           errorData.errors.some((err) => err.message && err.message.includes('already exists'))
         ) {
-          console.log('Repository fantasy-editor already exists, configuring...')
+          // Repository already exists, configure silently
           this.updateConfig({
             owner: username,
             repo: 'fantasy-editor',
@@ -619,7 +618,7 @@ export class GitHubStorage {
           try {
             await this.ensureDocumentsDirectory()
           } catch (error) {
-            console.log('Could not initialize documents directory, but repository is configured')
+            // Silently handle - directory will be created when first document is saved
           }
 
           return true
@@ -653,7 +652,7 @@ export class GitHubStorage {
       )
 
       if (response.ok) {
-        console.log('Documents directory already exists')
+        // Documents directory already exists
         return
       }
     } catch (error) {
@@ -694,7 +693,7 @@ Created: ${new Date().toISOString()}
         'Initialize Fantasy Editor documents directory',
         null // No existing SHA for new file
       )
-      console.log('Documents directory created successfully')
+      // Documents directory created successfully
     } catch (error) {
       console.error('Failed to create documents directory:', error)
       throw error

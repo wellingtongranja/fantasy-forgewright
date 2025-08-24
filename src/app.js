@@ -233,30 +233,25 @@ class FantasyEditorApp {
         return
       }
 
-      this.showNotification('Setting up your Fantasy Editor repository...', 'info')
-
+      // Silently attempt repository setup without showing "setting up" message
       const success = await this.githubStorage.createDefaultRepository(user.login)
 
       if (success) {
+        // Only show success notification when everything is working
         this.showNotification(
-          `Repository "${user.login}/fantasy-editor" configured! Use :ghp to push documents.`,
+          `Repository "${user.login}/fantasy-editor" ready! Use :gsy to sync documents.`,
           'success'
         )
         console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
         // Update UI to reflect new repository configuration
         this.updateGitHubUI()
       } else {
-        this.showNotification(
-          'Repository setup failed, but you can configure manually with :ghc',
-          'warning'
-        )
+        // Only log to console, don't show warning notification for setup issues
+        console.log('Repository auto-setup skipped - can be configured manually with :gcf')
       }
     } catch (error) {
-      console.error('Failed to setup default repository:', error)
-      this.showNotification(
-        'Repository setup failed, but you can configure manually with :ghc',
-        'warning'
-      )
+      console.error('Repository auto-setup failed:', error)
+      // No warning notification - users can configure manually if needed
     }
   }
 
@@ -290,7 +285,7 @@ class FantasyEditorApp {
       this.initializeGitHubUI()
     } catch (error) {
       console.error('❌ Failed to initialize GitHub integration:', error)
-      this.showNotification('GitHub integration failed to initialize', 'warning')
+      // Don't show warning notification - GitHub is optional functionality
     }
   }
 
@@ -339,7 +334,7 @@ class FantasyEditorApp {
   async handleGitHubLogin() {
     try {
       await this.githubAuth.login()
-      this.showNotification('Redirecting to GitHub for authorization...', 'info')
+      // No notification needed - redirect is immediate
     } catch (error) {
       console.error('GitHub login failed:', error)
       this.showNotification(`GitHub login failed: ${error.message}`, 'error')
