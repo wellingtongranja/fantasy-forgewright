@@ -13,7 +13,7 @@ export class OutlineTab {
     this.filteredOutline = []
     this.currentDocument = null
     this.selectedItemId = null
-    
+
     this.init()
   }
 
@@ -22,7 +22,7 @@ export class OutlineTab {
     this.container.setAttribute('tabindex', '0')
     this.container.setAttribute('role', 'tree')
     this.container.setAttribute('aria-label', 'Document outline')
-    
+
     this.render()
     this.attachEventListeners()
   }
@@ -49,26 +49,26 @@ export class OutlineTab {
       this.showEmpty()
       return
     }
-    
+
     try {
       this.currentDocument = document
       const content = document.content || ''
-      
+
       // Parse outline from content
       this.outline = OutlineParser.parse(content)
       this.filteredOutline = this.outline // Keep in sync
-      
+
       if (this.outline.length === 0) {
         this.showNoHeaders()
         return
       }
-      
+
       this.renderOutline()
-      
+
       // Clear selection if selected item no longer exists
       if (this.selectedItemId) {
         const flattened = OutlineParser.flatten(this.outline)
-        if (!flattened.find(item => item.id === this.selectedItemId)) {
+        if (!flattened.find((item) => item.id === this.selectedItemId)) {
           this.selectedItemId = null
         }
       }
@@ -77,7 +77,7 @@ export class OutlineTab {
       this.outline = []
       this.filteredOutline = []
       this.showEmpty()
-      
+
       if (this.app?.showNotification) {
         this.app.showNotification('Failed to parse outline', 'error')
       }
@@ -92,7 +92,7 @@ export class OutlineTab {
         <p>Open a document to see its structure</p>
       </div>
     `
-    
+
     // Update header count and title
     this.updateHeaderCount(0)
     this.updateTitle('No Document')
@@ -113,7 +113,7 @@ export class OutlineTab {
         <p>Add headers using # in your markdown</p>
       </div>
     `
-    
+
     // Update header count and document title
     this.updateHeaderCount(0)
     this.updateTitle(this.currentDocument ? this.currentDocument.title : 'Document Outline')
@@ -122,11 +122,11 @@ export class OutlineTab {
   renderOutline() {
     const content = this.container.querySelector('.outline-content')
     const stats = OutlineParser.getStatistics(this.outline)
-    
+
     // Update header count and document title
     this.updateHeaderCount(stats.total)
     this.updateTitle(this.currentDocument ? this.currentDocument.title : 'Document Outline')
-    
+
     // Handle empty outline case for tests
     if (this.outline.length === 0) {
       const emptyHtml = '<div class="outline-empty">No headings found</div>'
@@ -135,32 +135,32 @@ export class OutlineTab {
       }
       return emptyHtml
     }
-    
+
     // Generate HTML
     const html = `
       <div class="outline-tree" role="tree">
         ${this.renderOutlineItems(this.outline, 0)}
       </div>
     `
-    
+
     // Render to DOM
     if (content) {
       content.innerHTML = html
     }
-    
+
     // Return HTML for tests
     return html
   }
 
   renderOutlineItems(items, depth = 0) {
     if (!items || items.length === 0) return ''
-    
+
     let html = ''
-    
+
     for (const item of items) {
       const hasChildren = item.children && item.children.length > 0
       const isSelected = item.id === this.selectedItemId
-      
+
       html += `
         <div class="outline-item level-${item.level} ${isSelected ? 'selected' : ''}" 
              data-item-id="${item.id}"
@@ -176,15 +176,19 @@ export class OutlineTab {
             <span class="outline-text">${this.escapeHtml(item.text)}</span>
             <span class="outline-line">L${item.line}</span>
           </div>
-          ${hasChildren ? `
+          ${
+            hasChildren
+              ? `
             <div class="outline-children">
               ${this.renderOutlineItems(item.children, depth + 1)}
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       `
     }
-    
+
     return html
   }
 
@@ -192,7 +196,7 @@ export class OutlineTab {
     // Click on outline item
     this.container.addEventListener('click', (e) => {
       const item = e.target.closest('.outline-item')
-      
+
       if (item) {
         // Navigate to header
         const line = parseInt(item.dataset.line)
@@ -200,12 +204,11 @@ export class OutlineTab {
         this.selectItem(item.dataset.itemId)
       }
     })
-    
-    
+
     // Keyboard navigation
     this.container.addEventListener('keydown', (e) => {
       const current = this.container.querySelector('.outline-item.selected')
-      
+
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault()
         this.navigateItems(e.key === 'ArrowDown' ? 1 : -1)
@@ -235,9 +238,9 @@ export class OutlineTab {
   navigateItems(direction) {
     const items = Array.from(this.container.querySelectorAll('.outline-item'))
     if (items.length === 0) return
-    
-    const currentIndex = items.findIndex(item => item.classList.contains('selected'))
-    
+
+    const currentIndex = items.findIndex((item) => item.classList.contains('selected'))
+
     let newIndex
     if (currentIndex === -1) {
       newIndex = direction > 0 ? 0 : items.length - 1
@@ -246,7 +249,7 @@ export class OutlineTab {
       if (newIndex < 0) newIndex = items.length - 1
       if (newIndex >= items.length) newIndex = 0
     }
-    
+
     const newItem = items[newIndex]
     this.selectItem(newItem.dataset.itemId)
     newItem.scrollIntoView({ block: 'nearest' })
@@ -254,10 +257,10 @@ export class OutlineTab {
 
   selectItem(itemId) {
     this.selectedItemId = itemId
-    
-    this.container.querySelectorAll('.outline-item').forEach(item => {
+
+    this.container.querySelectorAll('.outline-item').forEach((item) => {
       const isSelected = item.dataset?.itemId === itemId
-      
+
       // Handle both real DOM and mock elements
       if (item.classList && typeof item.classList.toggle === 'function') {
         item.classList.toggle('selected', isSelected)
@@ -269,7 +272,7 @@ export class OutlineTab {
           item.classList.remove?.('selected')
         }
       }
-      
+
       if (typeof item.setAttribute === 'function') {
         item.setAttribute('aria-selected', isSelected)
       }
@@ -278,17 +281,17 @@ export class OutlineTab {
 
   navigateToLine(lineNumber) {
     if (!this.app.editor || !this.app.editor.view) return
-    
+
     const content = this.app.editor.getContent()
     const position = OutlineParser.getPositionFromLine(content, lineNumber)
-    
+
     // Move cursor to the line
     const view = this.app.editor.view
     view.dispatch({
       selection: { anchor: position, head: position },
       scrollIntoView: true
     })
-    
+
     // Focus editor
     view.focus()
   }
@@ -302,26 +305,26 @@ export class OutlineTab {
 
   saveExpandedState(itemId, isExpanded) {
     if (!this.currentDocument) return
-    
+
     const key = `outline-expanded-${this.currentDocument.id}`
     const state = JSON.parse(localStorage.getItem(key) || '{}')
-    
+
     if (isExpanded) {
       state[itemId] = true
     } else {
       delete state[itemId]
     }
-    
+
     localStorage.setItem(key, JSON.stringify(state))
   }
 
   restoreExpandedState() {
     if (!this.currentDocument) return
-    
+
     const key = `outline-expanded-${this.currentDocument.id}`
     const state = JSON.parse(localStorage.getItem(key) || '{}')
-    
-    Object.keys(state).forEach(itemId => {
+
+    Object.keys(state).forEach((itemId) => {
       const item = this.container.querySelector(`[data-item-id="${itemId}"]`)
       if (item && state[itemId]) {
         this.expandItem(item)
@@ -345,7 +348,7 @@ export class OutlineTab {
     if (this.app?.currentDocument) {
       this.updateOutline(this.app.currentDocument)
     }
-    
+
     // Focus first item for accessibility
     const firstItem = this.container.querySelector('.outline-item')
     if (firstItem && typeof firstItem.focus === 'function') {
@@ -366,12 +369,12 @@ export class OutlineTab {
   // Search within outline
   searchOutline(query) {
     if (!query || this.outline.length === 0) return []
-    
+
     return OutlineParser.search(this.outline, query)
   }
-  
+
   // Add missing methods for test compatibility
-  
+
   // Handle item click for navigation
   handleItemClick(event) {
     try {
@@ -379,14 +382,17 @@ export class OutlineTab {
       const itemElement = target?.closest ? target.closest('.outline-item') : target
       const itemId = target?.dataset?.itemId || itemElement?.dataset?.itemId
       const line = parseInt(target?.dataset?.line || itemElement?.dataset?.line)
-      
+
       if (itemId) {
         this.selectedItemId = itemId
         this.selectItem(itemId)
       }
-      
+
       if (line && !isNaN(line) && this.app?.editor?.view) {
-        const position = OutlineParser.getPositionFromLine(this.currentDocument?.content || '', line)
+        const position = OutlineParser.getPositionFromLine(
+          this.currentDocument?.content || '',
+          line
+        )
         this.app.editor.view.dispatch({
           selection: { anchor: position, head: position },
           scrollIntoView: true
@@ -400,7 +406,7 @@ export class OutlineTab {
       }
     }
   }
-  
+
   // Filter outline by search query
   filterOutline(query) {
     if (!query) {
@@ -411,11 +417,11 @@ export class OutlineTab {
     }
     this.renderOutline()
   }
-  
+
   // Handle keyboard navigation
   handleKeyboardNavigation(event) {
     event.preventDefault()
-    
+
     if (event.key === 'ArrowDown') {
       this.navigateDown()
     } else if (event.key === 'ArrowUp') {
@@ -427,39 +433,39 @@ export class OutlineTab {
       }
     }
   }
-  
+
   // Navigate down through outline items
   navigateDown() {
     const flattened = OutlineParser.flatten(this.outline)
     if (flattened.length === 0) return
-    
-    const currentIndex = flattened.findIndex(item => item.id === this.selectedItemId)
+
+    const currentIndex = flattened.findIndex((item) => item.id === this.selectedItemId)
     let nextIndex = currentIndex + 1
-    
+
     if (nextIndex >= flattened.length) {
       nextIndex = 0 // Wrap to first
     }
-    
+
     this.selectedItemId = flattened[nextIndex].id
     this.selectItem(this.selectedItemId)
   }
-  
+
   // Navigate up through outline items
   navigateUp() {
     const flattened = OutlineParser.flatten(this.outline)
     if (flattened.length === 0) return
-    
-    const currentIndex = flattened.findIndex(item => item.id === this.selectedItemId)
+
+    const currentIndex = flattened.findIndex((item) => item.id === this.selectedItemId)
     let prevIndex = currentIndex - 1
-    
+
     if (prevIndex < 0) {
       prevIndex = flattened.length - 1 // Wrap to last
     }
-    
+
     this.selectedItemId = flattened[prevIndex].id
     this.selectItem(this.selectedItemId)
   }
-  
+
   // Get outline statistics
   getOutlineStats() {
     if (!this.outline || this.outline.length === 0) {
@@ -468,7 +474,7 @@ export class OutlineTab {
         byLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
       }
     }
-    
+
     const stats = OutlineParser.getStatistics(this.outline)
     return {
       totalHeadings: stats.total,
@@ -483,7 +489,7 @@ export class OutlineTab {
       titleElement.textContent = title || 'Document Outline'
     }
   }
-  
+
   // Update header count
   updateHeaderCount(count) {
     const countElement = this.container.querySelector('.outline-count')
@@ -495,7 +501,7 @@ export class OutlineTab {
   // Generate table of contents
   generateTOC() {
     if (this.outline.length === 0) return ''
-    
+
     return OutlineParser.generateTOC(this.outline)
   }
 

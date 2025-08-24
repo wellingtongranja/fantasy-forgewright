@@ -29,13 +29,13 @@ export class DevHelpers {
       const localStorageKeys = Object.keys(localStorage)
       const preserveKeys = [] // Add keys here if you want to preserve any
       console.log(`📦 Clearing ${localStorageKeys.length} localStorage items:`, localStorageKeys)
-      
-      localStorageKeys.forEach(key => {
+
+      localStorageKeys.forEach((key) => {
         if (!preserveKeys.includes(key)) {
           localStorage.removeItem(key)
         }
       })
-      
+
       if (preserveKeys.length > 0) {
         console.log(`🔒 Preserved localStorage keys:`, preserveKeys)
       }
@@ -378,8 +378,15 @@ export class DevHelpers {
 
       // List all system documents
       console.log('5. Available system documents:')
-      const systemDocs = ['help', 'license-agpl', 'license-commercial', 'eula', 'privacy', 'release-notes']
-      systemDocs.forEach(id => {
+      const systemDocs = [
+        'help',
+        'license-agpl',
+        'license-commercial',
+        'eula',
+        'privacy',
+        'release-notes'
+      ]
+      systemDocs.forEach((id) => {
         console.log(`  - ${id}`)
       })
 
@@ -388,7 +395,12 @@ export class DevHelpers {
       return {
         success: true,
         message: 'Readonly features test completed',
-        tests: ['regular document', 'readonly conversion', 'readonly protection', 'system documents']
+        tests: [
+          'regular document',
+          'readonly conversion',
+          'readonly protection',
+          'system documents'
+        ]
       }
     } catch (error) {
       console.error('❌ Readonly features test failed:', error)

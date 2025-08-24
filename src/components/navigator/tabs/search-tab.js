@@ -12,7 +12,7 @@ export class SearchTab {
     this.searchAbortController = null
     this.currentQuery = ''
     this.selectedResultIndex = -1
-    
+
     this.init()
   }
 
@@ -20,7 +20,7 @@ export class SearchTab {
     this.container.className = 'search-tab'
     this.container.setAttribute('role', 'search')
     this.container.setAttribute('aria-label', 'Search documents')
-    
+
     this.render()
     this.attachEventListeners()
   }
@@ -66,7 +66,7 @@ export class SearchTab {
     const searchInput = this.container.querySelector('.search-input')
     const searchButton = this.container.querySelector('.search-button')
     const stopButton = this.container.querySelector('.search-stop')
-    
+
     // Search on Enter or button click
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -81,15 +81,15 @@ export class SearchTab {
         }
       }
     })
-    
+
     searchButton.addEventListener('click', () => {
       this.performSearch(searchInput.value)
     })
-    
+
     stopButton.addEventListener('click', () => {
       this.stopSearch()
     })
-    
+
     // Result navigation
     this.container.addEventListener('click', (e) => {
       const resultItem = e.target.closest('.search-result-item')
@@ -99,11 +99,11 @@ export class SearchTab {
         this.navigateToResult(docId, line ? parseInt(line) : null)
       }
     })
-    
+
     // Keyboard navigation in results
     this.container.addEventListener('keydown', (e) => {
       if (e.target.classList.contains('search-input')) return
-      
+
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault()
         this.navigateResults(e.key === 'ArrowDown' ? 1 : -1)
@@ -123,57 +123,56 @@ export class SearchTab {
       this.showMessage('Please enter at least 2 characters to search')
       return
     }
-    
+
     if (this.isSearching) {
       this.stopSearch()
     }
-    
+
     this.currentQuery = query.trim()
     this.isSearching = true
     this.searchResults = []
     this.selectedResultIndex = -1
-    
+
     // Create abort controller for cancellable search
     this.searchAbortController = new AbortController()
-    
+
     // Update UI
     this.showProgress()
     this.toggleSearchButtons(true)
-    
+
     try {
       // Get all documents
       const documents = await this.app.storageManager.getAllDocuments()
       const totalDocs = documents.length
-      
+
       // Search through documents with progress
       for (let i = 0; i < documents.length; i++) {
         // Check if search was cancelled
         if (this.searchAbortController.signal.aborted) {
           break
         }
-        
+
         const doc = documents[i]
         const results = this.searchInDocument(doc, this.currentQuery)
-        
+
         if (results.length > 0) {
           this.searchResults.push({
             document: doc,
             matches: results
           })
         }
-        
+
         // Update progress
         this.updateProgress(i + 1, totalDocs)
-        
+
         // Allow UI to update
         if (i % 10 === 0) {
           await this.delay(10)
         }
       }
-      
+
       // Display results
       this.displayResults()
-      
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.error('Search failed:', error)
@@ -188,7 +187,7 @@ export class SearchTab {
 
   searchInDocument(doc, query) {
     const matches = []
-    
+
     // Search in title
     const titleMatches = this.findMatches(doc.title, query)
     if (titleMatches.length > 0) {
@@ -198,7 +197,7 @@ export class SearchTab {
         positions: titleMatches
       })
     }
-    
+
     // Search in content
     if (doc.content) {
       const lines = doc.content.split('\n')
@@ -214,7 +213,7 @@ export class SearchTab {
         }
       }
     }
-    
+
     // Search in tags
     if (doc.tags && doc.tags.length > 0) {
       const tagsText = doc.tags.join(', ')
@@ -227,7 +226,7 @@ export class SearchTab {
         })
       }
     }
-    
+
     return matches
   }
 
@@ -235,7 +234,7 @@ export class SearchTab {
     const matches = []
     const searchText = text.toLowerCase()
     const searchPattern = query.toLowerCase()
-    
+
     // Simple case-insensitive substring search
     let index = 0
     while ((index = searchText.indexOf(searchPattern, index)) !== -1) {
@@ -245,14 +244,13 @@ export class SearchTab {
       })
       index += searchPattern.length
     }
-    
+
     return matches
   }
 
-
   displayResults() {
     const content = this.container.querySelector('.search-content')
-    
+
     if (this.searchResults.length === 0) {
       content.innerHTML = `
         <div class="search-no-results">
@@ -263,18 +261,18 @@ export class SearchTab {
       `
       return
     }
-    
+
     // Sort results by relevance (title matches first, then by match count)
     this.searchResults.sort((a, b) => {
-      const aTitleMatch = a.matches.some(m => m.field === 'title')
-      const bTitleMatch = b.matches.some(m => m.field === 'title')
-      
+      const aTitleMatch = a.matches.some((m) => m.field === 'title')
+      const bTitleMatch = b.matches.some((m) => m.field === 'title')
+
       if (aTitleMatch && !bTitleMatch) return -1
       if (!aTitleMatch && bTitleMatch) return 1
-      
+
       return b.matches.length - a.matches.length
     })
-    
+
     let html = `
       <div class="search-results-header">
         <span class="results-count">Found ${this.searchResults.length} document${this.searchResults.length === 1 ? '' : 's'}</span>
@@ -282,14 +280,14 @@ export class SearchTab {
       </div>
       <div class="search-results-list" role="listbox">
     `
-    
+
     for (const result of this.searchResults) {
       html += this.renderSearchResult(result)
     }
-    
+
     html += '</div>'
     content.innerHTML = html
-    
+
     // Add clear button handler
     content.querySelector('.clear-results').addEventListener('click', () => {
       this.clearResults()
@@ -299,7 +297,7 @@ export class SearchTab {
   renderSearchResult(result) {
     const { document: doc, matches } = result
     const timeAgo = this.formatTimeAgo(doc.updatedAt || doc.metadata?.modified)
-    
+
     let html = `
       <div class="search-result-item" 
            data-doc-id="${doc.id}"
@@ -310,9 +308,9 @@ export class SearchTab {
           <span class="result-meta">${timeAgo}</span>
         </div>
     `
-    
+
     // Show match snippets
-    const snippets = matches.slice(0, 3)  // Show max 3 snippets
+    const snippets = matches.slice(0, 3) // Show max 3 snippets
     for (const match of snippets) {
       if (match.field === 'content') {
         html += `
@@ -330,11 +328,11 @@ export class SearchTab {
         `
       }
     }
-    
+
     if (matches.length > 3) {
       html += `<div class="result-more">...and ${matches.length - 3} more matches</div>`
     }
-    
+
     html += '</div>'
     return html
   }
@@ -347,7 +345,7 @@ export class SearchTab {
 
   truncateText(text, maxLength) {
     if (text.length <= maxLength) return text
-    
+
     // Try to find the query in the text and show context around it
     const queryIndex = text.toLowerCase().indexOf(this.currentQuery.toLowerCase())
     if (queryIndex !== -1) {
@@ -356,24 +354,24 @@ export class SearchTab {
       const truncated = text.substring(start, end)
       return (start > 0 ? '...' : '') + truncated + (end < text.length ? '...' : '')
     }
-    
+
     return text.substring(0, maxLength) + '...'
   }
 
   navigateResults(direction) {
     const results = this.container.querySelectorAll('.search-result-item')
     if (results.length === 0) return
-    
+
     const newIndex = this.selectedResultIndex + direction
     if (newIndex < 0 || newIndex >= results.length) return
-    
+
     this.selectedResultIndex = newIndex
-    
+
     // Update selection
     results.forEach((item, index) => {
       item.classList.toggle('selected', index === newIndex)
     })
-    
+
     results[newIndex].scrollIntoView({ block: 'nearest' })
   }
 
@@ -383,13 +381,13 @@ export class SearchTab {
       if (doc) {
         // Load document
         this.app.loadDocument(doc)
-        
+
         // Navigate to specific line if provided
         if (lineNumber && this.app.editor && this.app.editor.view) {
           setTimeout(() => {
             const content = this.app.editor.getContent()
             const position = this.getPositionFromLine(content, lineNumber)
-            
+
             const view = this.app.editor.view
             view.dispatch({
               selection: { anchor: position, head: position },
@@ -407,11 +405,11 @@ export class SearchTab {
   getPositionFromLine(content, lineNumber) {
     const lines = content.split('\n')
     let position = 0
-    
+
     for (let i = 0; i < Math.min(lineNumber - 1, lines.length); i++) {
       position += lines[i].length + 1
     }
-    
+
     return position
   }
 
@@ -428,7 +426,7 @@ export class SearchTab {
     this.searchResults = []
     this.currentQuery = ''
     this.selectedResultIndex = -1
-    
+
     const content = this.container.querySelector('.search-content')
     content.innerHTML = `
       <div class="search-welcome">
@@ -436,7 +434,7 @@ export class SearchTab {
         <small>Enter keywords to find in titles, content, and metadata</small>
       </div>
     `
-    
+
     const searchInput = this.container.querySelector('.search-input')
     searchInput.value = ''
     searchInput.focus()
@@ -445,7 +443,7 @@ export class SearchTab {
   showProgress() {
     const progress = this.container.querySelector('.search-progress')
     progress.style.display = 'block'
-    
+
     const fill = progress.querySelector('.progress-fill')
     fill.style.width = '0%'
   }
@@ -459,7 +457,7 @@ export class SearchTab {
     const progress = this.container.querySelector('.search-progress')
     const fill = progress.querySelector('.progress-fill')
     const count = progress.querySelector('.progress-count')
-    
+
     const percentage = (current / total) * 100
     fill.style.width = `${percentage}%`
     count.textContent = `${current} / ${total} documents`
@@ -468,7 +466,7 @@ export class SearchTab {
   toggleSearchButtons(isSearching) {
     const searchButton = this.container.querySelector('.search-button')
     const stopButton = this.container.querySelector('.search-stop')
-    
+
     searchButton.style.display = isSearching ? 'none' : 'block'
     stopButton.style.display = isSearching ? 'block' : 'none'
   }
@@ -516,21 +514,21 @@ export class SearchTab {
 
   // Utility methods
   delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   formatTimeAgo(dateString) {
     if (!dateString) return ''
-    
+
     const date = new Date(dateString)
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    
+
     if (diffDays === 0) return 'Today'
     if (diffDays === 1) return 'Yesterday'
     if (diffDays < 7) return `${diffDays} days ago`
-    
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric'

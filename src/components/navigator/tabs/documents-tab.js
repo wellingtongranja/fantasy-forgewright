@@ -11,11 +11,11 @@ export class DocumentsTab {
     this.recentDocuments = []
     this.selectedDocumentId = null
     this.filter = ''
-    
+
     // Restore recent section height from localStorage
     const savedHeight = localStorage.getItem('recent-section-height')
     this.recentSectionHeight = savedHeight ? parseInt(savedHeight) : 120
-    
+
     this.init()
   }
 
@@ -24,7 +24,7 @@ export class DocumentsTab {
     this.container.setAttribute('tabindex', '0')
     this.container.setAttribute('role', 'listbox')
     this.container.setAttribute('aria-label', 'Document list')
-    
+
     this.render()
     this.attachEventListeners()
     this.loadDocuments()
@@ -64,7 +64,7 @@ export class DocumentsTab {
   updateRecentDocuments() {
     // Get recent documents from localStorage
     let recentIds = JSON.parse(localStorage.getItem('recent-documents') || '[]')
-    
+
     // If no recent documents exist, initialize with most recently modified documents
     if (recentIds.length === 0 && this.documents.length > 0) {
       const sortedDocs = [...this.documents].sort((a, b) => {
@@ -72,22 +72,22 @@ export class DocumentsTab {
         const dateB = new Date(b.metadata?.modified || b.updatedAt || 0)
         return dateB - dateA // Most recent first
       })
-      
+
       // Take up to 3 most recently modified documents for recent, leave rest for previous
       const maxRecent = Math.min(3, this.documents.length)
-      recentIds = sortedDocs.slice(0, maxRecent).map(doc => doc.id)
+      recentIds = sortedDocs.slice(0, maxRecent).map((doc) => doc.id)
       localStorage.setItem('recent-documents', JSON.stringify(recentIds))
     }
-    
+
     this.recentDocuments = recentIds
-      .map(id => this.documents.find(doc => doc.id === id))
-      .filter(doc => doc !== undefined)
+      .map((id) => this.documents.find((doc) => doc.id === id))
+      .filter((doc) => doc !== undefined)
       .slice(0, 3) // Keep only 3 most recent
   }
 
   renderDocuments() {
     const content = this.container.querySelector('.documents-content')
-    
+
     if (this.documents.length === 0) {
       content.innerHTML = `
         <div class="empty-state">
@@ -98,38 +98,38 @@ export class DocumentsTab {
       `
       return
     }
-    
+
     let html = '<div class="documents-list">'
     const renderedDocumentIds = new Set()
-    
+
     // Always show Recent section if there are recent documents
     if (this.recentDocuments.length > 0) {
       let recentToShow = this.recentDocuments
-      
+
       // Apply filter to recent documents if filtering
       if (this.filter) {
         recentToShow = this.filterDocuments(this.recentDocuments)
       }
-      
+
       if (recentToShow.length > 0) {
         html += this.renderRecentSection(recentToShow)
         // Track rendered document IDs
-        recentToShow.forEach(doc => renderedDocumentIds.add(doc.id))
+        recentToShow.forEach((doc) => renderedDocumentIds.add(doc.id))
       }
     }
-    
+
     // Previous documents group - exclude already rendered recent documents
     const allDocuments = this.filter ? this.filterDocuments(this.documents) : this.documents
-    const filteredDocuments = allDocuments.filter(doc => !renderedDocumentIds.has(doc.id))
+    const filteredDocuments = allDocuments.filter((doc) => !renderedDocumentIds.has(doc.id))
     const groups = this.groupDocuments(filteredDocuments)
-    
+
     for (const [groupName, docs] of Object.entries(groups)) {
       html += this.renderGroup(groupName, docs)
     }
-    
+
     html += '</div>'
     content.innerHTML = html
-    
+
     // Separator removed - no listeners needed
   }
 
@@ -142,16 +142,16 @@ export class DocumentsTab {
         </div>
         <div class="group-items recent-items">
     `
-    
+
     for (const doc of recentToShow) {
       html += this.renderDocumentItem(doc, true)
     }
-    
+
     html += `
         </div>
       </div>
     `
-    
+
     return html
   }
 
@@ -164,16 +164,16 @@ export class DocumentsTab {
         </div>
         <div class="group-items">
     `
-    
+
     for (const doc of documents) {
       html += this.renderDocumentItem(doc)
     }
-    
+
     html += `
         </div>
       </div>
     `
-    
+
     return html
   }
 
@@ -181,7 +181,7 @@ export class DocumentsTab {
     const isSelected = doc.id === this.selectedDocumentId
     const syncStatus = this.getDocumentSyncStatus(doc)
     const timeAgo = this.formatTimeAgo(doc.updatedAt || doc.metadata?.modified)
-    
+
     return `
       <div class="document-item ${isSelected ? 'selected' : ''} ${isRecent ? 'recent-item' : ''}" 
            data-doc-id="${doc.id}"
@@ -191,23 +191,32 @@ export class DocumentsTab {
           <div class="document-title-row">
             <span class="document-title">${this.escapeHtml(doc.title)}</span>
             ${this.renderDocumentIndicators(doc)}
-            ${syncStatus.icon ? `
+            ${
+              syncStatus.icon
+                ? `
               <span class="document-sync-status ${syncStatus.class}" 
                     title="${syncStatus.tooltip}">
                 ${syncStatus.icon}
               </span>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
           <div class="document-meta">
             <span class="document-time">${timeAgo}</span>
-            ${doc.tags && doc.tags.length > 0 ? `
+            ${
+              doc.tags && doc.tags.length > 0
+                ? `
               <div class="document-tags">
-                ${doc.tags.slice(0, 3)
-                  .map(tag => `<span class="doc-tag">${this.escapeHtml(tag)}</span>`)
+                ${doc.tags
+                  .slice(0, 3)
+                  .map((tag) => `<span class="doc-tag">${this.escapeHtml(tag)}</span>`)
                   .join('')}
                 ${doc.tags.length > 3 ? `<span class="doc-tag-more">+${doc.tags.length - 3}</span>` : ''}
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         </div>
       </div>
@@ -220,7 +229,7 @@ export class DocumentsTab {
     const isAuthenticated = this.app.githubAuth?.isAuthenticated()
     const config = this.app.githubStorage?.getConfig()
     const isConfigured = config?.configured
-    
+
     if (!isAuthenticated || !isConfigured) {
       return {
         icon: '',
@@ -228,7 +237,7 @@ export class DocumentsTab {
         tooltip: 'Git repository not configured'
       }
     }
-    
+
     if (!hasGitHubMetadata) {
       return {
         icon: '🔴',
@@ -236,12 +245,14 @@ export class DocumentsTab {
         tooltip: 'Local only - never synced to Git repository'
       }
     }
-    
+
     const lastSynced = doc.lastSyncedAt ? new Date(doc.lastSyncedAt) : null
-    const lastModified = doc.metadata?.modified 
-      ? new Date(doc.metadata.modified) 
-      : doc.updatedAt ? new Date(doc.updatedAt) : null
-    
+    const lastModified = doc.metadata?.modified
+      ? new Date(doc.metadata.modified)
+      : doc.updatedAt
+        ? new Date(doc.updatedAt)
+        : null
+
     if (lastSynced && lastModified && lastSynced >= lastModified) {
       return {
         icon: '🟢',
@@ -249,7 +260,7 @@ export class DocumentsTab {
         tooltip: 'Synced with Git repository'
       }
     }
-    
+
     return {
       icon: '🟡',
       class: 'out-of-sync',
@@ -259,18 +270,19 @@ export class DocumentsTab {
 
   filterDocuments(documents) {
     if (!this.filter) return documents
-    
+
     const lowerFilter = this.filter.toLowerCase()
-    return documents.filter(doc => {
+    return documents.filter((doc) => {
       // Search in title
       if (doc.title.toLowerCase().includes(lowerFilter)) return true
-      
+
       // Search in tags
-      if (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(lowerFilter))) return true
-      
+      if (doc.tags && doc.tags.some((tag) => tag.toLowerCase().includes(lowerFilter))) return true
+
       // Search in content (first 200 chars)
-      if (doc.content && doc.content.substring(0, 200).toLowerCase().includes(lowerFilter)) return true
-      
+      if (doc.content && doc.content.substring(0, 200).toLowerCase().includes(lowerFilter))
+        return true
+
       return false
     })
   }
@@ -287,20 +299,20 @@ export class DocumentsTab {
   groupDocuments(documents) {
     // Simple grouping: just "PREVIOUS" for non-recent documents
     // Documents are already filtered at the caller level to exclude recent docs
-    
+
     if (documents.length === 0) {
       return {}
     }
-    
+
     // Sort documents by modification date (newest first)
     const sortedDocuments = [...documents].sort((a, b) => {
       const dateA = new Date(a.metadata?.modified || a.updatedAt || 0)
       const dateB = new Date(b.metadata?.modified || b.updatedAt || 0)
       return dateB - dateA
     })
-    
+
     return {
-      'Previous': sortedDocuments
+      Previous: sortedDocuments
     }
   }
 
@@ -313,7 +325,7 @@ export class DocumentsTab {
         this.selectDocument(docId)
       }
     })
-    
+
     // Keyboard navigation
     this.container.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -326,19 +338,19 @@ export class DocumentsTab {
         }
       }
     })
-    
+
     // Filter input
     this.container.addEventListener('input', (e) => {
       if (e.target.classList.contains('filter-input')) {
         this.filter = e.target.value
         this.renderDocuments()
-        
+
         // Show/hide clear button
         const clearBtn = this.container.querySelector('.filter-clear')
         clearBtn.style.display = this.filter ? 'block' : 'none'
       }
     })
-    
+
     // Clear filter
     this.container.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-clear')) {
@@ -348,17 +360,14 @@ export class DocumentsTab {
         this.renderDocuments()
       }
     })
-    
   }
 
   navigateDocuments(direction) {
     const items = this.container.querySelectorAll('.document-item')
     if (items.length === 0) return
-    
-    const currentIndex = Array.from(items).findIndex(item => 
-      item.classList.contains('selected')
-    )
-    
+
+    const currentIndex = Array.from(items).findIndex((item) => item.classList.contains('selected'))
+
     let newIndex
     if (currentIndex === -1) {
       newIndex = direction > 0 ? 0 : items.length - 1
@@ -367,27 +376,27 @@ export class DocumentsTab {
       if (newIndex < 0) newIndex = items.length - 1
       if (newIndex >= items.length) newIndex = 0
     }
-    
+
     // Update selection
-    items.forEach(item => item.classList.remove('selected'))
+    items.forEach((item) => item.classList.remove('selected'))
     items[newIndex].classList.add('selected')
     items[newIndex].scrollIntoView({ block: 'nearest' })
-    
+
     this.selectedDocumentId = items[newIndex].dataset.docId
   }
 
   async selectDocument(docId) {
     if (!docId) return
-    
+
     try {
       const document = await this.app.storageManager.getDocument(docId)
       if (document) {
         this.selectedDocumentId = docId
         this.updateSelection()
-        
+
         // Update recent documents
         this.addToRecent(docId)
-        
+
         // Load document in editor
         this.app.loadDocument(document)
       }
@@ -397,7 +406,7 @@ export class DocumentsTab {
   }
 
   updateSelection() {
-    this.container.querySelectorAll('.document-item').forEach(item => {
+    this.container.querySelectorAll('.document-item').forEach((item) => {
       const isSelected = item.dataset.docId === this.selectedDocumentId
       item.classList.toggle('selected', isSelected)
       item.setAttribute('aria-selected', isSelected)
@@ -406,18 +415,18 @@ export class DocumentsTab {
 
   addToRecent(docId) {
     let recentIds = JSON.parse(localStorage.getItem('recent-documents') || '[]')
-    
+
     // Remove if already exists
-    recentIds = recentIds.filter(id => id !== docId)
-    
+    recentIds = recentIds.filter((id) => id !== docId)
+
     // Add to beginning
     recentIds.unshift(docId)
-    
+
     // Keep only 6 most recent (show 3, keep 3 in history)
     recentIds = recentIds.slice(0, 6)
-    
+
     localStorage.setItem('recent-documents', JSON.stringify(recentIds))
-    
+
     // Update recent documents list
     this.updateRecentDocuments()
   }
@@ -443,30 +452,30 @@ export class DocumentsTab {
 
   addDocument(document) {
     this.documents.unshift(document)
-    
+
     // Add new document to recent documents
     this.addToRecent(document.id)
-    
+
     this.renderDocuments()
   }
 
   updateDocument(document) {
-    const index = this.documents.findIndex(doc => doc.id === document.id)
+    const index = this.documents.findIndex((doc) => doc.id === document.id)
     if (index !== -1) {
       this.documents[index] = document
-      
+
       // Update recent documents if this document is in the recent list
-      const recentIndex = this.recentDocuments.findIndex(doc => doc.id === document.id)
+      const recentIndex = this.recentDocuments.findIndex((doc) => doc.id === document.id)
       if (recentIndex !== -1) {
         this.recentDocuments[recentIndex] = document
       }
-      
+
       this.renderDocuments()
     }
   }
 
   removeDocument(docId) {
-    this.documents = this.documents.filter(doc => doc.id !== docId)
+    this.documents = this.documents.filter((doc) => doc.id !== docId)
     if (this.selectedDocumentId === docId) {
       this.selectedDocumentId = null
     }
@@ -492,21 +501,21 @@ export class DocumentsTab {
 
   formatTimeAgo(dateString) {
     if (!dateString) return 'No date'
-    
+
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return 'Invalid date'
-    
+
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMinutes = Math.floor(diffMs / (1000 * 60))
     const diffHours = Math.floor(diffMinutes / 60)
     const diffDays = Math.floor(diffHours / 24)
-    
+
     if (diffMinutes < 1) return 'Just now'
     if (diffMinutes < 60) return `${diffMinutes}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
-    
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -548,9 +557,9 @@ export class DocumentsTab {
 
       const diff = e.clientY - startY
       const newHeight = Math.max(60, Math.min(400, startHeight + diff))
-      
+
       this.recentSectionHeight = newHeight
-      
+
       // Update the section height
       const recentGroup = this.container.querySelector('.recent-group')
       const recentItems = this.container.querySelector('.recent-items')
@@ -565,7 +574,7 @@ export class DocumentsTab {
         isResizing = false
         document.body.style.cursor = ''
         document.body.style.userSelect = ''
-        
+
         // Save height preference
         localStorage.setItem('recent-section-height', this.recentSectionHeight)
       }
@@ -596,7 +605,7 @@ export class DocumentsTab {
         <button class="retry-btn">Retry</button>
       </div>
     `
-    
+
     content.querySelector('.retry-btn').addEventListener('click', () => {
       this.loadDocuments()
     })

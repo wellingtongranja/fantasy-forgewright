@@ -7,17 +7,17 @@ export class WidthManager {
   constructor(app = null) {
     this.app = app // Reference to app for theme reconfiguration
     this.widthPresets = {
-      65: '65ch',  // Optimal reading width
-      80: '80ch',  // Standard coding width
-      90: '90ch'   // Wide editing width
+      65: '65ch', // Optimal reading width
+      80: '80ch', // Standard coding width
+      90: '90ch' // Wide editing width
     }
-    
+
     this.zoomLevels = [0.85, 1.0, 1.15, 1.3] // Available zoom levels
-    
+
     // Load saved preferences or defaults
     this.currentWidth = this.loadWidth() || 65
     this.currentZoom = this.loadZoom() || 1.0
-    
+
     this.initialize()
   }
 
@@ -34,13 +34,15 @@ export class WidthManager {
    */
   setWidth(widthColumns) {
     if (!this.widthPresets[widthColumns]) {
-      throw new Error(`Invalid width: ${widthColumns}. Available: ${Object.keys(this.widthPresets).join(', ')}`)
+      throw new Error(
+        `Invalid width: ${widthColumns}. Available: ${Object.keys(this.widthPresets).join(', ')}`
+      )
     }
 
     this.currentWidth = widthColumns
     this.applyWidth(widthColumns)
     this.saveWidth(widthColumns)
-    
+
     return {
       success: true,
       message: `Editor width set to ${widthColumns}ch`,
@@ -54,11 +56,11 @@ export class WidthManager {
   setZoom(zoomLevel) {
     // Clamp zoom level to valid range
     const clampedZoom = Math.max(0.85, Math.min(1.3, zoomLevel))
-    
+
     this.currentZoom = clampedZoom
     this.applyZoom(clampedZoom)
     this.saveZoom(clampedZoom)
-    
+
     return {
       success: true,
       message: `Zoom level set to ${Math.round(clampedZoom * 100)}%`,
@@ -70,7 +72,7 @@ export class WidthManager {
    * Zoom in (increase font size)
    */
   zoomIn() {
-    const currentIndex = this.zoomLevels.findIndex(level => level >= this.currentZoom)
+    const currentIndex = this.zoomLevels.findIndex((level) => level >= this.currentZoom)
     const nextIndex = Math.min(currentIndex + 1, this.zoomLevels.length - 1)
     return this.setZoom(this.zoomLevels[nextIndex])
   }
@@ -79,7 +81,7 @@ export class WidthManager {
    * Zoom out (decrease font size)
    */
   zoomOut() {
-    const currentIndex = this.zoomLevels.findIndex(level => level >= this.currentZoom)
+    const currentIndex = this.zoomLevels.findIndex((level) => level >= this.currentZoom)
     const prevIndex = Math.max(currentIndex - 1, 0)
     return this.setZoom(this.zoomLevels[prevIndex])
   }
@@ -105,21 +107,23 @@ export class WidthManager {
   applyZoom(zoomLevel) {
     // Set the zoom level variable for CSS
     document.documentElement.style.setProperty('--editor-zoom-level', zoomLevel.toString())
-    
+
     // Calculate the actual font size for CodeMirror
     const baseFontSize = 16 // 1rem in pixels
     const zoomedFontSize = Math.round(baseFontSize * zoomLevel)
-    
+
     // Set CodeMirror specific font size
     document.documentElement.style.setProperty('--codemirror-font-size', `${zoomedFontSize}px`)
-    
+
     // Debug logging
     console.log('Zoom applied:', {
       zoomLevel,
       zoomedFontSize: `${zoomedFontSize}px`,
-      currentValue: getComputedStyle(document.documentElement).getPropertyValue('--codemirror-font-size')
+      currentValue: getComputedStyle(document.documentElement).getPropertyValue(
+        '--codemirror-font-size'
+      )
     })
-    
+
     // Trigger CodeMirror theme reconfiguration with fontSize if app is available
     if (this.app && this.app.editor && this.app.editor.reconfigureWithFontSize) {
       console.log('Reconfiguring CodeMirror with font size:', `${zoomedFontSize}px`)
@@ -128,7 +132,11 @@ export class WidthManager {
       console.log('Cannot reconfigure CodeMirror with font size:', {
         hasApp: !!this.app,
         hasEditor: !!(this.app && this.app.editor),
-        hasReconfigureWithFontSize: !!(this.app && this.app.editor && this.app.editor.reconfigureWithFontSize)
+        hasReconfigureWithFontSize: !!(
+          this.app &&
+          this.app.editor &&
+          this.app.editor.reconfigureWithFontSize
+        )
       })
     }
   }
@@ -157,7 +165,7 @@ export class WidthManager {
    * Get available width presets
    */
   getAvailableWidths() {
-    return Object.keys(this.widthPresets).map(key => ({
+    return Object.keys(this.widthPresets).map((key) => ({
       columns: parseInt(key),
       value: this.widthPresets[key],
       current: parseInt(key) === this.currentWidth
@@ -212,7 +220,7 @@ export class WidthManager {
       const saved = localStorage.getItem('editor-zoom-preference')
       if (saved) {
         const zoom = parseFloat(saved)
-        return (zoom >= 0.85 && zoom <= 1.3) ? zoom : null
+        return zoom >= 0.85 && zoom <= 1.3 ? zoom : null
       }
     } catch (error) {
       console.warn('Failed to load zoom preference:', error)
@@ -241,7 +249,7 @@ export class WidthManager {
     this.applyZoom(this.currentZoom)
     this.saveWidth(this.currentWidth)
     this.saveZoom(this.currentZoom)
-    
+
     return {
       success: true,
       message: 'Editor width and zoom reset to defaults (65ch, 100%)'
@@ -266,7 +274,10 @@ export class WidthManager {
     if (window.innerWidth < 768) {
       document.documentElement.style.setProperty('--editor-max-width', '100%')
     } else {
-      document.documentElement.style.setProperty('--editor-max-width', this.widthPresets[this.currentWidth])
+      document.documentElement.style.setProperty(
+        '--editor-max-width',
+        this.widthPresets[this.currentWidth]
+      )
     }
   }
 }

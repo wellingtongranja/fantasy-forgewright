@@ -163,7 +163,7 @@ export class StorageManager {
         document.content,
         document.tags
       )
-      
+
       // Set default properties for new documents
       processedDoc.readonly = document.readonly || false
       processedDoc.type = document.type || 'user'
@@ -198,9 +198,10 @@ export class StorageManager {
           processedDoc.tags = []
         }
       }
-      
+
       // Preserve readonly and type properties
-      processedDoc.readonly = document.readonly !== undefined ? document.readonly : (existingDoc?.readonly || false)
+      processedDoc.readonly =
+        document.readonly !== undefined ? document.readonly : existingDoc?.readonly || false
       processedDoc.type = document.type || existingDoc?.type || 'user'
       if (document.systemId || existingDoc?.systemId) {
         processedDoc.systemId = document.systemId || existingDoc.systemId
@@ -608,7 +609,7 @@ export class StorageManager {
     // Update readonly status
     document.readonly = readonly
     document.updatedAt = new Date().toISOString()
-    
+
     // Save directly to database, bypassing the saveDocument validation
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
@@ -645,7 +646,7 @@ export class StorageManager {
     await this.ensureDatabase()
 
     const documents = await this.getAllDocuments()
-    return documents.filter(doc => (doc.type || 'user') === type)
+    return documents.filter((doc) => (doc.type || 'user') === type)
   }
 
   /**
@@ -657,7 +658,7 @@ export class StorageManager {
     await this.ensureDatabase()
 
     const documents = await this.getAllDocuments()
-    return documents.find(doc => doc.type === 'system' && doc.systemId === systemId) || null
+    return documents.find((doc) => doc.type === 'system' && doc.systemId === systemId) || null
   }
 
   /**
@@ -668,7 +669,7 @@ export class StorageManager {
     await this.ensureDatabase()
 
     const documents = await this.getAllDocuments()
-    return documents.filter(doc => doc.readonly === true || doc.type === 'system')
+    return documents.filter((doc) => doc.readonly === true || doc.type === 'system')
   }
 
   /**
@@ -679,6 +680,6 @@ export class StorageManager {
     await this.ensureDatabase()
 
     const documents = await this.getAllDocuments()
-    return documents.filter(doc => (doc.type || 'user') === 'user' && doc.readonly !== true)
+    return documents.filter((doc) => (doc.type || 'user') === 'user' && doc.readonly !== true)
   }
 }

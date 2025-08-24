@@ -25,16 +25,16 @@ export class EditorExtensions {
       history(),
       markdown(),
       EditorView.lineWrapping,
-      
-      // Theme and visual enhancements  
+
+      // Theme and visual enhancements
       highlightActiveLine(),
       bracketMatching(),
       highlightSelectionMatches(),
-      
+
       // Writer-focused features
       autocompletion(),
       placeholder('Start writing your story...'),
-      
+
       // Document structure and navigation
       codeFolding({
         placeholderText: '...',
@@ -44,7 +44,7 @@ export class EditorExtensions {
         openText: '▼',
         closedText: '▶'
       }),
-      
+
       // Search functionality
       search({
         top: true,
@@ -52,7 +52,7 @@ export class EditorExtensions {
         literal: false,
         regexp: false
       }),
-      
+
       // Keyboard mappings
       keymap.of([
         ...defaultKeymap,
@@ -71,29 +71,29 @@ export class EditorExtensions {
           preventDefault: true
         },
         {
-          key: 'Alt-ArrowDown', 
+          key: 'Alt-ArrowDown',
           run: this.moveLineDown.bind(this),
           preventDefault: true
         }
       ]),
-      
+
       // Theme integration
       EditorView.theme(this.getEditorTheme()),
-      
+
       // Spell check integration
       ...(this.spellCheckEnabled ? this.getSpellCheckExtensions() : []),
-      
+
       // Line numbers with custom styling
       lineNumbers(),
-      
+
       // Writer-optimized settings
       EditorView.theme({
-        '&': { 
+        '&': {
           height: '100%',
           fontSize: 'var(--font-size-base)',
           fontFamily: 'var(--font-family-mono)'
         },
-        '.cm-scroller': { 
+        '.cm-scroller': {
           overflow: 'auto',
           fontFamily: 'inherit'
         },
@@ -145,7 +145,7 @@ export class EditorExtensions {
    */
   getEditorTheme() {
     const theme = this.themeManager?.getCurrentTheme() || 'light'
-    
+
     // Theme-specific overrides
     const themeOverrides = {
       light: {
@@ -197,7 +197,7 @@ export class EditorExtensions {
     const { main } = state.selection
     const line = state.doc.lineAt(main.head)
     const lineText = line.text
-    
+
     view.dispatch({
       changes: {
         from: line.to,
@@ -208,7 +208,7 @@ export class EditorExtensions {
         head: line.to + 1 + lineText.length
       }
     })
-    
+
     return true
   }
 
@@ -219,51 +219,46 @@ export class EditorExtensions {
     const { state } = view
     const { main } = state.selection
     const line = state.doc.lineAt(main.head)
-    
+
     if (line.number === 1) return false // Already at top
-    
+
     const prevLine = state.doc.line(line.number - 1)
     const lineText = line.text
     const prevLineText = prevLine.text
-    
+
     view.dispatch({
-      changes: [
-        { from: prevLine.from, to: line.to, insert: lineText + '\n' + prevLineText },
-      ],
+      changes: [{ from: prevLine.from, to: line.to, insert: lineText + '\n' + prevLineText }],
       selection: {
         anchor: prevLine.from + main.anchor - line.from,
         head: prevLine.from + main.head - line.from
       }
     })
-    
+
     return true
   }
 
   /**
-   * Custom command: Move line down  
+   * Custom command: Move line down
    */
   moveLineDown(view) {
     const { state } = view
     const { main } = state.selection
     const line = state.doc.lineAt(main.head)
-    
+
     if (line.number === state.doc.lines) return false // Already at bottom
-    
+
     const nextLine = state.doc.line(line.number + 1)
     const lineText = line.text
     const nextLineText = nextLine.text
-    
+
     view.dispatch({
-      changes: [
-        { from: line.from, to: nextLine.to, insert: nextLineText + '\n' + lineText },
-      ],
+      changes: [{ from: line.from, to: nextLine.to, insert: nextLineText + '\n' + lineText }],
       selection: {
         anchor: nextLine.from + main.anchor - line.from,
         head: nextLine.from + main.head - line.from
       }
     })
-    
+
     return true
   }
 }
-

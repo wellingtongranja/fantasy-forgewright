@@ -56,7 +56,7 @@ describe('SearchTab', () => {
       updatedAt: '2024-01-01T12:00:00Z'
     },
     {
-      id: 'doc-2', 
+      id: 'doc-2',
       title: 'Mystery of the Lost Treasure',
       content: 'The old map revealed the location of the hidden treasure chest.',
       tags: ['mystery', 'treasure'],
@@ -64,7 +64,7 @@ describe('SearchTab', () => {
     },
     {
       id: 'doc-3',
-      title: 'Dragon\'s Lair',
+      title: "Dragon's Lair",
       content: 'Deep in the mountain caves, the ancient dragon slept peacefully.',
       tags: ['fantasy', 'dragon'],
       updatedAt: '2024-01-03T15:00:00Z'
@@ -73,14 +73,14 @@ describe('SearchTab', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     mockContainer = new HTMLElement()
     mockApp = {
       storageManager: {
         getAllDocuments: jest.fn().mockResolvedValue(mockDocuments),
-        getDocument: jest.fn().mockImplementation(id => 
-          Promise.resolve(mockDocuments.find(doc => doc.id === id))
-        )
+        getDocument: jest
+          .fn()
+          .mockImplementation((id) => Promise.resolve(mockDocuments.find((doc) => doc.id === id)))
       },
       loadDocument: jest.fn(),
       editor: {
@@ -93,24 +93,24 @@ describe('SearchTab', () => {
     }
 
     // Create persistent mock elements to maintain state
-    const mockSearchInput = { 
-      value: '', 
-      addEventListener: jest.fn(), 
-      focus: jest.fn() 
+    const mockSearchInput = {
+      value: '',
+      addEventListener: jest.fn(),
+      focus: jest.fn()
     }
-    const mockSearchButton = { 
+    const mockSearchButton = {
       addEventListener: jest.fn(),
       style: { display: 'block' }
     }
-    const mockSearchStop = { 
+    const mockSearchStop = {
       addEventListener: jest.fn(),
       style: { display: 'none' }
     }
-    const mockSearchContent = { 
+    const mockSearchContent = {
       innerHTML: '',
       querySelector: jest.fn().mockReturnValue({ addEventListener: jest.fn() })
     }
-    const mockSearchProgress = { 
+    const mockSearchProgress = {
       style: { display: 'none' },
       querySelector: jest.fn((subselector) => {
         if (subselector === '.progress-fill') {
@@ -122,7 +122,7 @@ describe('SearchTab', () => {
         return new HTMLElement()
       })
     }
-    
+
     // Mock container DOM structure
     mockContainer.querySelector = jest.fn((selector) => {
       const mockElements = {
@@ -132,18 +132,18 @@ describe('SearchTab', () => {
         '.search-progress': mockSearchProgress,
         '.search-content': mockSearchContent,
         '.clear-results': { addEventListener: jest.fn() },
-        '.search-result-item.selected': { 
+        '.search-result-item.selected': {
           classList: { remove: jest.fn() },
           dataset: { docId: 'doc-1', line: '5' }
         }
       }
       return mockElements[selector] || new HTMLElement()
     })
-    
+
     // Store references for tests to access
     mockContainer._mockElements = {
       searchInput: mockSearchInput,
-      searchButton: mockSearchButton, 
+      searchButton: mockSearchButton,
       searchStop: mockSearchStop,
       searchContent: mockSearchContent,
       searchProgress: mockSearchProgress
@@ -152,13 +152,13 @@ describe('SearchTab', () => {
     mockContainer.querySelectorAll = jest.fn((selector) => {
       if (selector === '.search-result-item') {
         return [
-          { 
-            classList: { toggle: jest.fn() }, 
+          {
+            classList: { toggle: jest.fn() },
             dataset: { docId: 'doc-1' },
             scrollIntoView: jest.fn()
           },
-          { 
-            classList: { toggle: jest.fn() }, 
+          {
+            classList: { toggle: jest.fn() },
             dataset: { docId: 'doc-2' },
             scrollIntoView: jest.fn()
           }
@@ -236,11 +236,11 @@ describe('SearchTab', () => {
     it('should cancel ongoing search when new search starts', async () => {
       // Clear any previous abort calls
       mockAbort.mockClear()
-      
+
       // Start first search
       const firstSearch = searchTab.performSearch('first query')
-      
-      // Start second search before first completes  
+
+      // Start second search before first completes
       const secondSearch = searchTab.performSearch('second query')
 
       await Promise.all([firstSearch, secondSearch])
@@ -251,8 +251,7 @@ describe('SearchTab', () => {
 
     it('should handle search abortion gracefully', async () => {
       // Mock aborted search
-      mockApp.storageManager.getAllDocuments = jest.fn()
-        .mockRejectedValue(new Error('AbortError'))
+      mockApp.storageManager.getAllDocuments = jest.fn().mockRejectedValue(new Error('AbortError'))
 
       const error = new Error('Search aborted')
       error.name = 'AbortError'
@@ -279,16 +278,16 @@ describe('SearchTab', () => {
       const doc = mockDocuments[0]
       const results = searchTab.searchInDocument(doc, 'knight')
 
-      expect(results.some(r => r.field === 'content')).toBe(true)
-      expect(results.some(r => r.text.includes('knight'))).toBe(true)
+      expect(results.some((r) => r.field === 'content')).toBe(true)
+      expect(results.some((r) => r.text.includes('knight'))).toBe(true)
     })
 
     it('should find matches in document tags', () => {
       const doc = mockDocuments[0]
       const results = searchTab.searchInDocument(doc, 'fantasy')
 
-      expect(results.some(r => r.field === 'tags')).toBe(true)
-      expect(results.some(r => r.text.includes('fantasy'))).toBe(true)
+      expect(results.some((r) => r.field === 'tags')).toBe(true)
+      expect(results.some((r) => r.text.includes('fantasy'))).toBe(true)
     })
 
     it('should be case insensitive', () => {
@@ -305,7 +304,7 @@ describe('SearchTab', () => {
       }
       const results = searchTab.searchInDocument(doc, 'knight')
 
-      const contentMatch = results.find(r => r.field === 'content')
+      const contentMatch = results.find((r) => r.field === 'content')
       expect(contentMatch.line).toBe(2)
     })
   })
@@ -343,7 +342,12 @@ describe('SearchTab', () => {
           document: mockDocuments[0],
           matches: [
             { field: 'title', text: 'The Epic Adventure', positions: [{ start: 4, end: 8 }] },
-            { field: 'content', line: 1, text: 'Once upon a time, in a land far away, there lived a brave knight.', positions: [{ start: 59, end: 65 }] }
+            {
+              field: 'content',
+              line: 1,
+              text: 'Once upon a time, in a land far away, there lived a brave knight.',
+              positions: [{ start: 59, end: 65 }]
+            }
           ]
         }
       ]
@@ -377,7 +381,8 @@ describe('SearchTab', () => {
     })
 
     it('should truncate long text with context around match', () => {
-      const longText = 'A very long piece of text that contains the word knight somewhere in the middle and continues for a while'
+      const longText =
+        'A very long piece of text that contains the word knight somewhere in the middle and continues for a while'
       const truncated = searchTab.truncateText(longText, 50)
 
       expect(truncated.length).toBeLessThanOrEqual(80) // 50 + some ellipsis
@@ -391,7 +396,7 @@ describe('SearchTab', () => {
           matches: [{ field: 'content', text: 'content match' }]
         },
         {
-          document: mockDocuments[0], 
+          document: mockDocuments[0],
           matches: [{ field: 'title', text: 'title match' }]
         }
       ]
@@ -432,7 +437,7 @@ describe('SearchTab', () => {
 
     it('should not navigate beyond boundaries', () => {
       const results = mockContainer.querySelectorAll('.search-result-item')
-      
+
       // Try to navigate beyond last item
       searchTab.selectedResultIndex = results.length - 1
       searchTab.navigateResults(1)
@@ -442,7 +447,7 @@ describe('SearchTab', () => {
 
     it('should scroll selected result into view', () => {
       const results = mockContainer.querySelectorAll('.search-result-item')
-      
+
       searchTab.navigateResults(1)
 
       expect(results[1].scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
@@ -492,35 +497,35 @@ describe('SearchTab', () => {
   describe('search progress and cancellation', () => {
     it('should show progress during search', async () => {
       const progressElement = mockContainer._mockElements.searchProgress
-      
+
       const searchPromise = searchTab.performSearch('test')
-      
+
       expect(progressElement.style.display).toBe('block')
-      
+
       await searchPromise
     })
 
     it('should hide progress after search completion', async () => {
       const progressElement = mockContainer._mockElements.searchProgress
-      
+
       await searchTab.performSearch('test')
-      
+
       expect(progressElement.style.display).toBe('none')
     })
 
     it('should update progress during search', async () => {
       jest.spyOn(searchTab, 'updateProgress')
-      
+
       await searchTab.performSearch('test')
-      
+
       expect(searchTab.updateProgress).toHaveBeenCalled()
     })
 
     it('should allow search cancellation', () => {
       const searchPromise = searchTab.performSearch('test')
-      
+
       searchTab.stopSearch()
-      
+
       expect(searchTab.searchAbortController.abort).toHaveBeenCalled()
       expect(searchTab.isSearching).toBe(false)
     })
@@ -528,9 +533,9 @@ describe('SearchTab', () => {
     it('should toggle search/stop buttons correctly', () => {
       const searchButton = mockContainer._mockElements.searchButton
       const stopButton = mockContainer._mockElements.searchStop
-      
+
       searchTab.toggleSearchButtons(true)
-      
+
       expect(searchButton.style.display).toBe('none')
       expect(stopButton.style.display).toBe('block')
     })
@@ -561,7 +566,7 @@ describe('SearchTab', () => {
 
     it('should focus search input after clearing', () => {
       const searchInput = mockContainer._mockElements.searchInput
-      
+
       searchTab.clearResults()
 
       expect(searchInput.focus).toHaveBeenCalled()
@@ -591,8 +596,9 @@ describe('SearchTab', () => {
     it('should handle arrow key navigation', () => {
       jest.spyOn(searchTab, 'navigateResults')
 
-      searchTab.container.addEventListener.mock.calls
-        .find(call => call[0] === 'keydown')[1](mockEvent)
+      searchTab.container.addEventListener.mock.calls.find((call) => call[0] === 'keydown')[1](
+        mockEvent
+      )
 
       expect(mockEvent.preventDefault).toHaveBeenCalled()
       expect(searchTab.navigateResults).toHaveBeenCalledWith(1)
@@ -606,8 +612,9 @@ describe('SearchTab', () => {
       mockContainer.querySelector = jest.fn(() => mockSelected)
       jest.spyOn(searchTab, 'navigateToResult')
 
-      searchTab.container.addEventListener.mock.calls
-        .find(call => call[0] === 'keydown')[1](mockEvent)
+      searchTab.container.addEventListener.mock.calls.find((call) => call[0] === 'keydown')[1](
+        mockEvent
+      )
 
       expect(searchTab.navigateToResult).toHaveBeenCalledWith('doc-1', 5)
     })
@@ -616,8 +623,9 @@ describe('SearchTab', () => {
       mockEvent.target = { classList: { contains: jest.fn().mockReturnValue(true) } }
       jest.spyOn(searchTab, 'navigateResults')
 
-      searchTab.container.addEventListener.mock.calls
-        .find(call => call[0] === 'keydown')[1](mockEvent)
+      searchTab.container.addEventListener.mock.calls.find((call) => call[0] === 'keydown')[1](
+        mockEvent
+      )
 
       expect(searchTab.navigateResults).not.toHaveBeenCalled()
     })
@@ -626,7 +634,7 @@ describe('SearchTab', () => {
   describe('activation and focus', () => {
     it('should focus search input on activation', () => {
       const searchInput = mockContainer._mockElements.searchInput
-      
+
       searchTab.onActivate()
 
       expect(searchInput.focus).toHaveBeenCalled()
@@ -689,9 +697,9 @@ describe('SearchTab', () => {
 
   describe('error handling', () => {
     it('should handle storage errors during search', async () => {
-      mockApp.storageManager.getAllDocuments = jest.fn().mockRejectedValue(
-        new Error('Storage error')
-      )
+      mockApp.storageManager.getAllDocuments = jest
+        .fn()
+        .mockRejectedValue(new Error('Storage error'))
       jest.spyOn(searchTab, 'showError')
 
       await searchTab.performSearch('test')
@@ -700,9 +708,9 @@ describe('SearchTab', () => {
     })
 
     it('should handle navigation errors gracefully', async () => {
-      mockApp.storageManager.getDocument = jest.fn().mockRejectedValue(
-        new Error('Navigation error')
-      )
+      mockApp.storageManager.getDocument = jest
+        .fn()
+        .mockRejectedValue(new Error('Navigation error'))
 
       await searchTab.navigateToResult('doc-1')
 

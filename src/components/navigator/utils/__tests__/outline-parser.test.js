@@ -59,10 +59,12 @@ Content for chapter 3`
       expect(result[0].children[0].text).toBe('Italic Header')
       expect(result[0].children[0].children[0].text).toBe('Code Header')
       expect(result[0].children[0].children[0].children[0].text).toBe('Link Header')
-      expect(result[0].children[0].children[0].children[0].children[0].text)
-        .toBe('Header with mixed formatting and code')
-      expect(result[0].children[0].children[0].children[0].children[0].children[0].text)
-        .toBe('Headerwithunderscores')
+      expect(result[0].children[0].children[0].children[0].children[0].text).toBe(
+        'Header with mixed formatting and code'
+      )
+      expect(result[0].children[0].children[0].children[0].children[0].children[0].text).toBe(
+        'Headerwithunderscores'
+      )
     })
 
     it('should correctly assign line numbers', () => {
@@ -129,22 +131,22 @@ just plain text`
       const result = OutlineParser.parse(content)
 
       expect(result).toHaveLength(2)
-      
+
       // Chapter 1
       expect(result[0].text).toBe('Chapter 1')
       expect(result[0].children).toHaveLength(2)
-      
+
       // Section 1.1
       expect(result[0].children[0].text).toBe('Section 1.1')
       expect(result[0].children[0].children).toHaveLength(2)
       expect(result[0].children[0].children[0].text).toBe('Subsection 1.1.1')
       expect(result[0].children[0].children[1].text).toBe('Subsection 1.1.2')
-      
+
       // Section 1.2
       expect(result[0].children[1].text).toBe('Section 1.2')
       expect(result[0].children[1].children).toHaveLength(1)
       expect(result[0].children[1].children[0].text).toBe('Subsection 1.2.1')
-      
+
       // Chapter 2
       expect(result[1].text).toBe('Chapter 2')
       expect(result[1].children).toHaveLength(1)
@@ -191,7 +193,9 @@ just plain text`
     })
 
     it('should remove mixed formatting', () => {
-      const result = OutlineParser.cleanHeaderText('**Bold** and *italic* and `code` and [link](url)')
+      const result = OutlineParser.cleanHeaderText(
+        '**Bold** and *italic* and `code` and [link](url)'
+      )
       expect(result).toBe('Bold and italic and code and link')
     })
 
@@ -351,7 +355,7 @@ just plain text`
         children: [
           {
             id: 'h4',
-            text: 'Hero\'s Journey',
+            text: "Hero's Journey",
             level: 2,
             line: 7,
             children: []
@@ -535,7 +539,12 @@ just plain text`
 
       expect(stats.total).toBe(0)
       expect(stats.byLevel).toEqual({
-        1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0
       })
     })
 

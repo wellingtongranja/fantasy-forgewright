@@ -111,7 +111,7 @@ export function registerCoreCommands(registry, app) {
             return { success: true, message: 'Search panel opened' }
           }
         }
-        
+
         if (!query) {
           return { success: false, message: 'Please provide a search query' }
         }
@@ -374,7 +374,6 @@ export function registerCoreCommands(registry, app) {
               data: doc.tags
             }
 
-
           default:
             return {
               success: false,
@@ -439,7 +438,7 @@ export function registerCoreCommands(registry, app) {
       ],
       handler: async (args) => {
         const filter = args.join(' ')
-        
+
         if (app.navigator) {
           app.navigator.openDocuments(filter)
           return { success: true, message: 'Documents panel opened' }
@@ -510,8 +509,8 @@ export function registerCoreCommands(registry, app) {
       aliases: [':fo'],
       handler: async () => {
         const success = app.editor.foldCurrentSection()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? 'Section folded' : 'No section to fold at cursor'
         }
       }
@@ -525,8 +524,8 @@ export function registerCoreCommands(registry, app) {
       aliases: [':fu'],
       handler: async () => {
         const success = app.editor.unfoldCurrentSection()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? 'Section unfolded' : 'No folded section at cursor'
         }
       }
@@ -540,8 +539,8 @@ export function registerCoreCommands(registry, app) {
       aliases: [':fal'],
       handler: async () => {
         const success = app.editor.foldAll()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? 'All sections folded' : 'Unable to fold sections'
         }
       }
@@ -555,8 +554,8 @@ export function registerCoreCommands(registry, app) {
       aliases: [':ual'],
       handler: async () => {
         const success = app.editor.unfoldAll()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? 'All sections unfolded' : 'Unable to unfold sections'
         }
       }
@@ -576,11 +575,11 @@ export function registerCoreCommands(registry, app) {
         if (isNaN(level) || level < 1 || level > 6) {
           return { success: false, message: 'Invalid heading level. Use 1-6.' }
         }
-        
+
         // This is a placeholder - full implementation would require custom folding logic
         const success = app.editor.foldAll()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? `Folded sections at level ${level}` : 'Unable to fold sections'
         }
       }
@@ -595,8 +594,8 @@ export function registerCoreCommands(registry, app) {
       aliases: [':sr'],
       handler: async () => {
         const success = app.editor.openSearchAndReplace()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? 'Search and replace opened' : 'Unable to open search and replace'
         }
       }
@@ -608,23 +607,21 @@ export function registerCoreCommands(registry, app) {
       category: 'editing',
       icon: '🔍',
       aliases: [':fa'],
-      parameters: [
-        { name: 'query', required: false, type: 'string', description: 'Search query' }
-      ],
+      parameters: [{ name: 'query', required: false, type: 'string', description: 'Search query' }],
       handler: async (args) => {
         const query = args.join(' ')
         if (!query) {
           const success = app.editor.openSearch()
-          return { 
-            success, 
+          return {
+            success,
             message: success ? 'Search opened' : 'Unable to open search'
           }
         }
-        
+
         // For now, delegate to existing search functionality
         const success = app.editor.openSearch()
-        return { 
-          success, 
+        return {
+          success,
           message: success ? `Search opened for "${query}"` : 'Unable to open search'
         }
       }
@@ -639,8 +636,8 @@ export function registerCoreCommands(registry, app) {
       aliases: [':sp'],
       handler: async () => {
         const enabled = app.editor.toggleSpellCheck()
-        return { 
-          success: true, 
+        return {
+          success: true,
           message: `Spell check ${enabled ? 'enabled' : 'disabled'}`
         }
       }
@@ -681,7 +678,12 @@ export function registerCoreCommands(registry, app) {
       icon: '📁',
       aliases: [':ex'],
       parameters: [
-        { name: 'format', required: false, type: 'string', description: 'Export format (md, txt, html, pdf)' }
+        {
+          name: 'format',
+          required: false,
+          type: 'string',
+          description: 'Export format (md, txt, html, pdf)'
+        }
       ],
       handler: async (args) => {
         if (!app.exportManager) {
@@ -694,14 +696,14 @@ export function registerCoreCommands(registry, app) {
           return {
             success: true,
             message: 'Available export formats:',
-            data: formats.map(f => f.toUpperCase())
+            data: formats.map((f) => f.toUpperCase())
           }
         }
 
         if (!app.exportManager.isFormatSupported(format)) {
-          return { 
-            success: false, 
-            message: `Unsupported format: ${format}. Available formats: ${app.exportManager.getSupportedFormats().join(', ')}` 
+          return {
+            success: false,
+            message: `Unsupported format: ${format}. Available formats: ${app.exportManager.getSupportedFormats().join(', ')}`
           }
         }
 
@@ -930,16 +932,16 @@ export function registerCoreCommands(registry, app) {
           const width = app.widthManager.getCurrentWidth()
           const zoom = app.widthManager.getCurrentZoom()
           const availableWidths = app.widthManager.getAvailableWidths()
-          
+
           return {
             success: true,
             message: 'Editor Configuration:',
             data: {
               'Current width': `${width.columns}ch (${width.value})`,
               'Current zoom': `${zoom.percentage}%`,
-              'Available widths': availableWidths.map(w => 
-                `${w.columns}ch${w.current ? ' (current)' : ''}`
-              ).join(', '),
+              'Available widths': availableWidths
+                .map((w) => `${w.columns}ch${w.current ? ' (current)' : ''}`)
+                .join(', '),
               'Zoom range': '85% - 130%'
             }
           }
@@ -948,7 +950,6 @@ export function registerCoreCommands(registry, app) {
         }
       }
     },
-
 
     // System Commands
     {
@@ -1050,17 +1051,25 @@ export function registerCoreCommands(registry, app) {
         try {
           // Check if document is a system document
           if (app.currentDocument.type === 'system') {
-            return { success: false, message: 'System documents are always readonly and cannot be modified' }
+            return {
+              success: false,
+              message: 'System documents are always readonly and cannot be modified'
+            }
           }
 
-          const isCurrentlyReadonly = await app.storageManager.isDocumentReadonly(app.currentDocument.id)
-          
+          const isCurrentlyReadonly = await app.storageManager.isDocumentReadonly(
+            app.currentDocument.id
+          )
+
           if (isCurrentlyReadonly) {
             return { success: false, message: 'Document is already readonly' }
           }
 
           // Set document as readonly
-          const updatedDoc = await app.storageManager.setDocumentReadonly(app.currentDocument.id, true)
+          const updatedDoc = await app.storageManager.setDocumentReadonly(
+            app.currentDocument.id,
+            true
+          )
           app.currentDocument = updatedDoc
 
           // Update editor readonly state
@@ -1078,14 +1087,14 @@ export function registerCoreCommands(registry, app) {
           app.updateDocumentIndicators(app.currentDocument, titleContainer)
           app.updateReadonlyStatusIndicator(app.currentDocument)
 
-          return { 
-            success: true, 
-            message: `Document "${app.currentDocument.title}" is now readonly` 
+          return {
+            success: true,
+            message: `Document "${app.currentDocument.title}" is now readonly`
           }
         } catch (error) {
-          return { 
-            success: false, 
-            message: `Failed to make document readonly: ${error.message}` 
+          return {
+            success: false,
+            message: `Failed to make document readonly: ${error.message}`
           }
         }
       }
@@ -1105,20 +1114,25 @@ export function registerCoreCommands(registry, app) {
         try {
           // Check if it's a system document (cannot be made editable)
           if (app.currentDocument.type === 'system') {
-            return { 
-              success: false, 
-              message: 'System documents cannot be made editable' 
+            return {
+              success: false,
+              message: 'System documents cannot be made editable'
             }
           }
 
-          const isCurrentlyReadonly = await app.storageManager.isDocumentReadonly(app.currentDocument.id)
-          
+          const isCurrentlyReadonly = await app.storageManager.isDocumentReadonly(
+            app.currentDocument.id
+          )
+
           if (!isCurrentlyReadonly) {
             return { success: false, message: 'Document is already editable' }
           }
 
           // Set document as editable
-          const updatedDoc = await app.storageManager.setDocumentReadonly(app.currentDocument.id, false)
+          const updatedDoc = await app.storageManager.setDocumentReadonly(
+            app.currentDocument.id,
+            false
+          )
           app.currentDocument = updatedDoc
 
           // Update editor readonly state
@@ -1136,14 +1150,14 @@ export function registerCoreCommands(registry, app) {
           app.updateDocumentIndicators(app.currentDocument, titleContainer)
           app.updateReadonlyStatusIndicator(app.currentDocument)
 
-          return { 
-            success: true, 
-            message: `Document "${app.currentDocument.title}" is now editable` 
+          return {
+            success: true,
+            message: `Document "${app.currentDocument.title}" is now editable`
           }
         } catch (error) {
-          return { 
-            success: false, 
-            message: `Failed to make document editable: ${error.message}` 
+          return {
+            success: false,
+            message: `Failed to make document editable: ${error.message}`
           }
         }
       }
@@ -1215,7 +1229,8 @@ export function registerCoreCommands(registry, app) {
             app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
 
-          const commercialDoc = await app.systemDocumentsManager.getSystemDocument('license-commercial')
+          const commercialDoc =
+            await app.systemDocumentsManager.getSystemDocument('license-commercial')
           if (commercialDoc) {
             app.loadDocument(commercialDoc)
             return { success: true, message: 'Commercial license terms loaded' }
@@ -1316,11 +1331,11 @@ export function registerCoreCommands(registry, app) {
         // Determine edition based on available features
         const hasGitHubIntegration = !!app.githubAuth && !!app.githubStorage
         const edition = hasGitHubIntegration ? 'Premium' : 'Community'
-        
+
         const features = {
           Community: [
             'Core markdown editor',
-            'Local document storage', 
+            'Local document storage',
             'Export to multiple formats',
             'Three built-in themes',
             'Width and zoom controls',
@@ -1361,7 +1376,7 @@ export function registerCoreCommands(registry, app) {
           message: 'Fantasy Editor Premium Edition',
           data: [
             'Git repository integration with OAuth authentication',
-            'Bidirectional document synchronization', 
+            'Bidirectional document synchronization',
             'Cloud storage with automatic backup',
             'Priority email support with SLA',
             'Advanced themes and customization',
@@ -1387,7 +1402,14 @@ export function registerCoreCommands(registry, app) {
           data: {
             version: '0.0.1-alpha',
             build: 'development',
-            features: ['PWA', 'Offline Storage', 'Multi-theme', 'Command Palette', 'GUID System', 'Readonly Documents']
+            features: [
+              'PWA',
+              'Offline Storage',
+              'Multi-theme',
+              'Command Palette',
+              'GUID System',
+              'Readonly Documents'
+            ]
           }
         }
       }
@@ -1422,9 +1444,11 @@ export function registerCoreCommands(registry, app) {
           message += '\n' + result.data
         } else if (typeof result.data === 'object') {
           // Handle object data (like stats)
-          message += '\n' + Object.entries(result.data)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join('\n')
+          message +=
+            '\n' +
+            Object.entries(result.data)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join('\n')
         }
       }
 

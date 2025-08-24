@@ -67,7 +67,7 @@ class FantasyEditorApp {
       if (appMain) {
         appMain.classList.add('navigator-hidden')
       }
-      
+
       // Initialize navigator preferences
       if (this.navigator) {
         this.navigator.restorePreferences()
@@ -99,7 +99,7 @@ class FantasyEditorApp {
   async initializeManagers() {
     // Initialize theme manager first (needed by other components)
     this.themeManager = new ThemeManager()
-    
+
     // Initialize storage
     this.storageManager = new StorageManager()
     this.searchEngine = new SearchEngine(this.storageManager)
@@ -124,7 +124,7 @@ class FantasyEditorApp {
     if (navigatorContainer) {
       this.navigator = new Navigator(navigatorContainer, this)
     }
-    
+
     // Initialize file tree (legacy fallback)
     const fileTreeContainer = document.getElementById('file-tree')
     this.fileTree = new FileTree(fileTreeContainer, this.storageManager, (document) => {
@@ -238,10 +238,7 @@ class FantasyEditorApp {
 
       if (success) {
         // Only show success notification when everything is working
-        this.showNotification(
-          `Repository "${user.login}/fantasy-editor" ready!`,
-          'success'
-        )
+        this.showNotification(`Repository "${user.login}/fantasy-editor" ready!`, 'success')
         console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
         // Update UI to reflect new repository configuration
         this.updateGitHubUI()
@@ -381,9 +378,13 @@ class FantasyEditorApp {
       this.githubUserMenu.refresh()
     }
     this.updateGitHubSyncStatus()
-    
+
     // Refresh navigator documents tab to update sync status indicators
-    if (this.navigator && this.navigator.tabComponents && this.navigator.tabComponents['documents']) {
+    if (
+      this.navigator &&
+      this.navigator.tabComponents &&
+      this.navigator.tabComponents['documents']
+    ) {
       this.navigator.tabComponents['documents'].refresh()
     }
   }
@@ -434,7 +435,7 @@ class FantasyEditorApp {
         }
       })
     }
-    
+
     // Listen for GitHub authentication state changes
     window.addEventListener('github-auth-state-changed', () => {
       this.updateGitHubUI()
@@ -498,11 +499,11 @@ class FantasyEditorApp {
     // Handle readonly mode for system documents and readonly documents
     const isReadonly = doc.readonly === true || doc.type === 'system'
     this.editor.setReadonlyMode(isReadonly)
-    
+
     // Update title field readonly state and add visual indicators
     const titleField = document.getElementById('doc-title')
     const titleContainer = document.querySelector('.doc-title-container')
-    
+
     if (titleField) {
       titleField.readOnly = isReadonly
       if (isReadonly) {
@@ -534,7 +535,9 @@ class FantasyEditorApp {
 
     // Log document info for debugging
     if (this.guidManager.isValidGuid(doc.id)) {
-      console.log(`Loaded GUID document: ${doc.filename || doc.title} (${doc.id}) [${doc.type || 'user'}${isReadonly ? ', readonly' : ''}]`)
+      console.log(
+        `Loaded GUID document: ${doc.filename || doc.title} (${doc.id}) [${doc.type || 'user'}${isReadonly ? ', readonly' : ''}]`
+      )
     } else if (this.guidManager.isOldUidFormat(doc.id)) {
       console.log(`Loaded legacy UID document: ${doc.title} (${doc.id}) - consider migration`)
     }
@@ -544,7 +547,8 @@ class FantasyEditorApp {
     if (!this.currentDocument) return
 
     // Check if document is readonly
-    const isReadonly = this.currentDocument.readonly === true || this.currentDocument.type === 'system'
+    const isReadonly =
+      this.currentDocument.readonly === true || this.currentDocument.type === 'system'
     if (isReadonly) {
       this.showNotification('Cannot save readonly document', 'warning')
       return
@@ -560,7 +564,7 @@ class FantasyEditorApp {
       // Check for actual changes before saving
       const hasContentChanges = this.hasContentChanged(content)
       const hasTitleChanges = this.hasTitleChanged(title)
-      
+
       // Check if tags have changed (compare arrays)
       const oldTags = this.lastSavedState?.tags || []
       const currentTags = this.currentDocument.tags || []
@@ -601,7 +605,7 @@ class FantasyEditorApp {
 
       this.updateSyncStatus('Saved')
       setTimeout(() => this.updateSyncStatus('Ready'), 2000)
-      
+
       return savedDoc
     } catch (error) {
       console.error('Failed to save document:', error)
@@ -642,8 +646,10 @@ class FantasyEditorApp {
     if (!titleContainer) return
 
     // Remove existing indicators
-    const existingIndicators = titleContainer.querySelectorAll('.readonly-indicator, .system-document-indicator')
-    existingIndicators.forEach(indicator => indicator.remove())
+    const existingIndicators = titleContainer.querySelectorAll(
+      '.readonly-indicator, .system-document-indicator'
+    )
+    existingIndicators.forEach((indicator) => indicator.remove())
 
     // No indicators needed here - readonly status is shown in the status bar
   }
@@ -666,15 +672,17 @@ class FantasyEditorApp {
     if (isReadonly) {
       const readonlyStatus = document.createElement('div')
       readonlyStatus.className = 'readonly-status-indicator'
-      
+
       if (doc.type === 'system') {
-        readonlyStatus.innerHTML = '<span class="status-icon">📖</span><span class="status-text">System</span>'
+        readonlyStatus.innerHTML =
+          '<span class="status-icon">📖</span><span class="status-text">System</span>'
         readonlyStatus.title = 'System document - readonly'
       } else {
-        readonlyStatus.innerHTML = '<span class="status-icon">🔒</span><span class="status-text">Readonly</span>'
+        readonlyStatus.innerHTML =
+          '<span class="status-icon">🔒</span><span class="status-text">Readonly</span>'
         readonlyStatus.title = 'Document is readonly'
       }
-      
+
       // Insert before the sync status
       const syncStatus = document.getElementById('sync-status')
       syncContainer.insertBefore(readonlyStatus, syncStatus)
@@ -1146,7 +1154,7 @@ class FantasyEditorApp {
       lastTitleHash: this.simpleHash(title),
       hasUnsavedChanges: false
     }
-    
+
     // Store the last saved state for comparison
     this.lastSavedState = {
       title: title,

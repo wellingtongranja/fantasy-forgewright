@@ -147,7 +147,7 @@ export class GitHubAuth {
     this.user = null
     this.clearStoredToken()
     this.cleanupOAuthSession()
-    
+
     // Emit auth state change event for UI updates
     this.emitAuthStateChange()
   }
@@ -284,14 +284,14 @@ export class GitHubAuth {
     }
 
     this.accessToken = token
-    
+
     try {
       // Fetch user info to validate token
       await this.fetchUserInfo()
-      
+
       // Emit auth state change event for UI updates
       this.emitAuthStateChange()
-      
+
       return true
     } catch (error) {
       // Token might be expired, clear it
@@ -302,15 +302,15 @@ export class GitHubAuth {
       return false
     }
   }
-  
+
   /**
    * Emit authentication state change event
    */
   emitAuthStateChange() {
     const event = new CustomEvent('github-auth-state-changed', {
-      detail: { 
+      detail: {
         isAuthenticated: this.isAuthenticated(),
-        user: this.user 
+        user: this.user
       }
     })
     window.dispatchEvent(event)

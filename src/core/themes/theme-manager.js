@@ -25,16 +25,16 @@ export class ThemeManager {
   applyTheme(theme) {
     // Apply CSS theme
     document.documentElement.setAttribute('data-theme', theme)
-    
+
     // Apply CodeMirror theme if editor is available
     if (this.editorView) {
       this.applyCodeMirrorTheme(theme)
     }
-    
+
     this.currentTheme = theme
     this.saveTheme(theme)
     this.updateThemeToggle()
-    
+
     // Emit theme change event for other components
     this.emitThemeChangeEvent(theme)
   }
@@ -44,9 +44,9 @@ export class ThemeManager {
    */
   applyCodeMirrorTheme(theme) {
     if (!this.editorView) return
-    
+
     const themeExtension = getThemeExtension(theme)
-    
+
     // Note: Theme reconfiguration would need proper StateEffect implementation
     // For now, themes are applied at initialization time
     console.log('Theme change requested:', theme, 'Extensions:', themeExtension)

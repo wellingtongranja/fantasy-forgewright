@@ -152,10 +152,11 @@ export class EditorManager {
     // Use setTimeout to allow the panel to render first
     setTimeout(() => {
       // Look for CodeMirror search input in the panel
-      const searchInput = document.querySelector('.cm-search input[name="search"]') || 
-                         document.querySelector('.cm-search input[type="text"]') ||
-                         document.querySelector('.cm-search input:first-of-type')
-      
+      const searchInput =
+        document.querySelector('.cm-search input[name="search"]') ||
+        document.querySelector('.cm-search input[type="text"]') ||
+        document.querySelector('.cm-search input:first-of-type')
+
       if (searchInput) {
         searchInput.focus()
         searchInput.select() // Select any existing text
@@ -213,10 +214,10 @@ export class EditorManager {
    */
   getCursorPosition() {
     if (!this.view) return null
-    
+
     const { main } = this.view.state.selection
     const line = this.view.state.doc.lineAt(main.head)
-    
+
     return {
       line: line.number,
       column: main.head - line.from,
@@ -229,9 +230,9 @@ export class EditorManager {
    */
   insertText(text) {
     if (!this.view) return false
-    
+
     const { main } = this.view.state.selection
-    
+
     this.view.dispatch({
       changes: {
         from: main.from,
@@ -240,7 +241,7 @@ export class EditorManager {
       },
       selection: { anchor: main.from + text.length }
     })
-    
+
     return true
   }
 
@@ -249,7 +250,7 @@ export class EditorManager {
    */
   getSelectedText() {
     if (!this.view) return ''
-    
+
     const { main } = this.view.state.selection
     return this.view.state.doc.sliceString(main.from, main.to)
   }
@@ -259,9 +260,9 @@ export class EditorManager {
    */
   replaceSelectedText(text) {
     if (!this.view) return false
-    
+
     const { main } = this.view.state.selection
-    
+
     this.view.dispatch({
       changes: {
         from: main.from,
@@ -270,7 +271,7 @@ export class EditorManager {
       },
       selection: { anchor: main.from + text.length }
     })
-    
+
     return true
   }
 
@@ -279,14 +280,17 @@ export class EditorManager {
    */
   getDocumentStats() {
     if (!this.view) return null
-    
+
     const content = this.view.state.doc.toString()
-    const words = content.trim().split(/\s+/).filter(w => w.length > 0)
+    const words = content
+      .trim()
+      .split(/\s+/)
+      .filter((w) => w.length > 0)
     const characters = content.length
     const charactersNoSpaces = content.replace(/\s/g, '').length
     const lines = this.view.state.doc.lines
-    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0).length
-    
+    const paragraphs = content.split(/\n\s*\n/).filter((p) => p.trim().length > 0).length
+
     return {
       words: words.length,
       characters,
@@ -304,7 +308,7 @@ export class EditorManager {
     if (!this.view) return false
 
     this.isReadonly = readonly
-    
+
     try {
       // Update readonly extensions
       this.readonlyExtensions.updateReadonlyState(this.view, readonly)
