@@ -4,6 +4,8 @@
 
 This directory contains comprehensive automated tests that prevent deployment-breaking changes from reaching production. These tests enforce the hard-won lessons learned from the Fantasy Editor CI/CD deployment experience.
 
+The safeguards were implemented on a clean `dev` branch created from the stable `main` branch, avoiding the complexity of the old `develop` branch that was 15 commits behind and contained all the original broken configurations.
+
 ## 📁 Test Files
 
 ### `config-validation.test.js`
@@ -34,6 +36,20 @@ This directory contains comprehensive automated tests that prevent deployment-br
 - ✅ Performance benchmarks
 - ✅ Memory leak detection
 - ✅ Error boundary testing
+
+## 🌿 Clean Branch Strategy
+
+The deployment safeguards were implemented using a **clean branch approach**:
+
+1. **Problem**: The old `develop` branch was 15 commits behind `main` and contained all the original broken configurations that had already been fixed on `main`
+2. **Solution**: Created a new clean `dev` branch directly from the stable `main` branch
+3. **Result**: Avoided complex merge conflicts and provided a clean foundation for implementing safeguards
+
+### Benefits of Clean Branch Approach
+- ✅ No merge conflicts from outdated configurations
+- ✅ Clean foundation based on working `main` branch
+- ✅ Simplified testing and validation process
+- ✅ Clear separation from legacy deployment issues
 
 ## 🧪 Usage
 
