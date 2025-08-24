@@ -77,27 +77,6 @@ export default defineConfig(({ command, mode }) => {
     cssMinify: isProduction,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-codemirror': [
-            "@codemirror/state", 
-            "@codemirror/view", 
-            "@codemirror/commands", 
-            "@codemirror/lang-markdown",
-            "@codemirror/search",
-            "@codemirror/autocomplete",
-            "@codemirror/language",
-            "@codemirror/theme-one-dark",
-            "@lezer/highlight"
-          ],
-          'vendor-utils': [
-            "dompurify",
-            "lunr"
-          ],
-          'vendor-export': [
-            "html2canvas",
-            "jspdf"
-          ]
-        },
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId
           if (facadeModuleId) {
