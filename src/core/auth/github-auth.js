@@ -7,7 +7,7 @@ import { GitHubErrorHandler } from './github-error-handler.js'
 export class GitHubAuth {
   constructor() {
     this.clientId = null
-    this.redirectUri = `${window.location.origin}/auth/callback`
+    this.redirectUri = import.meta.env.VITE_GITHUB_REDIRECT_URI || `${window.location.origin}/`
     this.scope = 'repo user'
     this.state = null
     this.codeVerifier = null
