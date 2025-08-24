@@ -466,6 +466,92 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 - Test coverage: > 90%
 - WCAG 2.1 AA compliance
 
+## 🚨 CI/CD Deployment Lessons Learned
+
+### Critical Deployment Requirements
+
+**Node.js Version:** MANDATORY Node.js 20+ (Vite 7+ compatibility)
+- ❌ Node.js 18 causes build failures in production
+- ✅ Update all CI workflows to `node-version: '20'`
+
+**Environment Configuration:** GitHub Environments Required
+- ❌ Repository secrets alone insufficient for Cloudflare Pages
+- ✅ Create GitHub environment: `fantasy.forgewright.io` 
+- ✅ Store all secrets in environment, not repository
+
+**Project Naming:** Exact Match Required
+- ❌ `fantasy-editor` (incorrect project name)
+- ✅ `fantasy-forgewright` (actual Cloudflare Pages project)
+
+### Security & Dependencies
+
+**npm Audit Failures:**
+- Remove `bundlesize` package completely if vulnerabilities block CI
+- Update dependencies like `jspdf` to latest secure versions
+- Make Husky optional: `"prepare": "husky install || exit 0"`
+
+**SAST Scan Issues:**
+- Add `fetch-depth: 0` to ALL checkout actions in workflows
+- Shallow git clones cause CodeQL and security scanning failures
+
+### Build Configuration Pitfalls
+
+**CSS Import Strategy:**
+- ❌ Dynamic CSS loading with hardcoded paths fails in production
+- ✅ Use static imports: `import './component.css'` at top of JS files
+- ❌ Never use `injectStyles()` methods for production builds
+
+**Service Worker Conflicts:**
+- ❌ Manual SW registration + VitePWA causes conflicts
+- ✅ Remove custom `registerServiceWorker()` methods
+- ✅ Let VitePWA handle service worker generation exclusively
+
+**Vite Chunk Splitting:**
+- ❌ Manual chunk configuration can cause runtime initialization errors
+- ✅ Let Vite auto-handle dependency chunking for stability
+- ❌ Avoid complex `manualChunks` configurations
+
+### Runtime Production Issues
+
+**JavaScript Initialization:**
+- "Cannot access uninitialized variable" usually indicates module order issues
+- Prefer dynamic imports for lazy-loaded components
+- Test production builds locally with `npm run build && npm run preview`
+
+**Environment Variables:**
+- Remove `NODE_ENV=production` from .env.production (Vite sets automatically)
+- Prefix all custom variables with `VITE_` for client-side access
+- Different handling between development and production builds
+
+### Deployment Quick Checklist
+
+**Pre-Deployment Verification:**
+- [ ] Node.js 20+ in all workflows
+- [ ] GitHub environment configured with all secrets
+- [ ] Correct Cloudflare Pages project name
+- [ ] No manual CSS loading in components
+- [ ] Single service worker registration source
+- [ ] Production build tested locally
+
+**Common Failure Points:**
+1. **Security scan fails** → Check `fetch-depth: 0` in workflows
+2. **npm audit blocks** → Remove vulnerable packages, update dependencies  
+3. **Build fails in CI** → Verify Node.js 20+ requirement
+4. **CSS broken in production** → Replace dynamic CSS imports with static imports
+5. **Service Worker errors** → Remove duplicate SW registrations
+6. **Runtime JS errors** → Simplify Vite chunk configuration
+
+### Recovery Strategies
+
+**When Deployment Fails:**
+1. Check GitHub Actions logs for specific error patterns
+2. Test build locally: `NODE_ENV=production npm run build`
+3. Verify environment variables match between local and CI
+4. Confirm Cloudflare Pages project name exacty matches workflow
+5. Rollback by reverting to last working commit if needed
+
+**Reference:** See `docs/CICD_LESSONS_LEARNED.md` for comprehensive troubleshooting guide.
+
 ---
 
 **Fantasy Editor** - Single source of truth for development at **forgewright.io**

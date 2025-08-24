@@ -78,7 +78,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
     
     - name: Install dependencies
@@ -115,7 +115,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
     
     - name: Install dependencies
@@ -132,16 +132,15 @@ jobs:
         NODE_ENV: production
         GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
         SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        DOMAIN: forgewright.io
+        DOMAIN: fantasy.forgewright.io
     
     - name: Deploy to Cloudflare Pages
       uses: cloudflare/pages-action@1
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        projectName: fantasy-editor
+        projectName: fantasy-forgewright
         directory: dist
-        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Update DNS records
       run: |
@@ -158,7 +157,7 @@ jobs:
     - name: Run smoke tests
       run: npm run test:smoke
       env:
-        BASE_URL: https://forgewright.io
+        BASE_URL: https://fantasy.forgewright.io
 
   performance:
     needs: deploy
@@ -170,8 +169,8 @@ jobs:
       uses: treosh/lighthouse-ci-action@v9
       with:
         urls: |
-          https://forgewright.io
-          https://forgewright.io/app
+          https://fantasy.forgewright.io
+          https://fantasy.forgewright.io/app
         configPath: './lighthouse.config.js'
         uploadArtifacts: true
         temporaryPublicStorage: true
@@ -232,7 +231,7 @@ jobs:
     - name: ZAP Scan
       uses: zaproxy/action-full-scan@v0.4.0
       with:
-        target: 'https://forgewright.io'
+        target: 'https://fantasy.forgewright.io'
         rules_file_name: '.zap/rules.tsv'
         cmd_options: '-a'
 ```
@@ -257,9 +256,9 @@ jobs:
       uses: treosh/lighthouse-ci-action@v9
       with:
         urls: |
-          https://forgewright.io
-          https://forgewright.io/?theme=dark
-          https://forgewright.io/?theme=fantasy
+          https://fantasy.forgewright.io
+          https://fantasy.forgewright.io/?theme=dark
+          https://fantasy.forgewright.io/?theme=fantasy
         uploadArtifacts: true
         temporaryPublicStorage: true
 
@@ -271,7 +270,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
     
     - name: Install dependencies
@@ -297,7 +296,7 @@ command = "npm run build"
 publish = "dist"
 
 [build.environment]
-NODE_VERSION = "18"
+NODE_VERSION = "20"
 NPM_VERSION = "9"
 
 [[headers]]
@@ -484,11 +483,11 @@ export default defineConfig({
 
 ```bash
 # Production (.env.production)
-NODE_ENV=production
+# NOTE: NODE_ENV is set automatically by Vite - do NOT set manually
 VITE_APP_TITLE=Fantasy Editor
 VITE_GITHUB_CLIENT_ID=your_github_client_id
 VITE_SENTRY_DSN=your_sentry_dsn
-VITE_DOMAIN=forgewright.io
+VITE_DOMAIN=fantasy.fantasy.forgewright.io
 
 # Development (.env.development)  
 NODE_ENV=development
@@ -546,7 +545,7 @@ SLACK_WEBHOOK=your_slack_webhook_url
 
 ### Post-Deployment
 
-- [ ] Application accessible at forgewright.io
+- [ ] Application accessible at fantasy.forgewright.io
 - [ ] All core functionality working
 - [ ] Command palette responds to Ctrl+Space
 - [ ] Theme switching operational
@@ -555,6 +554,141 @@ SLACK_WEBHOOK=your_slack_webhook_url
 - [ ] Performance metrics within targets
 - [ ] Security monitoring active
 - [ ] User feedback collection enabled
+
+## 🚨 Common Deployment Issues
+
+### Critical Configuration Fixes
+
+**Node.js Version Mismatch:**
+```yaml
+# ❌ WRONG - Causes build failures
+node-version: '18'
+
+# ✅ CORRECT - Vite 7+ requires Node 20+
+node-version: '20'
+```
+
+**GitHub Environment Missing:**
+```yaml
+# ❌ INCOMPLETE - Missing environment configuration
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+# ✅ CORRECT - Environment required for secrets
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: fantasy.fantasy.forgewright.io  # MANDATORY
+```
+
+**Project Name Mismatch:**
+```yaml
+# ❌ WRONG - Deployment target not found
+projectName: fantasy-editor
+
+# ✅ CORRECT - Must match Cloudflare Pages project exactly
+projectName: fantasy-forgewright
+```
+
+### Frequent Build Failures
+
+**1. npm Audit Vulnerabilities**
+- **Symptom:** CI fails at security scanning step
+- **Quick Fix:** Remove bundlesize package: `npm uninstall bundlesize`
+- **Long-term:** Update vulnerable dependencies regularly
+
+**2. SAST Scan Shallow Repository**
+- **Symptom:** "shallow repository" error in CodeQL
+- **Fix:** Add to all checkout actions:
+  ```yaml
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+  ```
+
+**3. CSS MIME Type Errors in Production**
+- **Symptom:** Unstyled components, CSS not loading
+- **Cause:** Dynamic CSS imports with hardcoded paths
+- **Fix:** Replace with static imports:
+  ```javascript
+  // At top of component file
+  import './component.css'
+  ```
+
+**4. Service Worker Registration Conflicts**
+- **Symptom:** SW registration failed console errors  
+- **Cause:** Manual SW registration conflicts with VitePWA
+- **Fix:** Remove custom `registerServiceWorker()` methods
+
+**5. "Cannot access uninitialized variable" Runtime Errors**
+- **Symptom:** JavaScript initialization errors in production only
+- **Cause:** Complex Vite chunk splitting configuration
+- **Fix:** Simplify or remove `manualChunks` configuration
+
+### Environment Variable Issues
+
+**Client-Side Variables Not Accessible:**
+```bash
+# ❌ WRONG - Not accessible in client code
+GITHUB_CLIENT_ID=your_client_id
+
+# ✅ CORRECT - VITE_ prefix required
+VITE_GITHUB_CLIENT_ID=your_client_id
+```
+
+**Manual NODE_ENV Setting:**
+```bash
+# ❌ WRONG - Remove from .env.production
+NODE_ENV=production
+
+# ✅ CORRECT - Vite sets automatically, remove manual setting
+```
+
+### Cloudflare Pages Gotchas
+
+**DNS Record Configuration:**
+- **Type:** CNAME
+- **Name:** `fantasy` (NOT `fantasy.fantasy.forgewright.io`)
+- **Target:** `fantasy-forgewright.pages.dev`
+- **Proxied:** Yes (orange cloud)
+
+**GitHub Token Permission Errors:**
+```yaml
+# ❌ PROBLEMATIC - Can cause permission issues
+gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+# ✅ CORRECT - Remove gitHubToken parameter entirely
+```
+
+### Quick Diagnostic Steps
+
+When deployment fails:
+
+1. **Check Node.js version in ALL workflows**
+2. **Verify GitHub environment exists with all secrets**
+3. **Confirm Cloudflare Pages project name matches exactly**
+4. **Test production build locally:**
+   ```bash
+   NODE_ENV=production npm run build
+   npm run preview
+   ```
+5. **Check browser console for runtime errors**
+
+### Emergency Rollback
+
+If deployment succeeds but site is broken:
+
+```bash
+# Get previous working commit
+git log --oneline -5
+
+# Revert to last working state
+git revert HEAD --no-edit
+git push origin main
+```
+
+For detailed troubleshooting, see `CICD_LESSONS_LEARNED.md`.
 
 ## 🎭 Environment-Specific Configurations
 
@@ -632,7 +766,7 @@ jobs:
     steps:
     - name: Check Lighthouse scores
       run: |
-        SCORES=$(lighthouse https://forgewright.io --output=json --quiet)
+        SCORES=$(lighthouse https://fantasy.forgewright.io --output=json --quiet)
         PERFORMANCE=$(echo $SCORES | jq '.categories.performance.score * 100')
         
         if [ "$PERFORMANCE" -lt 90 ]; then
@@ -650,7 +784,7 @@ const fetch = require('node-fetch')
 
 async function checkUptime() {
   try {
-    const response = await fetch('https://forgewright.io')
+    const response = await fetch('https://fantasy.forgewright.io')
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
@@ -665,7 +799,7 @@ async function checkUptime() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: `🚨 forgewright.io is down: ${error.message}`
+        text: `🚨 fantasy.forgewright.io is down: ${error.message}`
       })
     })
     
