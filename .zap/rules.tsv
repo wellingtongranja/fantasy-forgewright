@@ -1,0 +1,89 @@
+# ZAP Scanning Rules Configuration
+# Format: RULE_ID	THRESHOLD	[ENABLED/DISABLED]	[RULE_DESCRIPTION]
+
+# High Priority Security Rules
+10016	MEDIUM	# Vulnerable JavaScript Library
+10017	LOW	# Cross-Domain JavaScript Source File Inclusion
+10020	LOW	# X-Frame-Options Header Not Set
+10021	LOW	# X-Content-Type-Options Header Missing
+10023	LOW	# Information Disclosure - Debug Error Messages
+10025	LOW	# Information Disclosure - Sensitive Information in URL
+10026	LOW	# HTTP Parameter Override
+10027	LOW	# Information Disclosure - Suspicious Comments
+10028	LOW	# Open Redirect
+10029	LOW	# Cookie Poisoning
+10030	LOW	# User Controllable Charset
+10031	LOW	# User Controllable HTML Element Attribute
+10032	LOW	# Viewstate Scanner
+10033	LOW	# Directory Browsing
+10034	LOW	# Heartbleed OpenSSL Vulnerability
+10035	LOW	# Strict-Transport-Security Header Not Set
+10036	LOW	# HTTP Server Response Header
+10037	LOW	# Server Leaks Information via "X-Powered-By" HTTP Response Header Field
+10038	LOW	# Content Security Policy (CSP) Header Not Set
+10040	LOW	# Secure Pages Include Mixed Content
+10041	LOW	# HTTP to HTTPS Insecure Transition in Form Post
+10042	LOW	# HTTPS to HTTP Insecure Transition in Form Post
+10043	LOW	# User Controllable JavaScript Event
+10044	MEDIUM	# Big Redirect Detected
+10045	LOW	# Source Code Disclosure - /WEB-INF folder
+10046	LOW	# Source Code Disclosure - Git folder
+10047	LOW	# Source Code Disclosure - SVN folder
+10048	LOW	# Remote Code Execution - Shell Shock
+10049	LOW	# Content Cacheability
+10050	LOW	# Retrieved from Cache
+10051	LOW	# Relative Path Overwrite
+10052	LOW	# X-ChromeLogger-Data (XCOLD) Header Information Leak
+10054	LOW	# Cookie Without SameSite Attribute
+10055	LOW	# CSP Scanner - Wildcard Directive
+10056	LOW	# CSP Scanner - Missing Directive
+10057	LOW	# Username Hash Found
+10058	LOW	# GET for POST
+10061	LOW	# X-AspNet-Version Response Header
+10062	LOW	# PII Disclosure
+10063	LOW	# Feature Policy Header Not Set
+10094	LOW	# Base64 Disclosure
+10095	LOW	# Backup File Disclosure
+10096	LOW	# Timestamp Disclosure
+10097	LOW	# Hash Disclosure
+10098	LOW	# Cross-Domain Misconfiguration
+10099	LOW	# Source Code Disclosure
+10104	LOW	# User Agent Fuzzer
+10105	LOW	# Weak Authentication Method
+10106	LOW	# HTTP Only Site
+10107	LOW	# Httpoxy - Proxy Header Misuse
+10108	LOW	# Reverse Tabnabbing
+10109	LOW	# Modern Web Application
+10110	LOW	# Dangerous JS Functions
+10202	LOW	# Absence of Anti-CSRF Tokens
+
+# Authentication and Session Management
+40003	MEDIUM	# CRLF Injection
+40008	MEDIUM	# Parameter Tampering
+40009	MEDIUM	# Server Side Include
+40012	MEDIUM	# Cross Site Scripting (Reflected)
+40013	MEDIUM	# Session Fixation
+40014	MEDIUM	# Cross Site Scripting (Persistent)
+40016	MEDIUM	# Cross Site Scripting (Persistent) - Prime
+40017	MEDIUM	# Cross Site Scripting (Persistent) - Spider
+40018	MEDIUM	# SQL Injection
+40019	MEDIUM	# SQL Injection - MySQL
+40020	MEDIUM	# SQL Injection - Hypersonic SQL
+40021	MEDIUM	# SQL Injection - Oracle
+40022	MEDIUM	# SQL Injection - PostgreSQL
+40023	MEDIUM	# Possible Username Enumeration
+40024	MEDIUM	# SQL Injection - SQLite
+40025	MEDIUM	# Proxy Disclosure
+40026	MEDIUM	# Cross Site Scripting (DOM Based)
+40027	MEDIUM	# SQL Injection - MsSQL
+40028	MEDIUM	# LDAP Injection
+40029	MEDIUM	# XPath Injection
+
+# Disable rules that may cause false positives for modern SPAs
+10015	DISABLED	# Incomplete or No Cache-control and Pragma HTTP Header Set
+10019	DISABLED	# Content Type Missing
+10024	DISABLED	# Web Browser XSS Protection Not Enabled
+10039	DISABLED	# Web Application Potentially Vulnerable to Clickjacking
+10053	DISABLED	# Apache Range Header DoS (CVE-2011-3192)
+10059	DISABLED	# HttpOnly cookie security missing
+10060	DISABLED	# Secure cookie security missing

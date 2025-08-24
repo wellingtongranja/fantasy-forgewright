@@ -1,0 +1,166 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_run:
+    workflows: ["Continuous Integration"]
+    types: [completed]
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run E2E tests
+      run: npm run test:e2e
+      env:
+        GITHUB_TEST_TOKEN: ${{ secrets.GITHUB_TEST_TOKEN }}
+    
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+        VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
+        VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+        VITE_DOMAIN: forgewright.io
+    
+    - name: Deploy to Cloudflare Pages
+      id: deploy
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: fantasy-editor
+        directory: dist
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        wranglerVersion: '3'
+    
+    - name: Update DNS records
+      run: |
+        curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/${{ secrets.DNS_RECORD_ID }}" \
+        -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+        -H "Content-Type: application/json" \
+        --data '{"type":"CNAME","name":"@","content":"fantasy-editor.pages.dev","ttl":1}'
+      if: success()
+    
+    - name: Update WAF rules
+      run: npm run deploy:waf
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      if: success()
+    
+    - name: Wait for deployment
+      run: sleep 30
+    
+    - name: Run smoke tests
+      run: npm run test:smoke
+      env:
+        BASE_URL: https://forgewright.io
+      if: success()
+    
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "Deployment failed, initiating rollback..."
+        # Get previous successful deployment
+        PREV_DEPLOYMENT=$(gh api repos/${{ github.repository }}/deployments \
+          --jq '[.[] | select(.environment=="production" and .task=="deploy")][1].sha' || echo "")
+        
+        if [ -n "$PREV_DEPLOYMENT" ]; then
+          echo "Rolling back to: $PREV_DEPLOYMENT"
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/fantasy-editor/deployments" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"source_branch":"main","source_commit":"'$PREV_DEPLOYMENT'"}'
+        else
+          echo "No previous deployment found for rollback"
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  performance:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Lighthouse CI
+      uses: treosh/lighthouse-ci-action@v12
+      with:
+        urls: |
+          https://forgewright.io
+          https://forgewright.io/?theme=dark
+          https://forgewright.io/?theme=fantasy
+        configPath: './lighthouse.config.js'
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+        runs: 3
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  notify:
+    needs: [deploy, performance]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Notify deployment status
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            username: 'GitHub Actions',
+            icon_emoji: ':rocket:',
+            attachments: [{
+              color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+              fields: [{
+                title: 'Repository',
+                value: '${{ github.repository }}',
+                short: true
+              }, {
+                title: 'Branch',
+                value: '${{ github.ref_name }}',
+                short: true
+              }, {
+                title: 'Commit',
+                value: '<https://github.com/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>',
+                short: true
+              }, {
+                title: 'Status',
+                value: '${{ job.status }}',
+                short: true
+              }]
+            }]
+          }
+      if: env.SLACK_WEBHOOK != ''
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

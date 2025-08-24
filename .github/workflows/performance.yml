@@ -1,0 +1,332 @@
+name: Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package*.json'
+      - 'vite.config.js'
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Start preview server
+      run: |
+        npm run preview &
+        sleep 10
+        echo "Server started on http://localhost:4173"
+    
+    - name: Run Lighthouse CI
+      uses: treosh/lighthouse-ci-action@v12
+      with:
+        urls: |
+          http://localhost:4173
+          http://localhost:4173/?theme=dark
+          http://localhost:4173/?theme=fantasy
+          http://localhost:4173/?theme=light
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+        runs: 5
+        configPath: './lighthouse.config.js'
+      env:
+        LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+    
+    - name: Extract Lighthouse scores
+      run: |
+        echo "LIGHTHOUSE_PERFORMANCE=$(node -e 'console.log(require(\"./lhci_reports/manifest.json\")[0].summary.performance)')" >> $GITHUB_ENV
+        echo "LIGHTHOUSE_ACCESSIBILITY=$(node -e 'console.log(require(\"./lhci_reports/manifest.json\")[0].summary.accessibility)')" >> $GITHUB_ENV
+        echo "LIGHTHOUSE_BEST_PRACTICES=$(node -e 'console.log(require(\"./lhci_reports/manifest.json\")[0].summary[\"best-practices\"])')" >> $GITHUB_ENV
+        echo "LIGHTHOUSE_SEO=$(node -e 'console.log(require(\"./lhci_reports/manifest.json\")[0].summary.seo)')" >> $GITHUB_ENV
+      continue-on-error: true
+    
+    - name: Performance alert
+      if: env.LIGHTHOUSE_PERFORMANCE != '' && env.LIGHTHOUSE_PERFORMANCE < 0.9
+      run: |
+        echo "Performance score is below threshold: $LIGHTHOUSE_PERFORMANCE"
+        echo "PERFORMANCE_ALERT=true" >> $GITHUB_ENV
+
+  bundle-analysis:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Analyze bundle
+      run: |
+        npm run bundle-analyzer
+        
+        # Get bundle sizes
+        TOTAL_SIZE=$(du -sb dist | cut -f1)
+        JS_SIZE=$(find dist/assets -name "*.js" -exec du -cb {} + | tail -1 | cut -f1)
+        CSS_SIZE=$(find dist/assets -name "*.css" -exec du -cb {} + | tail -1 | cut -f1)
+        GZIPPED_SIZE=$(gzip -c dist/assets/*.js | wc -c)
+        
+        echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Size | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Total Bundle | $(($TOTAL_SIZE / 1024))KB | $([ $TOTAL_SIZE -lt 1048576 ] && echo "✅ Under 1MB limit" || echo "❌ Over 1MB limit") |" >> $GITHUB_STEP_SUMMARY
+        echo "| JavaScript | $(($JS_SIZE / 1024))KB | - |" >> $GITHUB_STEP_SUMMARY
+        echo "| CSS | $(($CSS_SIZE / 1024))KB | - |" >> $GITHUB_STEP_SUMMARY
+        echo "| Gzipped JS | $(($GZIPPED_SIZE / 1024))KB | - |" >> $GITHUB_STEP_SUMMARY
+        
+        echo "TOTAL_SIZE=$TOTAL_SIZE" >> $GITHUB_ENV
+        echo "JS_SIZE=$JS_SIZE" >> $GITHUB_ENV
+        echo "GZIPPED_SIZE=$GZIPPED_SIZE" >> $GITHUB_ENV
+    
+    - name: Upload bundle analysis
+      uses: actions/upload-artifact@v4
+      with:
+        name: bundle-analysis-${{ github.sha }}
+        path: |
+          dist/
+          bundle-analysis.html
+        retention-days: 30
+    
+    - name: Bundle size regression check
+      run: |
+        # Check if bundle size increased significantly
+        PREV_SIZE_FILE="previous-bundle-size.txt"
+        if [ -f "$PREV_SIZE_FILE" ]; then
+          PREV_SIZE=$(cat $PREV_SIZE_FILE)
+          INCREASE_PERCENT=$(echo "scale=2; ($TOTAL_SIZE - $PREV_SIZE) / $PREV_SIZE * 100" | bc)
+          
+          if (( $(echo "$INCREASE_PERCENT > 10" | bc -l) )); then
+            echo "Bundle size increased by ${INCREASE_PERCENT}%!"
+            echo "BUNDLE_REGRESSION=true" >> $GITHUB_ENV
+            echo "SIZE_INCREASE_PERCENT=$INCREASE_PERCENT" >> $GITHUB_ENV
+          fi
+        fi
+        
+        # Save current size for next comparison
+        echo "$TOTAL_SIZE" > $PREV_SIZE_FILE
+      continue-on-error: true
+
+  load-testing:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Start preview server
+      run: |
+        npm run preview &
+        sleep 10
+    
+    - name: Install Artillery
+      run: npm install -g artillery@latest
+    
+    - name: Run load tests
+      run: |
+        cat > load-test.yml << EOF
+        config:
+          target: 'http://localhost:4173'
+          phases:
+            - duration: 60
+              arrivalRate: 1
+            - duration: 120
+              arrivalRate: 5
+            - duration: 60
+              arrivalRate: 10
+          processor: "./test-functions.js"
+        scenarios:
+          - name: "Homepage Load"
+            weight: 70
+            flow:
+              - get:
+                  url: "/"
+              - think: 2
+              - get:
+                  url: "/?theme=dark"
+              - think: 3
+          - name: "App Navigation"
+            weight: 30
+            flow:
+              - get:
+                  url: "/app"
+              - think: 5
+        EOF
+        
+        cat > test-functions.js << EOF
+        module.exports = {
+          generateRandomSearch: function(context, events, done) {
+            const searches = ['fantasy', 'dragon', 'magic', 'spell', 'quest'];
+            context.vars.searchTerm = searches[Math.floor(Math.random() * searches.length)];
+            return done();
+          }
+        };
+        EOF
+        
+        artillery run load-test.yml --output load-test-results.json
+        artillery report load-test-results.json --output load-test-report.html
+    
+    - name: Upload load test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: load-test-results-${{ github.sha }}
+        path: |
+          load-test-results.json
+          load-test-report.html
+        retention-days: 30
+
+  web-vitals:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright
+      run: npx playwright install chromium
+    
+    - name: Collect Web Vitals
+      run: |
+        cat > web-vitals-test.js << EOF
+        const { chromium } = require('playwright');
+        
+        (async () => {
+          const browser = await chromium.launch();
+          const page = await browser.newPage();
+          
+          const vitals = [];
+          
+          await page.evaluateOnNewDocument(() => {
+            new PerformanceObserver((list) => {
+              for (const entry of list.getEntries()) {
+                if (entry.entryType === 'largest-contentful-paint') {
+                  window.lcp = entry.startTime;
+                }
+                if (entry.entryType === 'first-input') {
+                  window.fid = entry.processingStart - entry.startTime;
+                }
+                if (entry.entryType === 'layout-shift' && !entry.hadRecentInput) {
+                  window.cls = (window.cls || 0) + entry.value;
+                }
+              }
+            }).observe({entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift']});
+          });
+          
+          await page.goto('https://forgewright.io');
+          await page.waitForLoadState('networkidle');
+          await page.waitForTimeout(3000);
+          
+          const metrics = await page.evaluate(() => ({
+            lcp: window.lcp || 0,
+            fid: window.fid || 0,
+            cls: window.cls || 0,
+            fcp: performance.getEntriesByType('paint').find(p => p.name === 'first-contentful-paint')?.startTime || 0
+          }));
+          
+          console.log('Web Vitals:', metrics);
+          
+          // Create summary
+          const summary = [];
+          summary.push('## Web Vitals Report');
+          summary.push('| Metric | Value | Status |');
+          summary.push('|--------|-------|--------|');
+          summary.push(\`| LCP | \${metrics.lcp.toFixed(0)}ms | \${metrics.lcp < 2500 ? '✅ Good' : metrics.lcp < 4000 ? '⚠️ Needs Improvement' : '❌ Poor'} |\`);
+          summary.push(\`| FID | \${metrics.fid.toFixed(0)}ms | \${metrics.fid < 100 ? '✅ Good' : metrics.fid < 300 ? '⚠️ Needs Improvement' : '❌ Poor'} |\`);
+          summary.push(\`| CLS | \${metrics.cls.toFixed(3)} | \${metrics.cls < 0.1 ? '✅ Good' : metrics.cls < 0.25 ? '⚠️ Needs Improvement' : '❌ Poor'} |\`);
+          summary.push(\`| FCP | \${metrics.fcp.toFixed(0)}ms | \${metrics.fcp < 1800 ? '✅ Good' : metrics.fcp < 3000 ? '⚠️ Needs Improvement' : '❌ Poor'} |\`);
+          
+          require('fs').writeFileSync('web-vitals-summary.md', summary.join('\\n'));
+          
+          await browser.close();
+        })();
+        EOF
+        
+        node web-vitals-test.js
+        
+        echo "$(cat web-vitals-summary.md)" >> $GITHUB_STEP_SUMMARY
+
+  notify-performance:
+    needs: [lighthouse, bundle-analysis]
+    runs-on: ubuntu-latest
+    if: always() && (env.PERFORMANCE_ALERT == 'true' || env.BUNDLE_REGRESSION == 'true')
+    steps:
+    - name: Notify performance issues
+      uses: 8398a7/action-slack@v3
+      with:
+        status: warning
+        channel: '#performance'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            username: 'Performance Monitor',
+            icon_emoji: ':chart_with_downwards_trend:',
+            attachments: [{
+              color: 'warning',
+              title: '⚡ Performance Alert',
+              fields: [{
+                title: 'Repository',
+                value: '${{ github.repository }}',
+                short: true
+              }, {
+                title: 'Issue',
+                value: '${{ env.PERFORMANCE_ALERT == "true" && "Lighthouse score below 90%" || "" }}${{ env.BUNDLE_REGRESSION == "true" && format("Bundle size increased by {0}%", env.SIZE_INCREASE_PERCENT) || "" }}',
+                short: true
+              }, {
+                title: 'Branch',
+                value: '${{ github.ref_name }}',
+                short: true
+              }, {
+                title: 'Action Required',
+                value: 'Review performance metrics and optimize application',
+                short: false
+              }]
+            }]
+          }
+      if: env.SLACK_WEBHOOK != ''
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

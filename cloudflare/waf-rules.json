@@ -1,0 +1,109 @@
+{
+  "rules": [
+    {
+      "id": "rate-limit-api",
+      "description": "Rate limit API calls to prevent abuse",
+      "expression": "(http.request.uri.path matches \"^/api/.*\" and rate_limit(\"api_rate_limit\", 100, \"1m\", 1))",
+      "action": "challenge",
+      "priority": 1000
+    },
+    {
+      "id": "block-common-attacks",
+      "description": "Block common web application attacks",
+      "expression": "(http.request.uri.query contains \"<script\" or http.request.uri.query contains \"javascript:\" or http.request.uri.query contains \"eval(\" or http.request.uri.query contains \"union select\")",
+      "action": "block",
+      "priority": 2000
+    },
+    {
+      "id": "block-sql-injection",
+      "description": "Block SQL injection attempts",
+      "expression": "(http.request.uri.query matches \"(?i).*(union|select|insert|delete|update|drop|create|alter|exec|execute).*\" or http.request.body matches \"(?i).*(union|select|insert|delete|update|drop|create|alter|exec|execute).*\")",
+      "action": "block",
+      "priority": 2100
+    },
+    {
+      "id": "block-xss-attempts",
+      "description": "Block XSS attempts",
+      "expression": "(http.request.uri.query contains \"<script\" or http.request.uri.query contains \"javascript:\" or http.request.uri.query contains \"onerror=\" or http.request.uri.query contains \"onload=\" or http.request.body contains \"<script\" or http.request.body contains \"javascript:\")",
+      "action": "block",
+      "priority": 2200
+    },
+    {
+      "id": "block-file-inclusion",
+      "description": "Block local/remote file inclusion attempts",
+      "expression": "(http.request.uri.query contains \"../\" or http.request.uri.query contains \"..\\\\\" or http.request.uri.query matches \".*\\.(php|asp|aspx|jsp|cgi).*\" or http.request.uri.query contains \"file://\" or http.request.uri.query contains \"http://\" or http.request.uri.query contains \"https://\")",
+      "action": "block",
+      "priority": 2300
+    },
+    {
+      "id": "block-command-injection",
+      "description": "Block command injection attempts",
+      "expression": "(http.request.uri.query matches \".*[;&|`$(){}\\[\\]\\\\].*\" or http.request.body matches \".*[;&|`$(){}\\[\\]\\\\].*\")",
+      "action": "block",
+      "priority": 2400
+    },
+    {
+      "id": "rate-limit-auth",
+      "description": "Rate limit authentication endpoints",
+      "expression": "(http.request.uri.path matches \"^/(auth|login|signin).*\" and rate_limit(\"auth_rate_limit\", 10, \"1m\", 1))",
+      "action": "challenge",
+      "priority": 1100
+    },
+    {
+      "id": "block-bot-attacks",
+      "description": "Block malicious bot traffic",
+      "expression": "(http.user_agent contains \"curl\" or http.user_agent contains \"wget\" or http.user_agent contains \"python\" or http.user_agent contains \"perl\" or http.user_agent contains \"java\") and not (cf.verified_bot_category in {\"Search Engine\" \"AI Crawler\"})",
+      "action": "challenge",
+      "priority": 1200
+    },
+    {
+      "id": "allow-search-engines",
+      "description": "Allow legitimate search engine bots",
+      "expression": "cf.verified_bot_category in {\"Search Engine\" \"AI Crawler\"}",
+      "action": "allow",
+      "priority": 100
+    },
+    {
+      "id": "geo-block-high-risk",
+      "description": "Block traffic from high-risk countries",
+      "expression": "ip.geoip.country in {\"CN\" \"RU\" \"KP\" \"IR\"} and not cf.verified_bot_category in {\"Search Engine\" \"AI Crawler\"}",
+      "action": "challenge",
+      "priority": 900
+    },
+    {
+      "id": "protect-admin-paths",
+      "description": "Protect administrative paths",
+      "expression": "(http.request.uri.path matches \"^/(admin|wp-admin|phpmyadmin|cpanel).*\")",
+      "action": "block",
+      "priority": 3000
+    },
+    {
+      "id": "block-suspicious-extensions",
+      "description": "Block requests for suspicious file extensions",
+      "expression": "(http.request.uri.path matches \".*\\.(php|asp|aspx|jsp|cgi|pl|py|sh|bat|exe|dll)$\")",
+      "action": "block",
+      "priority": 3100
+    },
+    {
+      "id": "rate-limit-global",
+      "description": "Global rate limiting per IP",
+      "expression": "rate_limit(\"global_rate_limit\", 300, \"1m\", 1)",
+      "action": "challenge",
+      "priority": 800
+    },
+    {
+      "id": "challenge-tor-users",
+      "description": "Challenge Tor network users",
+      "expression": "cf.threat_score > 10 or cf.bot_management.corporate_proxy",
+      "action": "challenge",
+      "priority": 1300
+    },
+    {
+      "id": "protect-api-endpoints",
+      "description": "Enhanced protection for API endpoints",
+      "expression": "(http.request.uri.path matches \"^/api/.*\" and http.request.method in {\"POST\" \"PUT\" \"DELETE\" \"PATCH\"} and rate_limit(\"api_write_rate_limit\", 20, \"1m\", 1))",
+      "action": "challenge",
+      "priority": 1050
+    }
+  ]
+}

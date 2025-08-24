@@ -1,6 +1,6 @@
 {
   "name": "fantasy-editor-api",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Backend API for Fantasy Editor GitHub OAuth",
   "main": "server.js",
   "type": "module",

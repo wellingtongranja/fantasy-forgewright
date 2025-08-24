@@ -1383,9 +1383,9 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         return {
           success: true,
-          message: 'Fantasy Editor v1.0.0',
+          message: 'Fantasy Editor v0.0.1-alpha',
           data: {
-            version: '1.0.0',
+            version: '0.0.1-alpha',
             build: 'development',
             features: ['PWA', 'Offline Storage', 'Multi-theme', 'Command Palette', 'GUID System', 'Readonly Documents']
           }

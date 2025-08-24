@@ -1,6 +1,6 @@
 {
   "name": "fantasy-forgewright",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A distraction-free, keyboard-first markdown editor for fantasy writers",
   "main": "src/app.js",
   "type": "module",
@@ -19,7 +19,14 @@
     "format": "prettier --write src/**/*.{js,css,html,md}",
     "format:check": "prettier --check src/**/*.{js,css,html,md}",
     "bundle-analyzer": "vite-bundle-analyzer dist",
-    "security-audit": "npm audit --audit-level=moderate"
+    "security-audit": "npm audit --audit-level=moderate",
+    "test:smoke": "playwright test --grep='smoke'",
+    "test:a11y": "axe-playwright",
+    "test:bundle-size": "bundlesize",
+    "analyze-bundle": "npm run bundle-analyzer",
+    "deploy:waf": "node scripts/deploy-waf.js",
+    "uptime-check": "node scripts/uptime-check.js",
+    "prepare": "husky install"
   },
   "keywords": [
     "markdown",
@@ -49,6 +56,10 @@
     "lunr": "^2.3.9"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.8.2",
+    "bundlesize": "^0.18.1",
+    "husky": "^8.0.3",
+    "license-checker": "^25.0.1",
     "@babel/core": "^7.28.3",
     "@babel/preset-env": "^7.28.3",
     "@playwright/test": "^1.40.1",
@@ -72,8 +83,21 @@
     "not dead"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   },
+  "bundlesize": [
+    {
+      "path": "dist/assets/*.js",
+      "maxSize": "800kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/*.css",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    }
+  ],
   "directories": {
     "doc": "docs",
     "test": "tests"

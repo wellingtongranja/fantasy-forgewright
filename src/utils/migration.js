@@ -223,7 +223,7 @@ export class MigrationManager {
       const backup = {
         id: backupId,
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        version: '0.0.1',
         documents: allDocuments,
         count: allDocuments.length
       }
