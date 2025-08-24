@@ -229,6 +229,15 @@ export function registerGitHubCommands(registry, app) {
           // This would be implemented in the SyncManager
           if (app.syncManager) {
             const result = await app.syncManager.syncWithGitHub()
+            
+            // Update Navigator after sync operations
+            if (app.navigator) {
+              app.navigator.refresh()
+            }
+
+            // Update GitHub UI to reflect sync status changes
+            app.updateGitHubUI()
+
             return {
               success: true,
               message: 'GitHub sync completed',
@@ -305,6 +314,14 @@ export function registerGitHubCommands(registry, app) {
             app.currentDocument = updatedDoc
           }
 
+          // Update Navigator to reflect new sync status
+          if (app.navigator) {
+            app.navigator.onDocumentSave(updatedDoc)
+          }
+
+          // Update GitHub UI to reflect sync status changes
+          app.updateGitHubUI()
+
           return {
             success: true,
             message: `Document "${doc.title}" pushed to GitHub successfully`
@@ -355,7 +372,15 @@ export function registerGitHubCommands(registry, app) {
             const document = await app.githubStorage.loadDocument(
               `${app.githubStorage.documentsPath}/${filename}`
             )
-            await app.storageManager.saveDocument(document)
+            const savedDoc = await app.storageManager.saveDocument(document)
+
+            // Update Navigator to show newly pulled document
+            if (app.navigator) {
+              app.navigator.onDocumentSave(savedDoc)
+            }
+
+            // Update GitHub UI
+            app.updateGitHubUI()
 
             return {
               success: true,
