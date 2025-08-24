@@ -2,6 +2,9 @@
  * CommandBar - VS Code-style command palette for Fantasy Editor
  * Triggered by Ctrl+Space, provides fuzzy search for all editor commands
  */
+
+import './command-bar.css'
+
 export class CommandBar {
   constructor(commandRegistry) {
     this.commandRegistry = commandRegistry
@@ -24,7 +27,6 @@ export class CommandBar {
   init() {
     this.createDOM()
     this.attachEventListeners()
-    this.injectStyles()
   }
 
   /**
@@ -58,13 +60,6 @@ export class CommandBar {
   /**
    * Inject CSS styles
    */
-  injectStyles() {
-    const linkElement = document.createElement('link')
-    linkElement.rel = 'stylesheet'
-    linkElement.href = '/src/components/command-bar/command-bar.css'
-    document.head.appendChild(linkElement)
-  }
-
   /**
    * Attach all event listeners
    */
