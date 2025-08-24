@@ -16,8 +16,8 @@
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
-    "format": "prettier --write src/**/*.{js,css,html,md}",
-    "format:check": "prettier --check src/**/*.{js,css,html,md}",
+    "format": "prettier --write src/**/*.{js,css}",
+    "format:check": "prettier --check src/**/*.{js,css}",
     "bundle-analyzer": "vite-bundle-analyzer dist",
     "security-audit": "npm audit --audit-level=moderate",
     "test:smoke": "playwright test --grep='smoke'",
@@ -26,6 +26,11 @@
     "analyze-bundle": "npm run bundle-analyzer",
     "deploy:waf": "node scripts/deploy-waf.js",
     "uptime-check": "node scripts/uptime-check.js",
+    "test:deployment": "npm run test:deployment-config && npm run test:deployment-build && npm run test:deployment-runtime",
+    "test:deployment-config": "jest tests/deployment/config-validation.test.js",
+    "test:deployment-build": "jest tests/deployment/build-integrity.test.js",
+    "test:deployment-runtime": "jest tests/deployment/production-simulation.test.js",
+    "validate:deployment": "node scripts/test-deployment-safeguards.cjs",
     "prepare": "husky install || exit 0"
   },
   "keywords": [
@@ -72,6 +77,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "js-yaml": "^4.1.0",
     "license-checker": "^25.0.1",
     "prettier": "^3.1.0",
     "vite-bundle-analyzer": "^0.7.0"
@@ -82,7 +88,7 @@
     "not dead"
   ],
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.0.0",
     "npm": ">=8.0.0"
   },
   "bundlesize": [
