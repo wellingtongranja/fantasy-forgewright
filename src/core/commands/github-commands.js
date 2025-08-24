@@ -298,12 +298,15 @@ export function registerGitHubCommands(registry, app) {
 
           const result = await app.githubStorage.saveDocument(doc)
 
+          // Set sync timestamp to ensure it's after the local save
+          const syncTimestamp = new Date().toISOString()
+
           // Update local document with GitHub metadata
           const updatedDoc = {
             ...doc,
             githubSha: result.document.githubSha,
             githubPath: result.document.githubPath,
-            lastSyncedAt: result.document.lastSyncedAt
+            lastSyncedAt: syncTimestamp
           }
 
           // Save updated document locally with GitHub metadata
