@@ -52,13 +52,8 @@ jobs:
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
         wranglerVersion: '3'
     
-    - name: Update DNS records
-      run: |
-        curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/${{ secrets.DNS_RECORD_ID }}" \
-        -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-        -H "Content-Type: application/json" \
-        --data '{"type":"CNAME","name":"fantasy","content":"fantasy-editor.pages.dev","ttl":1}'
-      if: success()
+    # DNS record already configured manually in Cloudflare
+    # The CNAME fantasy.forgewright.io → fantasy-editor.pages.dev is set up
     
     - name: Update WAF rules
       run: npm run deploy:waf
