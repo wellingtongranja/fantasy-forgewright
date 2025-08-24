@@ -319,9 +319,9 @@ export function registerGitHubCommands(registry, app) {
             app.currentDocument = updatedDoc
           }
 
-          // Update Navigator to reflect new sync status
-          if (app.navigator) {
-            app.navigator.onDocumentSave(updatedDoc)
+          // Update Navigator to reflect new sync status - use refresh to ensure fresh data from IndexedDB
+          if (app.navigator && app.navigator.tabComponents && app.navigator.tabComponents['documents']) {
+            await app.navigator.tabComponents['documents'].refresh()
           }
 
           // Update GitHub UI to reflect sync status changes
