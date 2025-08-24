@@ -34,7 +34,7 @@ jobs:
       env:
         NODE_ENV: production
         VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
-        VITE_GITHUB_REDIRECT_URI: https://fantasy.forgewright.io/auth/callback
+        VITE_GITHUB_REDIRECT_URI: https://fantasy.forgewright.io/
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         VITE_DOMAIN: fantasy.forgewright.io
         VITE_BASE_URL: https://fantasy.forgewright.io
