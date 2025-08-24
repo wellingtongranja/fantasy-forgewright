@@ -296,14 +296,16 @@ export function registerGitHubCommands(registry, app) {
           // Ensure document is saved locally first
           await app.saveDocument()
 
-          const result = await app.githubStorage.saveDocument(doc)
+          // Get the current document state after local save to ensure we have latest metadata
+          const currentDoc = app.currentDocument
+          const result = await app.githubStorage.saveDocument(currentDoc)
 
           // Set sync timestamp to ensure it's after the local save
           const syncTimestamp = new Date().toISOString()
 
           // Update local document with GitHub metadata
           const updatedDoc = {
-            ...doc,
+            ...currentDoc,
             githubSha: result.document.githubSha,
             githubPath: result.document.githubPath,
             lastSyncedAt: syncTimestamp
@@ -313,7 +315,7 @@ export function registerGitHubCommands(registry, app) {
           await app.storageManager.saveDocument(updatedDoc)
 
           // Update current document if it's the same one
-          if (app.currentDocument && app.currentDocument.id === doc.id) {
+          if (app.currentDocument && app.currentDocument.id === currentDoc.id) {
             app.currentDocument = updatedDoc
           }
 
@@ -327,7 +329,7 @@ export function registerGitHubCommands(registry, app) {
 
           return {
             success: true,
-            message: `Document "${doc.title}" pushed to Git repository successfully`
+            message: `Document "${currentDoc.title}" pushed to Git repository successfully`
           }
         } catch (error) {
           return {
