@@ -3,6 +3,10 @@
  * Features: Documents list, Document outline, and Search functionality
  */
 
+import { DocumentsTab } from './tabs/documents-tab.js'
+import { OutlineTab } from './tabs/outline-tab.js'
+import { SearchTab } from './tabs/search-tab.js'
+
 export class Navigator {
   constructor(container, app) {
     this.container = container
@@ -74,31 +78,27 @@ export class Navigator {
   }
 
   initializeTabs() {
-    // Lazy load tab components
-    Promise.all([
-      import('./tabs/documents-tab.js'),
-      import('./tabs/outline-tab.js'),
-      import('./tabs/search-tab.js')
-    ])
-      .then(([documentsModule, outlineModule, searchModule]) => {
-        // Initialize Documents tab
-        const documentsContainer = document.getElementById('documents-tab-content')
-        this.tabComponents.documents = new documentsModule.DocumentsTab(
-          documentsContainer,
-          this.app
-        )
+    try {
+      // Initialize Documents tab
+      const documentsContainer = document.getElementById('documents-tab-content')
+      if (documentsContainer) {
+        this.tabComponents.documents = new DocumentsTab(documentsContainer, this.app)
+      }
 
-        // Initialize Outline tab
-        const outlineContainer = document.getElementById('outline-tab-content')
-        this.tabComponents.outline = new outlineModule.OutlineTab(outlineContainer, this.app)
+      // Initialize Outline tab
+      const outlineContainer = document.getElementById('outline-tab-content')
+      if (outlineContainer) {
+        this.tabComponents.outline = new OutlineTab(outlineContainer, this.app)
+      }
 
-        // Initialize Search tab
-        const searchContainer = document.getElementById('search-tab-content')
-        this.tabComponents.search = new searchModule.SearchTab(searchContainer, this.app)
-      })
-      .catch((error) => {
-        console.error('Failed to initialize navigator tabs:', error)
-      })
+      // Initialize Search tab
+      const searchContainer = document.getElementById('search-tab-content')
+      if (searchContainer) {
+        this.tabComponents.search = new SearchTab(searchContainer, this.app)
+      }
+    } catch (error) {
+      console.error('Failed to initialize navigator tabs:', error)
+    }
   }
 
   attachEventListeners() {
