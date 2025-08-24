@@ -256,7 +256,7 @@ jobs:
             }).observe({entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift']});
           });
           
-          await page.goto('https://forgewright.io');
+          await page.goto('https://fantasy.forgewright.io');
           await page.waitForLoadState('networkidle');
           await page.waitForTimeout(3000);
           

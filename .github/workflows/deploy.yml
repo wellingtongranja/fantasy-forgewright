@@ -36,8 +36,10 @@ jobs:
       env:
         NODE_ENV: production
         VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
+        VITE_GITHUB_REDIRECT_URI: https://fantasy.forgewright.io/auth/callback
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-        VITE_DOMAIN: forgewright.io
+        VITE_DOMAIN: fantasy.forgewright.io
+        VITE_BASE_URL: https://fantasy.forgewright.io
     
     - name: Deploy to Cloudflare Pages
       id: deploy
@@ -55,7 +57,7 @@ jobs:
         curl -X PUT "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/dns_records/${{ secrets.DNS_RECORD_ID }}" \
         -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
         -H "Content-Type: application/json" \
-        --data '{"type":"CNAME","name":"@","content":"fantasy-editor.pages.dev","ttl":1}'
+        --data '{"type":"CNAME","name":"fantasy","content":"fantasy-editor.pages.dev","ttl":1}'
       if: success()
     
     - name: Update WAF rules
@@ -71,7 +73,7 @@ jobs:
     - name: Run smoke tests
       run: npm run test:smoke
       env:
-        BASE_URL: https://forgewright.io
+        BASE_URL: https://fantasy.forgewright.io
       if: success()
     
     - name: Rollback on failure
