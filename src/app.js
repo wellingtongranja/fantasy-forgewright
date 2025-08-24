@@ -52,7 +52,6 @@ class FantasyEditorApp {
 
   async init() {
     try {
-      this.registerServiceWorker()
       await this.initializeManagers()
       this.attachEventListeners()
       await this.loadInitialDocument()
@@ -83,18 +82,6 @@ class FantasyEditorApp {
     }
   }
 
-  async registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register(
-          '/src/workers/service-worker.js'
-        )
-        console.log('Service Worker registered:', registration)
-      } catch (error) {
-        console.error('Service Worker registration failed:', error)
-      }
-    }
-  }
 
   async initializeManagers() {
     // Initialize theme manager first (needed by other components)
