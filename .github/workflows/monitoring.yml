@@ -27,7 +27,7 @@ jobs:
     - name: Run uptime monitoring
       run: npm run uptime-check
       env:
-        BASE_URL: https://forgewright.io
+        BASE_URL: https://fantasy.forgewright.io
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
       continue-on-error: true
     
@@ -47,7 +47,7 @@ jobs:
     steps:
     - name: Check SSL certificate validity
       run: |
-        DOMAIN="forgewright.io"
+        DOMAIN="fantasy.forgewright.io"
         EXPIRY_DATE=$(echo | openssl s_client -servername $DOMAIN -connect $DOMAIN:443 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
         EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s)
         CURRENT_EPOCH=$(date +%s)
@@ -88,7 +88,7 @@ jobs:
               title: '🔒 SSL Certificate Expiry Alert',
               fields: [{
                 title: 'Domain',
-                value: 'forgewright.io',
+                value: 'fantasy.forgewright.io',
                 short: true
               }, {
                 title: 'Days Until Expiry',
@@ -108,7 +108,7 @@ jobs:
     steps:
     - name: Check DNS resolution
       run: |
-        DOMAIN="forgewright.io"
+        DOMAIN="fantasy.forgewright.io"
         
         # Check A record
         A_RECORD=$(dig +short A $DOMAIN)
@@ -159,7 +159,7 @@ jobs:
               title: '🌐 DNS Resolution Issue',
               fields: [{
                 title: 'Domain',
-                value: 'forgewright.io',
+                value: 'fantasy.forgewright.io',
                 short: true
               }, {
                 title: 'Issue',
