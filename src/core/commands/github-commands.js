@@ -319,9 +319,11 @@ export function registerGitHubCommands(registry, app) {
             app.currentDocument = updatedDoc
           }
 
-          // Update Navigator to reflect new sync status - use refresh to ensure fresh data from IndexedDB
+          // Update Navigator to reflect new sync status - wait a bit to ensure IndexedDB write completes
           if (app.navigator && app.navigator.tabComponents && app.navigator.tabComponents['documents']) {
-            await app.navigator.tabComponents['documents'].refresh()
+            setTimeout(() => {
+              app.navigator.tabComponents['documents'].refresh()
+            }, 100)
           }
 
           // Update GitHub UI to reflect sync status changes
