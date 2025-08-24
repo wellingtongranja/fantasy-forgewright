@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
     
     steps:
     - uses: actions/checkout@v4
@@ -64,7 +64,7 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
-      if: matrix.node-version == '18.x'
+      if: matrix.node-version == '20.x'
 
   security:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
     
     - name: Install dependencies
@@ -111,7 +111,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
     
     - name: Install dependencies
@@ -135,3 +135,53 @@ jobs:
         runs: 3
       env:
         LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  deployment-readiness:
+    runs-on: ubuntu-latest
+    name: Deployment Readiness Validation
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run deployment configuration validation
+      run: npm test -- tests/deployment/config-validation.test.js
+      continue-on-error: false
+    
+    - name: Run build integrity tests
+      run: npm test -- tests/deployment/build-integrity.test.js
+      continue-on-error: false
+    
+    - name: Run production simulation tests
+      run: npm test -- tests/deployment/production-simulation.test.js
+      continue-on-error: false
+    
+    - name: Generate deployment readiness report
+      run: |
+        echo "## 🚀 Deployment Readiness Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Configuration validation passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Build integrity tests passed" >> $GITHUB_STEP_SUMMARY  
+        echo "✅ Production simulation tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status**: Ready for deployment 🎉" >> $GITHUB_STEP_SUMMARY
+      if: success()
+    
+    - name: Report deployment issues
+      run: |
+        echo "## ❌ Deployment Readiness Issues Found" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status**: Not ready for deployment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Please fix the failing tests before deploying to production." >> $GITHUB_STEP_SUMMARY
+        echo "See test output above for specific issues and fixes." >> $GITHUB_STEP_SUMMARY
+      if: failure()

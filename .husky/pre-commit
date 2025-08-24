@@ -1,0 +1,57 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit deployment validation..."
+
+# Run deployment configuration validation
+echo "📋 Validating deployment configuration..."
+npm test -- tests/deployment/config-validation.test.js --silent
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ DEPLOYMENT VALIDATION FAILED"
+  echo "Configuration issues found that would cause deployment failures."
+  echo "Please fix the issues above before committing."
+  echo ""
+  exit 1
+fi
+
+# Run linting to ensure code quality (allow warnings, fail on errors only)
+echo "🧹 Running linter..."
+npm run lint -- --max-warnings=200
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ LINTING FAILED"
+  echo "Critical linting errors found - please fix before committing."
+  echo ""
+  exit 1
+fi
+
+# Run formatting check
+echo "💅 Checking code formatting..."
+npm run format:check
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ FORMATTING CHECK FAILED"
+  echo "Code is not properly formatted. Run 'npm run format' to fix."
+  echo ""
+  exit 1
+fi
+
+# Test production build (quick check)
+echo "🏗️ Testing production build..."
+NODE_ENV=production npm run build > /dev/null 2>&1
+BUILD_EXIT_CODE=$?
+
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo "❌ PRODUCTION BUILD FAILED"
+  echo "The production build would fail with current changes."
+  echo "Please fix build issues before committing."
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+echo "🚀 Safe to commit - deployment validation successful."
+echo ""
