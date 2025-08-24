@@ -15,8 +15,16 @@ export class SystemDocumentsLoader {
   async loadSystemDocuments() {
     const documents = [
       { id: 'help', filename: 'help.md', title: 'Fantasy Editor Help' },
-      { id: 'license-agpl', filename: 'license-agpl.md', title: 'AGPL v3 License (Community Edition)' },
-      { id: 'license-commercial', filename: 'license-commercial.md', title: 'Commercial License Terms' },
+      {
+        id: 'license-agpl',
+        filename: 'license-agpl.md',
+        title: 'AGPL v3 License (Community Edition)'
+      },
+      {
+        id: 'license-commercial',
+        filename: 'license-commercial.md',
+        title: 'Commercial License Terms'
+      },
       { id: 'eula', filename: 'eula.md', title: 'End User License Agreement' },
       { id: 'privacy', filename: 'privacy-policy.md', title: 'Privacy Policy' },
       { id: 'release-notes', filename: 'release-notes.md', title: 'Release Notes' }
@@ -66,11 +74,11 @@ export class SystemDocumentsLoader {
    */
   getTagsForDocument(systemId) {
     const tagMap = {
-      'help': ['help', 'documentation', 'commands'],
+      help: ['help', 'documentation', 'commands'],
       'license-agpl': ['license', 'legal', 'agpl'],
       'license-commercial': ['license', 'commercial', 'premium'],
-      'eula': ['legal', 'agreement', 'terms'],
-      'privacy': ['privacy', 'legal', 'data'],
+      eula: ['legal', 'agreement', 'terms'],
+      privacy: ['privacy', 'legal', 'data'],
       'release-notes': ['updates', 'version', 'changelog']
     }
     return tagMap[systemId] || []

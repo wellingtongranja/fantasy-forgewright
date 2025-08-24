@@ -42,7 +42,8 @@ export function registerGitHubCommands(registry, app) {
                 'Storage Configured': storageConfig.configured ? 'Yes ✅' : 'No ❌',
                 'Owner Set': storageConfig.owner ? `${storageConfig.owner} ✅` : 'Missing ❌',
                 'Repo Set': storageConfig.repo ? `${storageConfig.repo} ✅` : 'Missing ❌',
-                'Sync Indicators Should Show': (status.authenticated && storageConfig.configured) ? 'YES ✅' : 'NO ❌'
+                'Sync Indicators Should Show':
+                  status.authenticated && storageConfig.configured ? 'YES ✅' : 'NO ❌'
               }
             }
           }
@@ -229,7 +230,7 @@ export function registerGitHubCommands(registry, app) {
           // This would be implemented in the SyncManager
           if (app.syncManager) {
             const result = await app.syncManager.syncWithGitHub()
-            
+
             // Update Navigator after sync operations
             if (app.navigator) {
               app.navigator.refresh()
@@ -295,7 +296,7 @@ export function registerGitHubCommands(registry, app) {
         try {
           // Ensure document is saved locally first
           const savedDoc = await app.saveDocument()
-          
+
           // Use the saved document (which has the updated metadata.modified)
           const docToSync = savedDoc || app.currentDocument
           const result = await app.githubStorage.saveDocument(docToSync)

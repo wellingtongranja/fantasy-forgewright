@@ -88,7 +88,7 @@ describe('Navigator Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     mockContainer = new HTMLElement()
     mockApp = {
       editor: { focus: jest.fn(), view: {} },
@@ -114,8 +114,16 @@ describe('Navigator Component', () => {
     mockContainer.querySelectorAll = jest.fn((selector) => {
       const mockElementArrays = {
         '.navigator-tab': [
-          { dataset: { tab: 'documents' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() },
-          { dataset: { tab: 'outline' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() },
+          {
+            dataset: { tab: 'documents' },
+            classList: { toggle: jest.fn() },
+            setAttribute: jest.fn()
+          },
+          {
+            dataset: { tab: 'outline' },
+            classList: { toggle: jest.fn() },
+            setAttribute: jest.fn()
+          },
           { dataset: { tab: 'search' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() }
         ],
         '.navigator-panel': [
@@ -202,7 +210,11 @@ describe('Navigator Component', () => {
 
     it('should update tab button states', () => {
       const mockTabs = [
-        { dataset: { tab: 'documents' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() },
+        {
+          dataset: { tab: 'documents' },
+          classList: { toggle: jest.fn() },
+          setAttribute: jest.fn()
+        },
         { dataset: { tab: 'outline' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() },
         { dataset: { tab: 'search' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() }
       ]
@@ -211,17 +223,17 @@ describe('Navigator Component', () => {
         { dataset: { panel: 'outline' }, classList: { toggle: jest.fn() } },
         { dataset: { panel: 'search' }, classList: { toggle: jest.fn() } }
       ]
-      
+
       // Mock querySelectorAll to return appropriate elements based on selector
       jest.spyOn(navigator.container, 'querySelectorAll').mockImplementation((selector) => {
         if (selector === '.navigator-tab') return mockTabs
         if (selector === '.navigator-panel') return mockPanels
         return []
       })
-      
+
       navigator.switchTab('outline')
 
-      mockTabs.forEach(tab => {
+      mockTabs.forEach((tab) => {
         expect(tab.classList.toggle).toHaveBeenCalled()
         expect(tab.setAttribute).toHaveBeenCalled()
       })
@@ -229,7 +241,11 @@ describe('Navigator Component', () => {
 
     it('should update panel states', () => {
       const mockTabs = [
-        { dataset: { tab: 'documents' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() },
+        {
+          dataset: { tab: 'documents' },
+          classList: { toggle: jest.fn() },
+          setAttribute: jest.fn()
+        },
         { dataset: { tab: 'outline' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() },
         { dataset: { tab: 'search' }, classList: { toggle: jest.fn() }, setAttribute: jest.fn() }
       ]
@@ -238,17 +254,17 @@ describe('Navigator Component', () => {
         { dataset: { panel: 'outline' }, classList: { toggle: jest.fn() } },
         { dataset: { panel: 'search' }, classList: { toggle: jest.fn() } }
       ]
-      
+
       // Mock querySelectorAll to return appropriate elements based on selector
       jest.spyOn(navigator.container, 'querySelectorAll').mockImplementation((selector) => {
         if (selector === '.navigator-tab') return mockTabs
         if (selector === '.navigator-panel') return mockPanels
         return []
       })
-      
+
       navigator.switchTab('search')
 
-      mockPanels.forEach(panel => {
+      mockPanels.forEach((panel) => {
         expect(panel.classList.toggle).toHaveBeenCalled()
       })
     })
@@ -270,7 +286,7 @@ describe('Navigator Component', () => {
     it('should update pin button styling', () => {
       const mockPinBtn = { classList: { toggle: jest.fn() }, title: '' }
       jest.spyOn(navigator.container, 'querySelector').mockReturnValue(mockPinBtn)
-      
+
       navigator.togglePin()
 
       expect(mockPinBtn.classList.toggle).toHaveBeenCalledWith('active', true)
@@ -345,7 +361,7 @@ describe('Navigator Component', () => {
           }
         })
       }
-      
+
       // Capture event handlers
       document.addEventListener = jest.fn((event, handler) => {
         if (event === 'mousemove') mouseMoveHandler = handler
@@ -392,10 +408,11 @@ describe('Navigator Component', () => {
       // Clear any existing event listeners
       document.addEventListener.mockClear()
       navigator.setupAutoUnhide()
-      
+
       // Find the mousemove handler that was registered
-      const mouseMoveCall = document.addEventListener.mock.calls
-        .find(call => call[0] === 'mousemove')
+      const mouseMoveCall = document.addEventListener.mock.calls.find(
+        (call) => call[0] === 'mousemove'
+      )
       mouseMoveHandler = mouseMoveCall ? mouseMoveCall[1] : null
     })
 
@@ -618,8 +635,9 @@ describe('Navigator Component', () => {
 
     beforeEach(() => {
       // Get keyboard event handler
-      const keydownCalls = mockContainer.addEventListener.mock.calls
-        .filter(call => call[0] === 'keydown')
+      const keydownCalls = mockContainer.addEventListener.mock.calls.filter(
+        (call) => call[0] === 'keydown'
+      )
       keydownHandler = keydownCalls[0] ? keydownCalls[0][1] : null
     })
 

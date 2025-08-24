@@ -10,7 +10,7 @@ export class GitHubAuthButton {
 
     this.element = null
     this.currentUser = null
-    
+
     // Bind event handlers to maintain correct context
     this.handleAuthStateChange = this.refresh.bind(this)
 
@@ -140,7 +140,7 @@ export class GitHubAuthButton {
   destroy() {
     // Remove event listeners
     window.removeEventListener('github-auth-state-changed', this.handleAuthStateChange)
-    
+
     if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element)
     }

@@ -28,17 +28,17 @@ export class ExportManager {
       case 'md':
       case 'markdown':
         return this.exportAsMarkdown(title, content, doc, options)
-      
+
       case 'txt':
       case 'text':
         return this.exportAsText(title, content, doc, options)
-      
+
       case 'html':
         return this.exportAsHTML(title, content, doc, stats, options)
-      
+
       case 'pdf':
         return this.exportAsPDF(title, content, doc, stats, options)
-      
+
       default:
         throw new Error(`Unsupported export format: ${format}`)
     }
@@ -49,27 +49,27 @@ export class ExportManager {
    */
   exportAsMarkdown(title, content, doc, options = {}) {
     let output = ''
-    
+
     // Add frontmatter if requested
     if (options.includeFrontmatter !== false) {
       output += '---\n'
       output += `title: "${title}"\n`
       output += `created: ${doc.createdAt || new Date().toISOString()}\n`
       output += `updated: ${doc.updatedAt || new Date().toISOString()}\n`
-      
+
       if (doc.tags && doc.tags.length > 0) {
-        output += `tags: [${doc.tags.map(tag => `"${tag}"`).join(', ')}]\n`
+        output += `tags: [${doc.tags.map((tag) => `"${tag}"`).join(', ')}]\n`
       }
-      
+
       if (doc.id) {
         output += `id: "${doc.id}"\n`
       }
-      
+
       output += '---\n\n'
     }
-    
+
     output += content
-    
+
     return this.downloadFile(`${title}.md`, output, 'text/markdown')
   }
 
@@ -92,7 +92,7 @@ export class ExportManager {
     if (options.includeMetadata !== false) {
       let header = `${title}\n`
       header += '='.repeat(title.length) + '\n\n'
-      
+
       if (doc.createdAt) {
         header += `Created: ${new Date(doc.createdAt).toLocaleDateString()}\n`
       }
@@ -102,11 +102,11 @@ export class ExportManager {
       if (doc.tags && doc.tags.length > 0) {
         header += `Tags: ${doc.tags.join(', ')}\n`
       }
-      
+
       header += '\n' + '-'.repeat(40) + '\n\n'
       plainText = header + plainText
     }
-    
+
     return this.downloadFile(`${title}.txt`, plainText, 'text/plain')
   }
 
@@ -116,7 +116,7 @@ export class ExportManager {
   exportAsHTML(title, content, doc, stats, options = {}) {
     const theme = this.app.themeManager.getCurrentTheme()
     const htmlContent = this.markdownToHTML(content)
-    
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -149,7 +149,7 @@ export class ExportManager {
     </div>
 </body>
 </html>`
-    
+
     return this.downloadFile(`${title}.html`, html, 'text/html')
   }
 
@@ -160,93 +160,92 @@ export class ExportManager {
     try {
       // Dynamically import jsPDF
       const { jsPDF } = await import('jspdf')
-      
+
       // Create new PDF document
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
-      
+
       // Set font
       pdf.setFont('helvetica')
-      
+
       // Document title
       pdf.setFontSize(18)
       pdf.setFont('helvetica', 'bold')
       pdf.text(title, 20, 30)
-      
+
       // Document metadata
       let yPosition = 50
       pdf.setFontSize(10)
       pdf.setFont('helvetica', 'normal')
-      
+
       if (doc.createdAt) {
         pdf.text(`Created: ${new Date(doc.createdAt).toLocaleDateString()}`, 20, yPosition)
         yPosition += 6
       }
-      
+
       if (stats) {
         pdf.text(`Words: ${stats.words} • Characters: ${stats.characters}`, 20, yPosition)
         yPosition += 6
       }
-      
+
       if (doc.tags && doc.tags.length > 0) {
         pdf.text(`Tags: ${doc.tags.join(', ')}`, 20, yPosition)
         yPosition += 6
       }
-      
+
       // Add separator line
       yPosition += 10
       pdf.line(20, yPosition, 190, yPosition)
       yPosition += 15
-      
+
       // Convert markdown to plain text for PDF
       const plainText = this.markdownToPlainText(content)
-      
+
       // Split text into lines that fit the page width
       pdf.setFontSize(11)
       pdf.setFont('helvetica', 'normal')
-      
+
       const pageWidth = 170 // PDF width minus margins
       const lineHeight = 6
       const lines = pdf.splitTextToSize(plainText, pageWidth)
-      
+
       // Add text to PDF with page breaks
       const pageHeight = 270 // A4 height minus margins
-      
+
       for (let i = 0; i < lines.length; i++) {
         if (yPosition > pageHeight) {
           pdf.addPage()
           yPosition = 30
         }
-        
+
         pdf.text(lines[i], 20, yPosition)
         yPosition += lineHeight
       }
-      
+
       // Generate and download PDF
       const pdfBlob = pdf.output('blob')
       const url = URL.createObjectURL(pdfBlob)
-      
+
       const link = document.createElement('a')
       link.href = url
       link.download = `${title}.pdf`
       link.style.display = 'none'
-      
+
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       // Clean up
       setTimeout(() => URL.revokeObjectURL(url), 100)
-      
+
       return {
         success: true,
         message: `Downloaded ${title}.pdf`,
         filename: `${title}.pdf`
       }
-      
     } catch (error) {
       console.error('PDF export failed:', error)
       return {
@@ -260,34 +259,36 @@ export class ExportManager {
    * Convert markdown to plain text for PDF export
    */
   markdownToPlainText(markdown) {
-    return markdown
-      // Remove headers markers but keep text
-      .replace(/^#{1,6}\s+(.+)$/gm, '$1')
-      
-      // Remove bold/italic markers
-      .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
-      .replace(/\*\*(.+?)\*\*/g, '$1')
-      .replace(/\*(.+?)\*/g, '$1')
-      
-      // Remove strikethrough
-      .replace(/~~(.+?)~~/g, '$1')
-      
-      // Remove code markers
-      .replace(/`(.+?)`/g, '$1')
-      .replace(/```[\s\S]*?```/g, (match) => {
-        return match.slice(3, -3).trim()
-      })
-      
-      // Convert links to text with URL
-      .replace(/\[(.+?)\]\((.+?)\)/g, '$1 ($2)')
-      
-      // Convert lists to simple bullet points
-      .replace(/^\s*[-*+]\s+/gm, '• ')
-      .replace(/^\s*\d+\.\s+/gm, '• ')
-      
-      // Clean up extra whitespace
-      .replace(/\n\s*\n/g, '\n\n')
-      .trim()
+    return (
+      markdown
+        // Remove headers markers but keep text
+        .replace(/^#{1,6}\s+(.+)$/gm, '$1')
+
+        // Remove bold/italic markers
+        .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/\*(.+?)\*/g, '$1')
+
+        // Remove strikethrough
+        .replace(/~~(.+?)~~/g, '$1')
+
+        // Remove code markers
+        .replace(/`(.+?)`/g, '$1')
+        .replace(/```[\s\S]*?```/g, (match) => {
+          return match.slice(3, -3).trim()
+        })
+
+        // Convert links to text with URL
+        .replace(/\[(.+?)\]\((.+?)\)/g, '$1 ($2)')
+
+        // Convert lists to simple bullet points
+        .replace(/^\s*[-*+]\s+/gm, '• ')
+        .replace(/^\s*\d+\.\s+/gm, '• ')
+
+        // Clean up extra whitespace
+        .replace(/\n\s*\n/g, '\n\n')
+        .trim()
+    )
   }
 
   /**
@@ -299,31 +300,31 @@ export class ExportManager {
       .replace(/^### (.*$)/gm, '<h3>$1</h3>')
       .replace(/^## (.*$)/gm, '<h2>$1</h2>')
       .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-      
+
       // Bold and italic
       .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      
+
       // Strikethrough
       .replace(/~~(.+?)~~/g, '<del>$1</del>')
-      
+
       // Code
       .replace(/`(.+?)`/g, '<code>$1</code>')
-      
+
       // Links
       .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
-      
+
       // Lists
       .replace(/^\s*\* (.+)$/gm, '<li>$1</li>')
       .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      
+
       // Paragraphs (simple implementation)
       .replace(/^\n(.+)$/gm, '<p>$1</p>')
-      
+
       // Line breaks
       .replace(/\n/g, '<br>')
-    
+
     return DOMPurify.sanitize(html)
   }
 
@@ -504,19 +505,19 @@ export class ExportManager {
   downloadFile(filename, content, mimeType) {
     const blob = new Blob([content], { type: mimeType })
     const url = URL.createObjectURL(blob)
-    
+
     const link = document.createElement('a')
     link.href = url
     link.download = filename
     link.style.display = 'none'
-    
+
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     // Clean up object URL
     setTimeout(() => URL.revokeObjectURL(url), 100)
-    
+
     return {
       success: true,
       message: `Downloaded ${filename}`,
@@ -529,11 +530,11 @@ export class ExportManager {
    */
   escapeHtml(unsafe) {
     return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
   }
 
   /**

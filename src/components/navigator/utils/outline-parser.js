@@ -23,22 +23,22 @@ export class OutlineParser {
 
     for (const line of lines) {
       lineNumber++
-      
+
       // Match markdown headers (# ## ### #### ##### ######)
       const headerMatch = line.match(/^(#{1,6})\s+(.+)$/)
-      
+
       if (headerMatch) {
         const level = headerMatch[1].length
         const text = headerMatch[2].trim()
-        
+
         // Remove markdown formatting from header text
         const cleanText = this.cleanHeaderText(text)
-        
+
         // Skip headers that are empty after cleaning
         if (!cleanText) {
           continue
         }
-        
+
         const item = {
           id: `heading-${lineNumber}`,
           text: cleanText,
@@ -46,12 +46,12 @@ export class OutlineParser {
           line: lineNumber,
           children: []
         }
-        
+
         // Find parent based on level
         while (stack.length > 0 && stack[stack.length - 1].level >= level) {
           stack.pop()
         }
-        
+
         if (stack.length === 0) {
           // Top-level header
           outline.push(item)
@@ -59,11 +59,11 @@ export class OutlineParser {
           // Nested header
           stack[stack.length - 1].children.push(item)
         }
-        
+
         stack.push(item)
       }
     }
-    
+
     return outline
   }
 
@@ -76,16 +76,16 @@ export class OutlineParser {
     if (!text || typeof text !== 'string') {
       return ''
     }
-    
+
     const cleaned = text
-      .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove bold
-      .replace(/\*(.*?)\*/g, '$1')      // Remove italic
-      .replace(/`(.*?)`/g, '$1')        // Remove inline code
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')  // Remove links
-      .replace(/[*_~`]/g, '')          // Remove remaining markdown chars
-      .replace(/\s+/g, ' ')            // Normalize whitespace
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/`(.*?)`/g, '$1') // Remove inline code
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove links
+      .replace(/[*_~`]/g, '') // Remove remaining markdown chars
+      .replace(/\s+/g, ' ') // Normalize whitespace
       .trim()
-    
+
     return cleaned || text.trim() // Fallback to original if cleaned is empty
   }
 
@@ -97,7 +97,7 @@ export class OutlineParser {
    */
   static getLineFromPosition(content, position) {
     if (!content || position < 0) return 1
-    
+
     const lines = content.substring(0, position).split('\n')
     return lines.length
   }
@@ -110,14 +110,14 @@ export class OutlineParser {
    */
   static getPositionFromLine(content, lineNumber) {
     if (!content || lineNumber <= 1) return 0
-    
+
     const lines = content.split('\n')
     let position = 0
-    
+
     for (let i = 0; i < Math.min(lineNumber - 1, lines.length); i++) {
-      position += lines[i].length + 1  // +1 for newline
+      position += lines[i].length + 1 // +1 for newline
     }
-    
+
     return position
   }
 
@@ -128,7 +128,7 @@ export class OutlineParser {
    */
   static flatten(outline) {
     const flat = []
-    
+
     function traverse(items) {
       for (const item of items) {
         flat.push({
@@ -137,13 +137,13 @@ export class OutlineParser {
           level: item.level,
           line: item.line
         })
-        
+
         if (item.children && item.children.length > 0) {
           traverse(item.children)
         }
       }
     }
-    
+
     traverse(outline)
     return flat
   }
@@ -156,13 +156,11 @@ export class OutlineParser {
    */
   static search(outline, query) {
     if (!query) return []
-    
+
     const flat = this.flatten(outline)
     const lowerQuery = query.toLowerCase()
-    
-    return flat.filter(item => 
-      item.text.toLowerCase().includes(lowerQuery)
-    )
+
+    return flat.filter((item) => item.text.toLowerCase().includes(lowerQuery))
   }
 
   /**
@@ -172,18 +170,18 @@ export class OutlineParser {
    */
   static generateTOC(outline) {
     const lines = []
-    
+
     function traverse(items, indent = '') {
       for (const item of items) {
         const link = `[${item.text}](#heading-${item.line})`
         lines.push(`${indent}- ${link}`)
-        
+
         if (item.children && item.children.length > 0) {
           traverse(item.children, indent + '  ')
         }
       }
     }
-    
+
     traverse(outline)
     return lines.join('\n')
   }
@@ -198,18 +196,18 @@ export class OutlineParser {
       total: 0,
       byLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
     }
-    
+
     function traverse(items) {
       for (const item of items) {
         stats.total++
         stats.byLevel[item.level]++
-        
+
         if (item.children && item.children.length > 0) {
           traverse(item.children)
         }
       }
     }
-    
+
     traverse(outline)
     return stats
   }

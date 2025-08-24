@@ -1,14 +1,14 @@
 /**
  * Fantasy Editor - Readonly Extensions for CodeMirror 6
  * Copyright (c) 2025 Forgewright
- * 
+ *
  * This file is part of Fantasy Editor.
- * 
- * Fantasy Editor Community Edition is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU Affero General Public 
- * License as published by the Free Software Foundation, either version 3 
+ *
+ * Fantasy Editor Community Edition is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU Affero General Public
+ * License as published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * 
+ *
  * For commercial licensing options, please contact licensing@forgewright.io
  */
 
@@ -32,7 +32,7 @@ export class ReadonlyExtensions {
    */
   getReadonlyExtensions(readonly = false) {
     this.isReadonly = readonly
-    
+
     const extensions = []
 
     if (readonly) {
@@ -62,7 +62,7 @@ export class ReadonlyExtensions {
         backgroundColor: 'var(--readonly-background, rgba(0, 0, 0, 0.02))',
         cursor: 'default'
       },
-      
+
       '.cm-readonly .cm-content': {
         cursor: 'default',
         caretColor: 'transparent'
@@ -90,7 +90,7 @@ export class ReadonlyExtensions {
 
   /**
    * Create readonly behavior extensions
-   * @private  
+   * @private
    */
   createReadonlyBehavior() {
     return EditorView.domEventHandlers({
@@ -147,7 +147,7 @@ export class ReadonlyExtensions {
     const coords = view.coordsAtPos(view.state.selection.main.head)
     if (coords) {
       tooltip.style.left = coords.left + 'px'
-      tooltip.style.top = (coords.top - 40) + 'px'
+      tooltip.style.top = coords.top - 40 + 'px'
     }
 
     document.body.appendChild(tooltip)
@@ -169,7 +169,7 @@ export class ReadonlyExtensions {
     if (!view) return
 
     this.isReadonly = readonly
-    
+
     // Reconfigure readonly extensions
     view.dispatch({
       effects: this.readonlyCompartment.reconfigure(this.getReadonlyExtensions(readonly))

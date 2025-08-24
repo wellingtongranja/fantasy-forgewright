@@ -85,7 +85,7 @@
 
   /* Editor width and zoom controls */
   --editor-max-width: 65ch;
-  --editor-zoom-level: 1.0;
+  --editor-zoom-level: 1;
   --codemirror-font-size: 16px;
 
   /* Readonly document styling */

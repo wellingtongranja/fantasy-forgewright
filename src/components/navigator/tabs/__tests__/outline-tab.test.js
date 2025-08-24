@@ -59,7 +59,7 @@ describe('OutlineTab', () => {
       children: [
         {
           id: 'heading-3',
-          text: 'The Hero\'s Journey',
+          text: "The Hero's Journey",
           level: 2,
           line: 3,
           children: []
@@ -93,12 +93,13 @@ describe('OutlineTab', () => {
   const mockDocument = {
     id: 'doc-123',
     title: 'Epic Fantasy Tale',
-    content: '# Chapter 1: The Beginning\n\n## The Hero\'s Journey\n\n## First Encounter\n\n# Chapter 2: The Adventure\n\n## Into the Unknown'
+    content:
+      "# Chapter 1: The Beginning\n\n## The Hero's Journey\n\n## First Encounter\n\n# Chapter 2: The Adventure\n\n## Into the Unknown"
   }
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     mockContainer = new HTMLElement()
     mockApp = {
       editor: {
@@ -141,7 +142,7 @@ describe('OutlineTab', () => {
     })
     OutlineParser.flatten.mockReturnValue([
       { id: 'heading-1', text: 'Chapter 1: The Beginning', level: 1, line: 1 },
-      { id: 'heading-3', text: 'The Hero\'s Journey', level: 2, line: 3 },
+      { id: 'heading-3', text: "The Hero's Journey", level: 2, line: 3 },
       { id: 'heading-5', text: 'First Encounter', level: 2, line: 5 },
       { id: 'heading-8', text: 'Chapter 2: The Adventure', level: 1, line: 8 },
       { id: 'heading-10', text: 'Into the Unknown', level: 2, line: 10 }
@@ -190,7 +191,7 @@ describe('OutlineTab', () => {
 
     it('should update document title in header', () => {
       const titleElement = mockContainer.querySelector('.outline-title')
-      
+
       outlineTab.updateOutline(mockDocument)
 
       expect(titleElement.textContent).toBe('Epic Fantasy Tale')
@@ -227,7 +228,7 @@ describe('OutlineTab', () => {
       expect(rendered).toContain('outline-item level-1')
       expect(rendered).toContain('outline-item level-2')
       expect(rendered).toContain('Chapter 1: The Beginning')
-      expect(rendered).toContain('The Hero\'s Journey')
+      expect(rendered).toContain("The Hero's Journey")
     })
 
     it('should include line numbers in items', () => {
@@ -270,10 +271,10 @@ describe('OutlineTab', () => {
 
     it('should navigate to heading on click', () => {
       const mockEvent = {
-        target: { 
-          closest: jest.fn().mockReturnValue({ 
-            dataset: { itemId: 'heading-3', line: '3' } 
-          }) 
+        target: {
+          closest: jest.fn().mockReturnValue({
+            dataset: { itemId: 'heading-3', line: '3' }
+          })
         }
       }
 
@@ -289,10 +290,10 @@ describe('OutlineTab', () => {
 
     it('should select clicked item', () => {
       const mockEvent = {
-        target: { 
-          closest: jest.fn().mockReturnValue({ 
-            dataset: { itemId: 'heading-5' } 
-          }) 
+        target: {
+          closest: jest.fn().mockReturnValue({
+            dataset: { itemId: 'heading-5' }
+          })
         }
       }
 
@@ -417,13 +418,13 @@ describe('OutlineTab', () => {
 
     it('should display heading count', () => {
       const stats = outlineTab.getOutlineStats()
-      
+
       expect(stats.totalHeadings).toBe(5) // Based on flattened structure
     })
 
     it('should show heading distribution by level', () => {
       const stats = outlineTab.getOutlineStats()
-      
+
       expect(stats.byLevel).toBeDefined()
       expect(stats.byLevel[1]).toBe(2) // Two h1 headings
       expect(stats.byLevel[2]).toBe(3) // Three h2 headings
@@ -431,9 +432,9 @@ describe('OutlineTab', () => {
 
     it('should handle empty outline stats', () => {
       outlineTab.outline = []
-      
+
       const stats = outlineTab.getOutlineStats()
-      
+
       expect(stats.totalHeadings).toBe(0)
       expect(stats.byLevel).toEqual({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 })
     })
@@ -458,7 +459,7 @@ describe('OutlineTab', () => {
 
     it('should maintain selected item after refresh if possible', () => {
       outlineTab.selectedItemId = 'heading-3'
-      
+
       outlineTab.refresh()
 
       expect(outlineTab.selectedItemId).toBe('heading-3')
@@ -513,10 +514,10 @@ describe('OutlineTab', () => {
       })
 
       const mockEvent = {
-        target: { 
-          closest: jest.fn().mockReturnValue({ 
-            dataset: { itemId: 'heading-1', line: '1' } 
-          }) 
+        target: {
+          closest: jest.fn().mockReturnValue({
+            dataset: { itemId: 'heading-1', line: '1' }
+          })
         }
       }
 
@@ -531,10 +532,10 @@ describe('OutlineTab', () => {
       mockApp.editor.view = null
 
       const mockEvent = {
-        target: { 
-          closest: jest.fn().mockReturnValue({ 
-            dataset: { itemId: 'heading-1', line: '1' } 
-          }) 
+        target: {
+          closest: jest.fn().mockReturnValue({
+            dataset: { itemId: 'heading-1', line: '1' }
+          })
         }
       }
 

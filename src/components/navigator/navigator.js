@@ -16,7 +16,7 @@ export class Navigator {
     this.maxWidth = 600
     this.tabComponents = {}
     this.resizeHandler = null
-    
+
     this.init()
   }
 
@@ -24,11 +24,11 @@ export class Navigator {
     this.container.className = 'navigator'
     this.container.setAttribute('role', 'navigation')
     this.container.setAttribute('aria-label', 'Navigator panel')
-    
+
     this.render()
     this.attachEventListeners()
     this.initializeTabs()
-    
+
     // Start hidden
     this.hide()
   }
@@ -68,7 +68,7 @@ export class Navigator {
       
       <div class="navigator-resize-handle" aria-label="Resize navigator"></div>
     `
-    
+
     // Set initial width
     this.container.style.width = `${this.width}px`
   }
@@ -79,30 +79,26 @@ export class Navigator {
       import('./tabs/documents-tab.js'),
       import('./tabs/outline-tab.js'),
       import('./tabs/search-tab.js')
-    ]).then(([documentsModule, outlineModule, searchModule]) => {
-      // Initialize Documents tab
-      const documentsContainer = document.getElementById('documents-tab-content')
-      this.tabComponents.documents = new documentsModule.DocumentsTab(
-        documentsContainer, 
-        this.app
-      )
-      
-      // Initialize Outline tab
-      const outlineContainer = document.getElementById('outline-tab-content')
-      this.tabComponents.outline = new outlineModule.OutlineTab(
-        outlineContainer,
-        this.app
-      )
-      
-      // Initialize Search tab
-      const searchContainer = document.getElementById('search-tab-content')
-      this.tabComponents.search = new searchModule.SearchTab(
-        searchContainer,
-        this.app
-      )
-    }).catch(error => {
-      console.error('Failed to initialize navigator tabs:', error)
-    })
+    ])
+      .then(([documentsModule, outlineModule, searchModule]) => {
+        // Initialize Documents tab
+        const documentsContainer = document.getElementById('documents-tab-content')
+        this.tabComponents.documents = new documentsModule.DocumentsTab(
+          documentsContainer,
+          this.app
+        )
+
+        // Initialize Outline tab
+        const outlineContainer = document.getElementById('outline-tab-content')
+        this.tabComponents.outline = new outlineModule.OutlineTab(outlineContainer, this.app)
+
+        // Initialize Search tab
+        const searchContainer = document.getElementById('search-tab-content')
+        this.tabComponents.search = new searchModule.SearchTab(searchContainer, this.app)
+      })
+      .catch((error) => {
+        console.error('Failed to initialize navigator tabs:', error)
+      })
   }
 
   attachEventListeners() {
@@ -113,14 +109,14 @@ export class Navigator {
         const tabName = tab.dataset.tab
         this.switchTab(tabName)
       }
-      
+
       // Pin toggle
       const pinBtn = e.target.closest('.navigator-pin')
       if (pinBtn) {
         this.togglePin()
       }
     })
-    
+
     // Keyboard navigation
     this.container.addEventListener('keydown', (e) => {
       // Tab switching with keyboard
@@ -129,7 +125,7 @@ export class Navigator {
         this.switchTab(this.tabs[tabIndex])
         e.preventDefault()
       }
-      
+
       // Escape to close unpinned navigator
       if (e.key === 'Escape' && !this.isPinned) {
         this.hide()
@@ -139,11 +135,11 @@ export class Navigator {
         }
       }
     })
-    
+
     // Resize functionality
     const resizeHandle = this.container.querySelector('.navigator-resize-handle')
     this.initializeResize(resizeHandle)
-    
+
     // Global keyboard shortcut (Ctrl+Enter) to toggle visibility when unpinned
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.key === 'Enter' && !this.isPinned) {
@@ -151,7 +147,7 @@ export class Navigator {
         this.toggle()
       }
     })
-    
+
     // Auto-unhide when mouse approaches left edge
     this.setupAutoUnhide()
   }
@@ -160,7 +156,7 @@ export class Navigator {
     let isResizing = false
     let startX = 0
     let startWidth = 0
-    
+
     handle.addEventListener('mousedown', (e) => {
       isResizing = true
       startX = e.clientX
@@ -169,29 +165,29 @@ export class Navigator {
       document.body.style.userSelect = 'none'
       e.preventDefault()
     })
-    
+
     document.addEventListener('mousemove', (e) => {
       if (!isResizing) return
-      
+
       const diff = e.clientX - startX
       const newWidth = Math.max(this.minWidth, Math.min(this.maxWidth, startWidth + diff))
-      
+
       this.width = newWidth
       this.container.style.width = `${newWidth}px`
-      
+
       // Update app main layout
       const appMain = document.querySelector('.app-main')
       if (appMain && this.isVisible) {
         appMain.style.marginLeft = `${newWidth}px`
       }
     })
-    
+
     document.addEventListener('mouseup', () => {
       if (isResizing) {
         isResizing = false
         document.body.style.cursor = ''
         document.body.style.userSelect = ''
-        
+
         // Save width preference
         try {
           localStorage.setItem('navigator-width', this.width)
@@ -206,18 +202,18 @@ export class Navigator {
     let autoHideTimeout = null
     const EDGE_THRESHOLD = 10 // pixels from left edge
     const AUTO_HIDE_DELAY = 1000 // ms to auto-hide after mouse leaves
-    
+
     // Track mouse movement globally
     document.addEventListener('mousemove', (e) => {
       // Only auto-unhide if navigator is not pinned and not visible
       if (this.isPinned || this.isVisible) return
-      
+
       // Check if mouse is near left edge
       if (e.clientX <= EDGE_THRESHOLD) {
         this.show()
       }
     })
-    
+
     // Auto-hide when mouse leaves navigator (only if not pinned)
     this.container.addEventListener('mouseenter', () => {
       if (autoHideTimeout) {
@@ -225,7 +221,7 @@ export class Navigator {
         autoHideTimeout = null
       }
     })
-    
+
     this.container.addEventListener('mouseleave', () => {
       // Only auto-hide if not pinned
       if (!this.isPinned && this.isVisible) {
@@ -240,21 +236,21 @@ export class Navigator {
   switchTab(tabName) {
     if (!this.tabs.includes(tabName)) return
     if (tabName === this.activeTab) return
-    
+
     this.activeTab = tabName
-    
+
     // Update tab buttons
-    this.container.querySelectorAll('.navigator-tab').forEach(tab => {
+    this.container.querySelectorAll('.navigator-tab').forEach((tab) => {
       const isActive = tab.dataset.tab === tabName
       tab.classList.toggle('active', isActive)
       tab.setAttribute('aria-selected', isActive)
     })
-    
+
     // Update panels
-    this.container.querySelectorAll('.navigator-panel').forEach(panel => {
+    this.container.querySelectorAll('.navigator-panel').forEach((panel) => {
       panel.classList.toggle('active', panel.dataset.panel === tabName)
     })
-    
+
     // Notify tab component of activation
     if (this.tabComponents[tabName] && this.tabComponents[tabName].onActivate) {
       this.tabComponents[tabName].onActivate()
@@ -264,20 +260,20 @@ export class Navigator {
   togglePin() {
     this.isPinned = !this.isPinned
     this.container.classList.toggle('pinned', this.isPinned)
-    
+
     const pinBtn = this.container.querySelector('.navigator-pin')
     if (pinBtn) {
       pinBtn.classList.toggle('active', this.isPinned)
       pinBtn.title = this.isPinned ? 'Unpin Navigator' : 'Pin Navigator'
     }
-    
+
     // Save pin state
     try {
       localStorage.setItem('navigator-pinned', this.isPinned)
     } catch (error) {
       console.warn('Failed to save navigator pin state:', error)
     }
-    
+
     // If unpinning and navigator is visible, hide it
     if (!this.isPinned && this.isVisible) {
       setTimeout(() => this.hide(), 100)
@@ -314,14 +310,14 @@ export class Navigator {
   show() {
     this.isVisible = true
     this.container.classList.add('visible')
-    
+
     // Update app main layout
     const appMain = document.querySelector('.app-main')
     if (appMain) {
       appMain.classList.remove('navigator-hidden')
       appMain.style.marginLeft = `${this.width}px`
     }
-    
+
     // Focus active tab content
     setTimeout(() => this.focusActiveTab(), 100)
   }
@@ -329,7 +325,7 @@ export class Navigator {
   hide() {
     this.isVisible = false
     this.container.classList.remove('visible')
-    
+
     // Update app main layout
     const appMain = document.querySelector('.app-main')
     if (appMain) {
@@ -397,7 +393,7 @@ export class Navigator {
     if (this.tabComponents.outline) {
       this.tabComponents.outline.updateOutline(document)
     }
-    
+
     // Update documents tab if needed
     if (this.tabComponents.documents) {
       this.tabComponents.documents.setSelectedDocument(document.id)
@@ -440,7 +436,7 @@ export class Navigator {
     } catch (error) {
       console.warn('Failed to restore navigator width preference:', error)
     }
-    
+
     try {
       // Restore pin state
       const savedPinned = localStorage.getItem('navigator-pinned')
