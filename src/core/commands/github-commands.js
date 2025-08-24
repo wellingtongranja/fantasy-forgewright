@@ -294,36 +294,31 @@ export function registerGitHubCommands(registry, app) {
 
         try {
           // Ensure document is saved locally first
-          await app.saveDocument()
+          const savedDoc = await app.saveDocument()
+          
+          // Use the saved document (which has the updated metadata.modified)
+          const docToSync = savedDoc || app.currentDocument
+          const result = await app.githubStorage.saveDocument(docToSync)
 
-          // Get the current document state after local save to ensure we have latest metadata
-          const currentDoc = app.currentDocument
-          const result = await app.githubStorage.saveDocument(currentDoc)
-
-          // Set sync timestamp to ensure it's after the local save
-          const syncTimestamp = new Date().toISOString()
-
-          // Update local document with GitHub metadata
+          // Update document with GitHub metadata, preserving the existing metadata
           const updatedDoc = {
-            ...currentDoc,
+            ...docToSync,
             githubSha: result.document.githubSha,
             githubPath: result.document.githubPath,
-            lastSyncedAt: syncTimestamp
+            lastSyncedAt: docToSync.metadata?.modified || new Date().toISOString()
           }
 
           // Save updated document locally with GitHub metadata
           await app.storageManager.saveDocument(updatedDoc)
 
           // Update current document if it's the same one
-          if (app.currentDocument && app.currentDocument.id === currentDoc.id) {
+          if (app.currentDocument && app.currentDocument.id === docToSync.id) {
             app.currentDocument = updatedDoc
           }
 
-          // Update Navigator to reflect new sync status - wait a bit to ensure IndexedDB write completes
-          if (app.navigator && app.navigator.tabComponents && app.navigator.tabComponents['documents']) {
-            setTimeout(() => {
-              app.navigator.tabComponents['documents'].refresh()
-            }, 100)
+          // Update Navigator to reflect new sync status
+          if (app.navigator) {
+            app.navigator.onDocumentSave(updatedDoc)
           }
 
           // Update GitHub UI to reflect sync status changes
@@ -331,7 +326,7 @@ export function registerGitHubCommands(registry, app) {
 
           return {
             success: true,
-            message: `Document "${currentDoc.title}" pushed to Git repository successfully`
+            message: `Document "${docToSync.title}" pushed to Git repository successfully`
           }
         } catch (error) {
           return {

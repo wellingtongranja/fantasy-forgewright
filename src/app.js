@@ -601,6 +601,8 @@ class FantasyEditorApp {
 
       this.updateSyncStatus('Saved')
       setTimeout(() => this.updateSyncStatus('Ready'), 2000)
+      
+      return savedDoc
     } catch (error) {
       console.error('Failed to save document:', error)
       this.showError('Failed to save document. Your changes are preserved locally.')
