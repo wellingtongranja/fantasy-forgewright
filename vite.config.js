@@ -13,6 +13,8 @@ export default defineConfig(({ command, mode }) => {
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+      filename: "sw.js",
+      strategies: "generateSW",
       manifest: {
         name: "Fantasy Editor",
         short_name: "Fantasy",
@@ -42,6 +44,7 @@ export default defineConfig(({ command, mode }) => {
         cleanupOutdatedCaches: true,
         skipWaiting: isProduction,
         clientsClaim: isProduction,
+        navigateFallback: null,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.github\.com\/.*/i,
