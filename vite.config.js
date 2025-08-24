@@ -85,9 +85,7 @@ export default defineConfig(({ command, mode }) => {
             "@codemirror/lang-markdown",
             "@codemirror/search",
             "@codemirror/autocomplete",
-            "@codemirror/language"
-          ],
-          'vendor-ui': [
+            "@codemirror/language",
             "@codemirror/theme-one-dark",
             "@lezer/highlight"
           ],
