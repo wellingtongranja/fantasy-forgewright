@@ -187,7 +187,7 @@ class FantasyEditorApp {
       // This is an OAuth callback
       if (error) {
         console.error('OAuth error:', error)
-        this.showNotification(`GitHub login failed: ${error}`, 'error')
+        this.showNotification(`Git repository login failed: ${error}`, 'error')
       } else if (code) {
         this.completeOAuthFlow(code, state)
       }
@@ -203,14 +203,14 @@ class FantasyEditorApp {
   async completeOAuthFlow(code, state) {
     try {
       if (!this.githubAuth) {
-        throw new Error('GitHub integration not initialized')
+        throw new Error('Git repository integration not initialized')
       }
 
       // Handle the OAuth callback
       const user = await this.githubAuth.handleCallback(window.location.href)
 
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
-      console.log('GitHub authentication successful:', user)
+      console.log('Git repository authentication successful:', user)
 
       // Update GitHub UI
       this.updateGitHubUI()
@@ -229,7 +229,7 @@ class FantasyEditorApp {
   async setupDefaultRepository(user) {
     try {
       if (!this.githubStorage) {
-        console.log('GitHub storage not initialized, skipping repository setup')
+        console.log('Git repository storage not initialized, skipping repository setup')
         return
       }
 
@@ -336,8 +336,8 @@ class FantasyEditorApp {
       await this.githubAuth.login()
       // No notification needed - redirect is immediate
     } catch (error) {
-      console.error('GitHub login failed:', error)
-      this.showNotification(`GitHub login failed: ${error.message}`, 'error')
+      console.error('Git repository login failed:', error)
+      this.showNotification(`Git repository login failed: ${error.message}`, 'error')
     }
   }
 

@@ -225,7 +225,7 @@ export class DocumentsTab {
       return {
         icon: '',
         class: 'no-sync',
-        tooltip: 'GitHub not configured'
+        tooltip: 'Git repository not configured'
       }
     }
     
@@ -233,7 +233,7 @@ export class DocumentsTab {
       return {
         icon: '🔴',
         class: 'local-only',
-        tooltip: 'Local only - never synced to GitHub'
+        tooltip: 'Local only - never synced to Git repository'
       }
     }
     
@@ -246,7 +246,7 @@ export class DocumentsTab {
       return {
         icon: '🟢',
         class: 'synced',
-        tooltip: 'Synced with GitHub'
+        tooltip: 'Synced with Git repository'
       }
     }
     
@@ -443,6 +443,10 @@ export class DocumentsTab {
 
   addDocument(document) {
     this.documents.unshift(document)
+    
+    // Add new document to recent documents
+    this.addToRecent(document.id)
+    
     this.renderDocuments()
   }
 
@@ -450,6 +454,13 @@ export class DocumentsTab {
     const index = this.documents.findIndex(doc => doc.id === document.id)
     if (index !== -1) {
       this.documents[index] = document
+      
+      // Update recent documents if this document is in the recent list
+      const recentIndex = this.recentDocuments.findIndex(doc => doc.id === document.id)
+      if (recentIndex !== -1) {
+        this.recentDocuments[recentIndex] = document
+      }
+      
       this.renderDocuments()
     }
   }

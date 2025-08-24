@@ -17,7 +17,7 @@ export class GitHubErrorHandler {
    * @param {string} context - Context where error occurred
    * @returns {Object} Formatted error response
    */
-  async handleError(error, context = 'GitHub operation') {
+  async handleError(error, context = 'Git repository operation') {
     // Handle Response objects
     if (error instanceof Response) {
       return await this.handleResponseError(error, context)
@@ -94,7 +94,7 @@ export class GitHubErrorHandler {
           ...baseError,
           type: 'unauthorized',
           message: 'Authentication failed or expired',
-          userMessage: 'Your GitHub authentication has expired. Please log in again.',
+          userMessage: 'Your Git repository authentication has expired. Please log in again.',
           canRetry: true,
           requiresAuth: true
         }
@@ -148,7 +148,7 @@ export class GitHubErrorHandler {
           ...baseError,
           type: 'server_error',
           message: `GitHub server error: ${status} ${statusText}`,
-          userMessage: 'GitHub is experiencing issues. Please try again later.',
+          userMessage: 'Git repository service is experiencing issues. Please try again later.',
           canRetry: true,
           retryAfter: this.getRetryAfter(response)
         }
@@ -203,7 +203,7 @@ export class GitHubErrorHandler {
         success: false,
         type: 'cors_error',
         message: `CORS error: ${message}`,
-        userMessage: 'Unable to connect to GitHub. This may be a browser security issue.',
+        userMessage: 'Unable to connect to Git repository. This may be a browser security issue.',
         canRetry: false
       }
     }
@@ -326,7 +326,7 @@ export class GitHubErrorHandler {
 
     // Add authentication reminder if needed
     if (errorResponse.requiresAuth) {
-      message += ' Please check your GitHub authentication.'
+      message += ' Please check your Git repository authentication.'
     }
 
     return message

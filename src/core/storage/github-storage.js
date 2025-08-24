@@ -45,7 +45,7 @@ export class GitHubStorage {
    */
   async saveDocument(document) {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured or not authenticated')
+      throw new Error('Git repository storage not configured or not authenticated')
     }
 
     if (!document.id || !document.title) {
@@ -111,7 +111,7 @@ export class GitHubStorage {
    */
   async loadDocument(filepath) {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured or not authenticated')
+      throw new Error('Git repository storage not configured or not authenticated')
     }
 
     try {
@@ -150,7 +150,7 @@ export class GitHubStorage {
    */
   async listDocuments() {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured or not authenticated')
+      throw new Error('Git repository storage not configured or not authenticated')
     }
 
     try {
@@ -214,7 +214,7 @@ export class GitHubStorage {
    */
   async deleteDocument(filepath, sha, title) {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured or not authenticated')
+      throw new Error('Git repository storage not configured or not authenticated')
     }
 
     try {
@@ -291,7 +291,7 @@ export class GitHubStorage {
    */
   async ensureDocumentsDirectory() {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured or not authenticated')
+      throw new Error('Git repository storage not configured or not authenticated')
     }
 
     try {
@@ -376,7 +376,7 @@ export class GitHubStorage {
    */
   async deleteFile(filepath, sha, message) {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured or not authenticated')
+      throw new Error('Git repository storage not configured or not authenticated')
     }
 
     const response = await this.auth.makeAuthenticatedRequest(
@@ -641,7 +641,7 @@ export class GitHubStorage {
    */
   async ensureDocumentsDirectory() {
     if (!this.isConfigured()) {
-      throw new Error('GitHub storage not configured')
+      throw new Error('Git repository storage not configured')
     }
 
     try {

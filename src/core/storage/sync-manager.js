@@ -70,11 +70,11 @@ export class SyncManager {
     }
 
     if (!this.auth.isAuthenticated()) {
-      throw new Error('Not authenticated with GitHub')
+      throw new Error('Not authenticated with Git repository')
     }
 
     if (!this.github.isConfigured()) {
-      throw new Error('GitHub repository not configured')
+      throw new Error('Git repository not configured')
     }
 
     this.syncing = true

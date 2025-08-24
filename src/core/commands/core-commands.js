@@ -1329,7 +1329,7 @@ export function registerCoreCommands(registry, app) {
           ],
           Premium: [
             'All Community features',
-            'GitHub integration and sync',
+            'Git repository integration and sync',
             'Cloud storage and backup',
             'Priority email support',
             'Advanced themes',
@@ -1360,7 +1360,7 @@ export function registerCoreCommands(registry, app) {
           success: true,
           message: 'Fantasy Editor Premium Edition',
           data: [
-            'GitHub integration with OAuth authentication',
+            'Git repository integration with OAuth authentication',
             'Bidirectional document synchronization', 
             'Cloud storage with automatic backup',
             'Priority email support with SLA',
