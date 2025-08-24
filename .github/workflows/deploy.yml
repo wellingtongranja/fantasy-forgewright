@@ -26,11 +26,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
-    - name: Run E2E tests
-      run: npm run test:e2e
-      env:
-        GITHUB_TEST_TOKEN: ${{ secrets.GITHUB_TEST_TOKEN }}
-    
     - name: Build application
       run: npm run build
       env:
@@ -40,6 +35,11 @@ jobs:
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         VITE_DOMAIN: fantasy.forgewright.io
         VITE_BASE_URL: https://fantasy.forgewright.io
+    
+    - name: Run E2E tests
+      run: npm run test:e2e
+      env:
+        GITHUB_TEST_TOKEN: ${{ secrets.GITHUB_TEST_TOKEN }}
     
     - name: Deploy to Cloudflare Pages
       id: deploy
