@@ -239,7 +239,7 @@ class FantasyEditorApp {
       if (success) {
         // Only show success notification when everything is working
         this.showNotification(
-          `Repository "${user.login}/fantasy-editor" ready! Use :gsy to sync documents.`,
+          `Repository "${user.login}/fantasy-editor" ready!`,
           'success'
         )
         console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
