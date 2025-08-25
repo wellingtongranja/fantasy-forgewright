@@ -16,6 +16,7 @@
 - [x] Offline-first PWA functionality
 - [x] Full-text search and document tagging
 - [x] Writer-focused UI with optimal 65ch layout
+- [x] **Multi-Provider OAuth System** - GitHub, GitLab, Bitbucket, and generic Git support via secure Cloudflare Worker proxy
 - [x] GitHub OAuth integration with automatic repository setup
 - [x] **Navigator Component** - Tabbed sidebar with Documents, Outline, Search
 - [x] **Auto-unhide functionality** - Mouse-triggered Navigator appearance
@@ -65,6 +66,9 @@
 ```text
 src/
 ├── core/                    # Business logic
+│   ├── auth/               # OAuth authentication
+│   │   ├── auth-manager.js # Multi-provider OAuth manager
+│   │   └── github-auth.js  # GitHub-specific auth (legacy)
 │   ├── editor/             # CodeMirror integration & width/zoom controls
 │   │   ├── editor.js       # Main editor manager
 │   │   └── width-manager.js # Width presets & zoom functionality
@@ -83,6 +87,16 @@ src/
 ├── styles/                 # CSS themes & base styles
 ├── workers/               # Service worker + PWA
 └── utils/                 # Validation, security, logging
+
+workers/                    # Cloudflare Workers (OAuth proxy)
+├── oauth-proxy.js         # Main OAuth proxy Worker
+├── providers/             # OAuth provider implementations
+│   ├── base-provider.js  # Abstract base class
+│   ├── github.js         # GitHub OAuth provider
+│   ├── gitlab.js         # GitLab OAuth provider
+│   ├── bitbucket.js      # Bitbucket OAuth provider
+│   └── generic-git.js    # Generic Git provider
+└── wrangler.toml         # Cloudflare Worker configuration
 ```
 
 ## 🎯 Command System (MANDATORY RULES)
@@ -292,6 +306,78 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 - Adapts to Light, Dark, and Fantasy themes
 - Consistent styling with editor theme
 - Proper contrast ratios for accessibility
+
+## 🔐 Multi-Provider OAuth System
+
+Fantasy Editor implements a secure, provider-agnostic OAuth system supporting multiple Git providers through a Cloudflare Worker proxy.
+
+### OAuth Architecture
+
+**Core Components:**
+- **AuthManager** (`src/core/auth/auth-manager.js`) - Provider-agnostic authentication manager
+- **OAuth Worker** (`workers/oauth-proxy.js`) - Secure Cloudflare Worker proxy for token exchange
+- **Provider Implementations** - GitHub, GitLab, Bitbucket, and generic Git support
+
+### Security Features
+
+**Token Security:**
+- Client secrets stored only on Cloudflare Worker (never exposed to client)
+- PKCE (Proof Key for Code Exchange) implementation
+- Session-based token storage (24-hour expiration)
+- Automatic token cleanup on logout
+
+**Origin Validation:**
+- Strict origin checking (only `fantasy.forgewright.io` allowed)
+- User-Agent validation
+- CORS properly configured
+- No custom domain exposure (uses workers.dev subdomain)
+
+### OAuth Flow
+
+1. **Initiation**: User clicks "Sign in with GitHub"
+2. **Authorization**: Redirect to provider with PKCE challenge
+3. **Token Exchange**: Worker exchanges code for access token
+4. **Session**: Token stored securely, user authenticated
+5. **Auto-setup**: Repository automatically configured
+
+### Configuration
+
+**Production Worker URL:**
+```
+https://fantasy-oauth-proxy.wellington-granja.workers.dev
+```
+
+**Environment Variables (Cloudflare Dashboard):**
+- `GITHUB_CLIENT_ID` - GitHub OAuth app client ID (regular variable)
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth app secret (encrypted)
+- `CORS_ORIGIN` - `https://fantasy.forgewright.io`
+- `OAUTH_REDIRECT_URI` - `https://fantasy.forgewright.io/`
+
+### API Operations
+
+All GitHub API operations are proxied through the Worker for security:
+```javascript
+// Repository operations
+await authManager.makeAuthenticatedRequest('fetchRepositories')
+
+// Direct API proxy (GitHub Storage compatibility)
+await authManager.makeAuthenticatedRequest('/repos/owner/repo/contents/file.md')
+```
+
+**Supported Operations:**
+- Repository listing and creation
+- File reading and writing
+- Branch operations
+- User information fetching
+
+### Development Setup
+
+For local development with OAuth:
+1. Create development GitHub OAuth app (callback: `http://localhost:3000/`)
+2. Configure `.dev.vars` with client ID and secret
+3. Run Worker locally: `npx wrangler dev --env dev`
+
+See `/docs/OAUTH.md` for complete OAuth documentation.
 
 ## ✏️ Editor Width and Zoom Controls
 
