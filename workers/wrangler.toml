@@ -1,0 +1,31 @@
+# Cloudflare Worker configuration for Fantasy Editor OAuth Proxy
+
+name = "fantasy-oauth-proxy"
+main = "oauth-proxy.js"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables (secrets managed separately via Wrangler CLI)
+[vars]
+OAUTH_REDIRECT_URI = "https://forgewright.io/"
+CORS_ORIGIN = "https://forgewright.io"
+
+# Development environment
+[env.dev]
+name = "fantasy-oauth-proxy-dev"
+vars = { OAUTH_REDIRECT_URI = "http://localhost:3000/", CORS_ORIGIN = "http://localhost:3000" }
+
+# Staging environment
+[env.staging]
+name = "fantasy-oauth-proxy-staging"
+vars = { OAUTH_REDIRECT_URI = "https://fantasy-editor.pages.dev/", CORS_ORIGIN = "https://fantasy-editor.pages.dev" }
+
+# Production environment (default)
+[env.production]
+name = "fantasy-oauth-proxy"
+vars = { OAUTH_REDIRECT_URI = "https://forgewright.io/", CORS_ORIGIN = "https://forgewright.io" }
+
+# Custom domains for production
+[[routes]]
+pattern = "oauth.forgewright.io/*"
+zone_name = "forgewright.io"
