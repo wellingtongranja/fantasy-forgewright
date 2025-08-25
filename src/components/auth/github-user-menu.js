@@ -61,7 +61,7 @@ export class GitHubUserMenu {
       <div class="github-menu-header">
         <div class="github-menu-user">
           <img 
-            src="${user?.avatar_url || `https://github.com/${user?.login}.png`}" 
+            src="${user?.avatar_url || (user?.login ? `https://github.com/${user.login}.png` : '')}" 
             alt="${user?.name || user?.login}"
             class="github-menu-avatar"
             width="32" 

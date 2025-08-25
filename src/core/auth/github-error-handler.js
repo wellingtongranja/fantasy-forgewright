@@ -18,8 +18,13 @@ export class GitHubErrorHandler {
    * @returns {Object} Formatted error response
    */
   async handleError(error, context = 'Git repository operation') {
-    // Handle Response objects
-    if (error instanceof Response) {
+    // Handle Response objects (browser environment)
+    if (typeof Response !== 'undefined' && error instanceof Response) {
+      return await this.handleResponseError(error, context)
+    }
+    
+    // Handle mock Response objects in test environment
+    if (error && typeof error === 'object' && 'status' in error && 'headers' in error) {
       return await this.handleResponseError(error, context)
     }
 
