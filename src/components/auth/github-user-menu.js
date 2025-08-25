@@ -61,15 +61,15 @@ export class GitHubUserMenu {
       <div class="github-menu-header">
         <div class="github-menu-user">
           <img 
-            src="${user?.avatar_url || (user?.login ? `https://github.com/${user.login}.png` : '')}" 
+            src="${user?.avatar_url || (user?.username ? `https://github.com/${user.username}.png` : user?.login ? `https://github.com/${user.login}.png` : '')}" 
             alt="${user?.name || user?.login}"
             class="github-menu-avatar"
             width="32" 
             height="32"
           />
           <div class="github-menu-user-info">
-            <div class="github-menu-name">${user?.name || user?.login || 'Unknown'}</div>
-            <div class="github-menu-login">@${user?.login || 'unknown'}</div>
+            <div class="github-menu-name">${user?.name || user?.username || user?.login || 'Unknown'}</div>
+            <div class="github-menu-login">@${user?.username || user?.login || 'unknown'}</div>
           </div>
         </div>
       </div>
