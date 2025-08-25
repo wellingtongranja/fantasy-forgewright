@@ -111,7 +111,7 @@ export class AuthButton {
 
     // Use provider-specific avatar handling
     let avatarUrl = this.currentUser.avatar || this.currentUser.avatar_url
-    const username = this.currentUser.username || this.currentUser.login
+    const username = this.currentUser.username || this.currentUser.login || 'unknown'
     const displayName = this.currentUser.name || username
 
     // Fallback avatar for providers that don't provide one
@@ -135,9 +135,6 @@ export class AuthButton {
           </div>
         `}
         <span class="auth-username">${displayName}</span>
-        <div class="auth-provider-badge" style="background-color: ${this.currentProvider.color}" title="${this.currentProvider.displayName}">
-          ${this.getProviderIcon(this.currentProvider.name, 12)}
-        </div>
         <svg class="auth-dropdown-icon" viewBox="0 0 16 16" width="12" height="12">
           <path fill="currentColor" d="M4.427 6.427L8 10l3.573-3.573L13 7.854 8 12.854l-5-5 1.427-1.427z"/>
         </svg>

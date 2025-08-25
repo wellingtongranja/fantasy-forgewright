@@ -732,15 +732,16 @@ class FantasyEditorApp {
 
     // If authenticated but not configured, try auto-setup (only once per session)
     if (!isConfigured && this.authManager?.getCurrentUser()) {
+      // TEMPORARILY DISABLED: Auto-setup caused GitHub rate limit spam
       // Check if we've already attempted setup to avoid spamming
-      if (!this.hasAttemptedRepositorySetup && !this.isSettingUpRepository) {
-        console.log('Authenticated but not configured, attempting auto-setup...')
-        this.isSettingUpRepository = true
-        this.hasAttemptedRepositorySetup = true
-        this.setupDefaultRepository(this.authManager.getCurrentUser()).finally(() => {
-          this.isSettingUpRepository = false
-        })
-      }
+      // if (!this.hasAttemptedRepositorySetup && !this.isSettingUpRepository) {
+      //   console.log('Authenticated but not configured, attempting auto-setup...')
+      //   this.isSettingUpRepository = true
+      //   this.hasAttemptedRepositorySetup = true
+      //   this.setupDefaultRepository(this.authManager.getCurrentUser()).finally(() => {
+      //     this.isSettingUpRepository = false
+      //   })
+      // }
       syncIndicator.style.display = 'none'
       return
     }
