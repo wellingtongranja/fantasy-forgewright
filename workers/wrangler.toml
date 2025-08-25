@@ -25,7 +25,7 @@ vars = { OAUTH_REDIRECT_URI = "https://fantasy-editor.pages.dev/", CORS_ORIGIN =
 name = "fantasy-oauth-proxy"
 vars = { OAUTH_REDIRECT_URI = "https://forgewright.io/", CORS_ORIGIN = "https://forgewright.io" }
 
-# Custom domains for production
-[[routes]]
-pattern = "oauth.forgewright.io/*"
-zone_name = "forgewright.io"
+# Custom domains disabled for security - using default workers.dev domain
+# [[routes]]
+# pattern = "oauth.forgewright.io/*"
+# zone_name = "forgewright.io"
