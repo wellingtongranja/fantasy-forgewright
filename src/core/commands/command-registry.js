@@ -306,6 +306,13 @@ export class CommandRegistry {
   parseCommand(input) {
     const trimmed = input.trim()
 
+    // Handle colon prefix - strip it for command name resolution
+    let searchInput = trimmed
+    const isColonCommand = trimmed.startsWith(':')
+    if (isColonCommand) {
+      searchInput = trimmed.slice(1) // Remove the colon
+    }
+
     // Try to find the longest matching command name (including multi-word commands)
     const allCommandNames = [
       ...Array.from(this.commands.keys()),
@@ -317,10 +324,14 @@ export class CommandRegistry {
 
     // Find the longest command name that matches the beginning of input
     for (const cmdName of allCommandNames) {
-      if (trimmed.toLowerCase().startsWith(cmdName.toLowerCase())) {
-        const remainder = trimmed.slice(cmdName.length).trim()
+      // For colon commands, check if the cmdName (without colon) matches
+      const checkName = isColonCommand && cmdName.startsWith(':') ? cmdName.slice(1) : cmdName
+      
+      if (searchInput.toLowerCase().startsWith(checkName.toLowerCase())) {
+        const remainder = searchInput.slice(checkName.length).trim()
         if (remainder === '' || remainder.startsWith(' ')) {
-          commandName = cmdName
+          // Return the command name without colon prefix for consistency
+          commandName = cmdName.startsWith(':') ? cmdName.slice(1) : cmdName
           args = remainder ? remainder.split(/\s+/) : []
           break
         }
@@ -329,7 +340,7 @@ export class CommandRegistry {
 
     // Fallback to original parsing if no multi-word command found
     if (!commandName) {
-      const parts = trimmed.split(/\s+/)
+      const parts = searchInput.split(/\s+/)
       commandName = parts[0] || ''
       args = parts.slice(1)
     }
@@ -338,7 +349,7 @@ export class CommandRegistry {
       name: commandName,
       args,
       rawInput: input,
-      cleanInput: trimmed
+      cleanInput: searchInput // Use searchInput (without colon) for cleanInput
     }
   }
 

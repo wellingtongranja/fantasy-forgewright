@@ -1,0 +1,31 @@
+{
+  "name": "fantasy-oauth-proxy",
+  "version": "1.0.0",
+  "description": "Multi-provider OAuth proxy for Fantasy Editor",
+  "type": "module",
+  "main": "oauth-proxy.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:dev": "wrangler deploy --env dev",
+    "tail": "wrangler tail",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "vitest": "^2.1.8",
+    "wrangler": "^3.103.0"
+  },
+  "keywords": [
+    "oauth",
+    "cloudflare-worker",
+    "github",
+    "gitlab",
+    "bitbucket",
+    "git-providers"
+  ],
+  "author": "Fantasy Editor",
+  "license": "MIT"
+}

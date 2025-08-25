@@ -10,10 +10,10 @@ import { registerCoreCommands } from './core/commands/core-commands.js'
 import { registerGitHubCommands } from './core/commands/github-commands.js'
 import { guidManager } from './utils/guid.js'
 import { devHelpers } from './utils/dev-helpers.js'
-import { GitHubAuth } from './core/auth/github-auth.js'
+import { AuthManager } from './core/auth/auth-manager.js'
 import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
-import { GitHubAuthButton } from './components/auth/github-auth-button.js'
+import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 import { ExportManager } from './core/export/export-manager.js'
 import { WidthManager } from './core/editor/width-manager.js'
@@ -38,11 +38,11 @@ class FantasyEditorApp {
       hasUnsavedChanges: false
     }
 
-    // GitHub integration
-    this.githubAuth = null
+    // Multi-provider authentication integration
+    this.authManager = null
     this.githubStorage = null
     this.syncManager = null
-    this.githubAuthButton = null
+    this.authButton = null
     this.githubUserMenu = null
 
     // Writer enhancements
@@ -99,8 +99,8 @@ class FantasyEditorApp {
     this.exportManager = new ExportManager(this)
     this.widthManager = new WidthManager(this)
 
-    // Initialize GitHub integration
-    await this.initializeGitHubIntegration()
+    // Initialize multi-provider authentication integration
+    await this.initializeAuthIntegration()
 
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
@@ -189,18 +189,18 @@ class FantasyEditorApp {
    */
   async completeOAuthFlow(code, state) {
     try {
-      if (!this.githubAuth) {
-        throw new Error('Git repository integration not initialized')
+      if (!this.authManager) {
+        throw new Error('Authentication integration not initialized')
       }
 
       // Handle the OAuth callback
-      const user = await this.githubAuth.handleCallback(window.location.href)
+      const user = await this.authManager.handleCallback(window.location.href)
 
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
       console.log('Git repository authentication successful:', user)
 
-      // Update GitHub UI
-      this.updateGitHubUI()
+      // Update authentication UI
+      this.updateAuthUI()
 
       // Automatically create and configure default repository
       await this.setupDefaultRepository(user)
@@ -227,8 +227,12 @@ class FantasyEditorApp {
         // Only show success notification when everything is working
         this.showNotification(`Repository "${user.login}/fantasy-editor" ready!`, 'success')
         console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
+        // Reset the flag so future configuration changes work
+        this.hasAttemptedRepositorySetup = false
         // Update UI to reflect new repository configuration
-        this.updateGitHubUI()
+        this.updateAuthUI()
+        // Trigger immediate sync status update
+        this.updateGitHubSyncStatus()
       } else {
         // Only log to console, don't show warning notification for setup issues
         console.log('Repository auto-setup skipped - can be configured manually with :gcf')
@@ -239,132 +243,128 @@ class FantasyEditorApp {
     }
   }
 
-  async initializeGitHubIntegration() {
+  async initializeAuthIntegration() {
     try {
-      // Get GitHub client ID from environment variables
-      const githubClientId = import.meta.env.VITE_GITHUB_CLIENT_ID
+      // Initialize multi-provider authentication manager
+      this.authManager = new AuthManager()
+      await this.authManager.init()
 
-      if (!githubClientId) {
-        console.warn('GitHub OAuth not configured: VITE_GITHUB_CLIENT_ID not found in .env file')
+      const availableProviders = this.authManager.getAvailableProviders()
+      if (availableProviders.length === 0) {
+        console.warn('No OAuth providers configured. Check environment variables for provider client IDs.')
         return
       }
 
-      // Initialize GitHub authentication using Device Flow
-      this.githubAuth = new GitHubAuth()
-      await this.githubAuth.init({ clientId: githubClientId })
+      // Initialize GitHub storage (backward compatibility)
+      // TODO: Create provider-agnostic storage in future updates
+      this.githubStorage = new GitHubStorage(this.authManager)
 
-      // Initialize GitHub storage
-      this.githubStorage = new GitHubStorage(this.githubAuth)
-
-      // Initialize sync manager
-      this.syncManager = new SyncManager(this.storageManager, this.githubStorage, this.githubAuth)
+      // Initialize sync manager with multi-provider support
+      this.syncManager = new SyncManager(this.storageManager, this.githubStorage, this.authManager)
       this.syncManager.init({
         autoSync: false, // Can be enabled by user
         autoSyncInterval: 5 * 60 * 1000 // 5 minutes
       })
 
-      console.log('✅ GitHub Device Flow integration initialized')
+      console.log('✅ Multi-provider authentication integration initialized')
+      console.log(`Available providers: ${availableProviders.map(p => p.displayName).join(', ')}`)
 
-      // Initialize GitHub UI components
-      this.initializeGitHubUI()
+      // Initialize authentication UI components
+      this.initializeAuthUI()
     } catch (error) {
-      console.error('❌ Failed to initialize GitHub integration:', error)
-      // Don't show warning notification - GitHub is optional functionality
+      console.error('❌ Failed to initialize authentication integration:', error)
+      // Don't show warning notification - authentication is optional functionality
     }
   }
 
   /**
-   * Initialize GitHub UI components
+   * Initialize multi-provider authentication UI components
    */
-  initializeGitHubUI() {
-    if (!this.githubAuth || !this.githubStorage) {
-      console.warn('GitHub integration not initialized, skipping UI setup')
+  initializeAuthUI() {
+    if (!this.authManager) {
+      console.warn('Authentication manager not initialized, skipping UI setup')
       return
     }
 
-    // Initialize GitHub auth button
-    this.githubAuthButton = new GitHubAuthButton(
-      this.githubAuth,
-      () => this.handleGitHubLogin(),
-      (event, user) => this.handleGitHubUserClick(event, user)
+    // Initialize multi-provider auth button
+    this.authButton = new AuthButton(
+      this.authManager,
+      (event, user, provider) => this.handleUserClick(event, user, provider)
     )
 
-    // Initialize GitHub user menu
+    // Initialize GitHub user menu (backward compatibility)
+    // TODO: Create provider-agnostic user menu in future updates
     this.githubUserMenu = new GitHubUserMenu(
-      this.githubAuth,
+      this.authManager,
       this.githubStorage,
-      () => this.handleGitHubSignOut(),
-      () => this.handleGitHubHelp()
+      () => this.handleSignOut(),
+      () => this.handleAuthHelp()
     )
 
     // Add auth button to header
     const authContainer = document.getElementById('github-auth-container')
-    if (authContainer && this.githubAuthButton) {
-      authContainer.appendChild(this.githubAuthButton.getElement())
+    if (authContainer && this.authButton) {
+      const buttonElement = this.authButton.getElement()
+      if (buttonElement) {
+        authContainer.appendChild(buttonElement)
+      }
     }
 
     // Connect auth button and menu for arrow control
-    if (this.githubUserMenu && this.githubAuthButton) {
-      this.githubUserMenu.setAuthButton(this.githubAuthButton)
+    if (this.githubUserMenu && this.authButton) {
+      this.githubUserMenu.setAuthButton(this.authButton)
     }
 
-    // Update GitHub UI on auth state changes
-    this.updateGitHubUI()
+    // Update authentication UI on state changes
+    this.updateAuthUI()
   }
 
   /**
-   * Handle GitHub login button click
+   * Handle user click on authenticated user button
    */
-  async handleGitHubLogin() {
+  async handleUserClick(event, user, provider) {
     try {
-      await this.githubAuth.login()
-      // No notification needed - redirect is immediate
+      // Show user menu
+      if (this.githubUserMenu) {
+        this.githubUserMenu.show(event.currentTarget)
+      }
     } catch (error) {
-      console.error('Git repository login failed:', error)
-      this.showNotification(`Git repository login failed: ${error.message}`, 'error')
+      console.error('User menu failed:', error)
     }
   }
 
   /**
-   * Handle GitHub user button click (show menu)
+   * Handle sign out from current provider
    */
-  handleGitHubUserClick(event, user) {
-    if (this.githubUserMenu) {
-      this.githubUserMenu.show(event.currentTarget)
+  handleSignOut() {
+    if (this.authManager) {
+      const user = this.authManager.getCurrentUser()
+      const provider = this.authManager.getCurrentProvider()
+      this.authManager.logout()
+      this.showNotification(`Signed out from ${provider?.displayName || 'Git provider'} (was: ${user?.name || 'Unknown'})`, 'info')
+      this.updateAuthUI()
     }
   }
 
   /**
-   * Handle GitHub sign out
+   * Handle authentication help
    */
-  handleGitHubSignOut() {
-    if (this.githubAuth) {
-      const user = this.githubAuth.getCurrentUser()
-      this.githubAuth.logout()
-      this.showNotification(`Signed out from GitHub (was: ${user?.name || 'Unknown'})`, 'info')
-      this.updateGitHubUI()
-    }
-  }
-
-  /**
-   * Handle GitHub help
-   */
-  handleGitHubHelp() {
+  handleAuthHelp() {
     // Execute help command through command system
-    this.executeCommand('help github')
+    this.executeCommand('help github') // TODO: Update to generic auth help
   }
 
   /**
-   * Update GitHub UI components
+   * Update authentication UI components
    */
-  updateGitHubUI() {
-    if (this.githubAuthButton) {
-      this.githubAuthButton.refresh()
+  updateAuthUI() {
+    if (this.authButton) {
+      this.authButton.refresh()
     }
     if (this.githubUserMenu) {
       this.githubUserMenu.refresh()
     }
-    this.updateGitHubSyncStatus()
+    this.updateGitHubSyncStatus() // TODO: Rename to updateSyncStatus
 
     // Refresh navigator documents tab to update sync status indicators
     if (
@@ -722,7 +722,7 @@ class FantasyEditorApp {
 
     // Check if GitHub is configured and authenticated
     const config = this.githubStorage?.getConfig() || {}
-    const isAuthenticated = this.githubAuth?.isAuthenticated()
+    const isAuthenticated = this.authManager?.isAuthenticated()
     const isConfigured = config.configured && config.owner && config.repo
 
     if (!isAuthenticated) {
@@ -730,10 +730,17 @@ class FantasyEditorApp {
       return
     }
 
-    // If authenticated but not configured, try auto-setup
-    if (!isConfigured && this.githubAuth?.getCurrentUser()) {
-      console.log('Authenticated but not configured, attempting auto-setup...')
-      this.setupDefaultRepository(this.githubAuth.getCurrentUser())
+    // If authenticated but not configured, try auto-setup (only once per session)
+    if (!isConfigured && this.authManager?.getCurrentUser()) {
+      // Check if we've already attempted setup to avoid spamming
+      if (!this.hasAttemptedRepositorySetup && !this.isSettingUpRepository) {
+        console.log('Authenticated but not configured, attempting auto-setup...')
+        this.isSettingUpRepository = true
+        this.hasAttemptedRepositorySetup = true
+        this.setupDefaultRepository(this.authManager.getCurrentUser()).finally(() => {
+          this.isSettingUpRepository = false
+        })
+      }
       syncIndicator.style.display = 'none'
       return
     }

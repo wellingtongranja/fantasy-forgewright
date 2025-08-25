@@ -78,7 +78,7 @@ export class GitHubAuthButton {
     this.element.innerHTML = `
       <button class="github-user-btn" type="button" title="Git Repository: ${this.currentUser.login}">
         <img 
-          src="${this.currentUser.avatar_url || `https://github.com/${this.currentUser.login}.png`}" 
+          src="${this.currentUser.avatar_url || (this.currentUser.login ? `https://github.com/${this.currentUser.login}.png` : '')}" 
           alt="${this.currentUser.name || this.currentUser.login}"
           class="github-avatar"
           width="24" 

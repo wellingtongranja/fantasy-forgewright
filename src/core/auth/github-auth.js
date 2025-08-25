@@ -7,7 +7,17 @@ import { GitHubErrorHandler } from './github-error-handler.js'
 export class GitHubAuth {
   constructor() {
     this.clientId = null
-    this.redirectUri = import.meta.env.VITE_GITHUB_REDIRECT_URI || `${window.location.origin}/`
+    // Handle import.meta.env in both browser and test environments
+    let envUri
+    try {
+      envUri = import.meta.env?.VITE_GITHUB_REDIRECT_URI
+    } catch {
+      envUri = process.env?.VITE_GITHUB_REDIRECT_URI
+    }
+    const origin = (typeof window !== 'undefined' && window.location) 
+      ? window.location.origin 
+      : 'http://localhost:3000'
+    this.redirectUri = envUri || `${origin}/`
     this.scope = 'repo user'
     this.state = null
     this.codeVerifier = null

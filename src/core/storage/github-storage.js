@@ -9,6 +9,29 @@ export class GitHubStorage {
     this.repo = null
     this.branch = 'main'
     this.documentsPath = 'documents'
+    
+    // Load saved configuration from localStorage if available
+    this.loadSavedConfig()
+  }
+  
+  /**
+   * Load saved configuration from localStorage
+   */
+  loadSavedConfig() {
+    try {
+      const savedConfig = localStorage.getItem('fantasy-editor-github-config')
+      if (savedConfig) {
+        const config = JSON.parse(savedConfig)
+        if (config.configured) {
+          this.owner = config.owner
+          this.repo = config.repo
+          this.branch = config.branch || 'main'
+          this.documentsPath = config.documentsPath || 'documents'
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load saved GitHub configuration:', error)
+    }
   }
 
   /**
@@ -529,6 +552,16 @@ export class GitHubStorage {
     if (config.repo !== undefined) this.repo = config.repo
     if (config.branch !== undefined) this.branch = config.branch
     if (config.documentsPath !== undefined) this.documentsPath = config.documentsPath
+    
+    // Persist configuration to localStorage
+    const configToSave = {
+      owner: this.owner,
+      repo: this.repo,
+      branch: this.branch,
+      documentsPath: this.documentsPath,
+      configured: true
+    }
+    localStorage.setItem('fantasy-editor-github-config', JSON.stringify(configToSave))
   }
 
   /**
@@ -540,15 +573,15 @@ export class GitHubStorage {
     try {
       // First check if repository already exists
       try {
-        const checkResponse = await this.auth.makeAuthenticatedRequest(
+        const repoData = await this.auth.makeAuthenticatedRequest(
           `/repos/${username}/fantasy-editor`
         )
-        if (checkResponse.ok) {
+        if (repoData && repoData.name === 'fantasy-editor') {
           // Repository already exists, configure silently
           this.updateConfig({
             owner: username,
             repo: 'fantasy-editor',
-            branch: 'main'
+            branch: repoData.default_branch || 'main'
           })
 
           // Try to ensure documents directory exists
@@ -562,6 +595,7 @@ export class GitHubStorage {
         }
       } catch (error) {
         // Repository doesn't exist, continue with creation (normal flow)
+        console.log('Repository does not exist, creating new one...')
       }
 
       const repoData = {
@@ -574,23 +608,22 @@ export class GitHubStorage {
         license_template: null
       }
 
-      const response = await this.auth.makeAuthenticatedRequest('/user/repos', {
+      const repo = await this.auth.makeAuthenticatedRequest('/user/repos', {
         method: 'POST',
-        body: JSON.stringify(repoData),
+        body: repoData,
         headers: {
           'Content-Type': 'application/json'
         }
       })
 
-      if (response.ok) {
-        const repo = await response.json()
+      if (repo && repo.name === 'fantasy-editor') {
         // Repository created successfully
 
         // Configure Fantasy Editor to use this repository
         this.updateConfig({
           owner: username,
           repo: 'fantasy-editor',
-          branch: 'main'
+          branch: repo.default_branch || 'main'
         })
 
         // Wait a moment for GitHub to set up the repository
@@ -600,12 +633,11 @@ export class GitHubStorage {
         await this.ensureDocumentsDirectory()
 
         return true
-      } else if (response.status === 422) {
-        // Repository already exists, check the error message
-        const errorData = await response.json()
+      } else if (repo && repo.errors) {
+        // Check if repository already exists
         if (
-          errorData.errors &&
-          errorData.errors.some((err) => err.message && err.message.includes('already exists'))
+          repo.errors &&
+          repo.errors.some((err) => err.message && err.message.includes('already exists'))
         ) {
           // Repository already exists, configure silently
           this.updateConfig({
