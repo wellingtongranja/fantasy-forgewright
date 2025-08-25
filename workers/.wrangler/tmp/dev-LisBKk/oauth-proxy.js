@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-SqZR7j/checked-fetch.js
+// .wrangler/tmp/bundle-UavGyn/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -27,7 +27,7 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
   }
 });
 
-// .wrangler/tmp/bundle-SqZR7j/strip-cf-connecting-ip-header.js
+// .wrangler/tmp/bundle-UavGyn/strip-cf-connecting-ip-header.js
 function stripCfConnectingIPHeader(input, init) {
   const request = new Request(input, init);
   request.headers.delete("CF-Connecting-IP");
@@ -1642,22 +1642,47 @@ async function handleRepositoryOps(request, env) {
   }
 }
 __name(handleRepositoryOps, "handleRepositoryOps");
-function handleCORS(env) {
+function handleCORS(env, origin) {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": env.CORS_ORIGIN || "https://forgewright.io",
+      "Access-Control-Allow-Origin": origin,
+      // Use validated origin
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Max-Age": "86400"
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Credentials": "false",
+      "Access-Control-Max-Age": "86400",
+      "X-Security-Policy": "Strict-Origin"
     }
   });
 }
 __name(handleCORS, "handleCORS");
 var oauth_proxy_default = {
   async fetch(request, env, ctx) {
+    const origin = request.headers.get("Origin");
+    const allowedOrigins = [env.CORS_ORIGIN || "https://forgewright.io"];
+    if (!origin || !allowedOrigins.includes(origin)) {
+      return new Response("Forbidden - Invalid Origin", {
+        status: 403,
+        headers: {
+          "Content-Type": "text/plain",
+          "X-Security-Error": "Invalid Origin"
+        }
+      });
+    }
+    const clientIP = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For")?.split(",")[0] || "0.0.0.0";
+    const userAgent = request.headers.get("User-Agent");
+    if (!userAgent || userAgent.length < 5) {
+      return new Response("Forbidden - Invalid Request", {
+        status: 403,
+        headers: {
+          "Content-Type": "text/plain",
+          "X-Security-Error": "Invalid User-Agent"
+        }
+      });
+    }
     const url = new URL(request.url);
     if (request.method === "OPTIONS") {
-      return handleCORS(env);
+      return handleCORS(env, origin);
     }
     switch (url.pathname) {
       case "/oauth/token":
@@ -1675,7 +1700,13 @@ var oauth_proxy_default = {
           headers: { "Content-Type": "application/json" }
         });
       default:
-        return new Response("Not Found", { status: 404 });
+        return new Response("Endpoint not found", {
+          status: 404,
+          headers: {
+            "Content-Type": "text/plain",
+            "X-Security-Policy": "Deny-Unknown-Endpoints"
+          }
+        });
     }
   }
 };
@@ -1721,7 +1752,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-SqZR7j/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-UavGyn/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1753,7 +1784,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-SqZR7j/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-UavGyn/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
