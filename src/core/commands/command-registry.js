@@ -145,11 +145,11 @@ export class CommandRegistry {
 
     // If it's a colon shortcut with parameters, extract just the command part
     if (isColonShortcut) {
-      // Parse the query to extract the command part (before the first space)
-      const parsed = this.parseCommand(query)
-      if (parsed.name) {
-        // Use the parsed command name for searching
-        searchQuery = parsed.name.toLowerCase()
+      // For colon shortcuts, keep the colon for alias matching
+      // but extract just the command part (before the first space) if there are parameters
+      const spaceIndex = query.indexOf(' ')
+      if (spaceIndex > -1) {
+        searchQuery = query.substring(0, spaceIndex).toLowerCase()
       }
     }
 
@@ -160,13 +160,16 @@ export class CommandRegistry {
       for (const command of this.commands.values()) {
         if (!command.condition()) continue
 
-        // Check if any alias matches exactly
+        // Check if any alias matches exactly (with colon)
         if (command.aliases && command.aliases.includes(searchQuery)) {
           results.push({ ...command, matchScore: 2000 }) // Highest priority for exact colon match
         } else {
-          const score = this.calculateMatchScore(command, searchQuery, isColonShortcut)
-          if (score > 0) {
-            results.push({ ...command, matchScore: score })
+          // For partial matches, check if any alias starts with the query
+          const partialMatch = command.aliases && command.aliases.some(alias => 
+            alias.toLowerCase().startsWith(searchQuery)
+          )
+          if (partialMatch) {
+            results.push({ ...command, matchScore: 1500 })
           }
         }
       }
@@ -202,9 +205,16 @@ export class CommandRegistry {
 
     // For colon shortcuts, only match if it's actually a colon shortcut
     if (isColonShortcut) {
-      // Check aliases for colon shortcuts
-      if (command.aliases && command.aliases.some((alias) => alias.toLowerCase() === query)) {
-        score += 1500
+      // Check aliases for colon shortcuts (query includes the colon)
+      if (command.aliases) {
+        for (const alias of command.aliases) {
+          const aliasLower = alias.toLowerCase()
+          if (aliasLower === query) {
+            score += 1500  // Exact match
+          } else if (aliasLower.startsWith(query)) {
+            score += 1000  // Partial match
+          }
+        }
       }
       return score // For colon shortcuts, only return score if alias matches
     }
@@ -330,8 +340,8 @@ export class CommandRegistry {
       if (searchInput.toLowerCase().startsWith(checkName.toLowerCase())) {
         const remainder = searchInput.slice(checkName.length).trim()
         if (remainder === '' || remainder.startsWith(' ')) {
-          // Return the command name without colon prefix for consistency
-          commandName = cmdName.startsWith(':') ? cmdName.slice(1) : cmdName
+          // Keep the full alias/command name for proper resolution
+          commandName = cmdName
           args = remainder ? remainder.split(/\s+/) : []
           break
         }
@@ -341,7 +351,8 @@ export class CommandRegistry {
     // Fallback to original parsing if no multi-word command found
     if (!commandName) {
       const parts = searchInput.split(/\s+/)
-      commandName = parts[0] || ''
+      // For colon commands, reconstruct the full alias
+      commandName = isColonCommand ? ':' + parts[0] : parts[0] || ''
       args = parts.slice(1)
     }
 
