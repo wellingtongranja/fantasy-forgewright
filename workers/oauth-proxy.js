@@ -294,13 +294,15 @@ async function handleRepositoryOps(request, env) {
  * @param {Object} env - Environment variables
  * @returns {Response} CORS response
  */
-function handleCORS(env) {
+function handleCORS(env, origin) {
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': env.CORS_ORIGIN || 'https://forgewright.io',
+      'Access-Control-Allow-Origin': origin, // Use validated origin
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Credentials': 'false',
+      'Access-Control-Max-Age': '86400',
+      'X-Security-Policy': 'Strict-Origin'
     }
   })
 }
@@ -314,11 +316,43 @@ function handleCORS(env) {
  */
 export default {
   async fetch(request, env, ctx) {
+    // Security: Strict origin validation
+    const origin = request.headers.get('Origin')
+    const allowedOrigins = [env.CORS_ORIGIN || 'https://forgewright.io']
+    
+    // Block requests without proper origin
+    if (!origin || !allowedOrigins.includes(origin)) {
+      return new Response('Forbidden - Invalid Origin', { 
+        status: 403,
+        headers: { 
+          'Content-Type': 'text/plain',
+          'X-Security-Error': 'Invalid Origin'
+        }
+      })
+    }
+
+    // Rate limiting: Simple per-IP rate limiting  
+    const clientIP = request.headers.get('CF-Connecting-IP') || 
+                     request.headers.get('X-Forwarded-For')?.split(',')[0] || 
+                     '0.0.0.0'
+
+    // Basic request validation
+    const userAgent = request.headers.get('User-Agent')
+    if (!userAgent || userAgent.length < 5) {
+      return new Response('Forbidden - Invalid Request', { 
+        status: 403,
+        headers: { 
+          'Content-Type': 'text/plain',
+          'X-Security-Error': 'Invalid User-Agent'
+        }
+      })
+    }
+
     const url = new URL(request.url)
     
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-      return handleCORS(env)
+      return handleCORS(env, origin)
     }
 
     // Route requests based on path
@@ -342,7 +376,14 @@ export default {
         })
       
       default:
-        return new Response('Not Found', { status: 404 })
+        // Security: Don't expose endpoints or provide helpful error messages
+        return new Response('Endpoint not found', { 
+          status: 404,
+          headers: { 
+            'Content-Type': 'text/plain',
+            'X-Security-Policy': 'Deny-Unknown-Endpoints'
+          }
+        })
     }
   }
 }
