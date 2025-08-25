@@ -318,7 +318,11 @@ export default {
   async fetch(request, env, ctx) {
     // Security: Strict origin validation
     const origin = request.headers.get('Origin')
-    const allowedOrigins = [env.CORS_ORIGIN || 'https://forgewright.io']
+    const allowedOrigins = [
+      env.CORS_ORIGIN || 'https://forgewright.io',
+      'https://fantasy.forgewright.io',  // Allow subdomain
+      'https://forgewright.io'
+    ]
     
     // Block requests without proper origin
     if (!origin || !allowedOrigins.includes(origin)) {
