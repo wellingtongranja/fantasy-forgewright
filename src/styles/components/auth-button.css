@@ -41,13 +41,15 @@
 
 /* Single provider specific styling */
 .auth-signin-btn.single-provider {
-  background: var(--color-secondary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-secondary);
+  /* Keep the same clean design as the base button */
+  background: var(--color-bg-primary);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
 
 .auth-signin-btn.single-provider:hover {
-  background: var(--color-secondary-dark);
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-hover);
 }
 
 /* Multi-provider dropdown indicator */
