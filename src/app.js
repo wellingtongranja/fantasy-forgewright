@@ -220,13 +220,20 @@ class FantasyEditorApp {
         return
       }
 
-      // Silently attempt repository setup without showing "setting up" message
-      const success = await this.githubStorage.createDefaultRepository(user.login)
+      // Extract username - GitHub uses 'username' property in AuthManager
+      const username = user?.login || user?.username
+      if (!username) {
+        console.error('ERROR: No username found in user object')
+        this.showNotification('GitHub user information incomplete. Please try logging in again.', 'error')
+        return
+      }
+      
+      const success = await this.githubStorage.createDefaultRepository(username)
 
       if (success) {
         // Only show success notification when everything is working
-        this.showNotification(`Repository "${user.login}/fantasy-editor" ready!`, 'success')
-        console.log(`Repository setup complete: ${user.login}/fantasy-editor`)
+        this.showNotification(`Repository "${username}/fantasy-editor" ready!`, 'success')
+        console.log(`Repository setup complete: ${username}/fantasy-editor`)
         // Reset the flag so future configuration changes work
         this.hasAttemptedRepositorySetup = false
         // Update UI to reflect new repository configuration
