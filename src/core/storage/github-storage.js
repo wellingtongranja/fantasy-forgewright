@@ -608,13 +608,37 @@ export class GitHubStorage {
         license_template: null
       }
 
-      const repo = await this.auth.makeAuthenticatedRequest('/user/repos', {
-        method: 'POST',
-        body: repoData,
-        headers: {
-          'Content-Type': 'application/json'
+      let repo
+      try {
+        repo = await this.auth.makeAuthenticatedRequest('/user/repos', {
+          method: 'POST',
+          body: repoData,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      } catch (apiError) {
+        // Handle 422 "repository already exists" error
+        if (apiError.message && apiError.message.includes('already exists')) {
+          // Repository already exists, configure silently
+          this.updateConfig({
+            owner: username,
+            repo: 'fantasy-editor',
+            branch: 'main'
+          })
+
+          // Try to ensure documents directory exists
+          try {
+            await this.ensureDocumentsDirectory()
+          } catch (error) {
+            // Silently handle - directory will be created when first document is saved
+          }
+
+          return true
         }
-      })
+        // Re-throw other API errors
+        throw apiError
+      }
 
       if (repo && repo.name === 'fantasy-editor') {
         // Repository created successfully
@@ -719,12 +743,26 @@ Created: ${new Date().toISOString()}
 `
 
     try {
-      await this.saveFile(
-        `${this.documentsPath}/README.md`,
-        readmeContent,
-        'Initialize Fantasy Editor documents directory',
-        null // No existing SHA for new file
+      // Create README.md in documents directory using GitHub API
+      const filepath = `${this.documentsPath}/README.md`
+      const response = await this.auth.makeAuthenticatedRequest(
+        `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'Initialize Fantasy Editor documents directory',
+            content: btoa(unescape(encodeURIComponent(readmeContent))), // Base64 encode UTF-8
+            branch: this.branch
+          })
+        }
       )
+
+      if (!response.ok) {
+        throw new Error(`Failed to create README: ${response.status}`)
+      }
       // Documents directory created successfully
     } catch (error) {
       console.error('Failed to create documents directory:', error)

@@ -12,17 +12,17 @@ export function registerGitHubCommands(registry, app) {
       icon: '🐙',
       aliases: [':gst'],
       handler: async () => {
-        if (!app.githubAuth) {
+        if (!app.authManager) {
           return {
             success: false,
             message: 'Git repository integration not initialized'
           }
         }
 
-        const status = app.githubAuth.getStatus()
-        const user = app.githubAuth.getCurrentUser()
+        const isAuthenticated = app.authManager.isAuthenticated()
+        const user = app.authManager.getCurrentUser()
 
-        if (status.authenticated && user) {
+        if (isAuthenticated && user) {
           const storageConfig = app.githubStorage?.getConfig() || {}
 
           return {
@@ -30,21 +30,11 @@ export function registerGitHubCommands(registry, app) {
             message: 'Git Repository Status:',
             data: {
               status: 'Connected ✅',
-              user: `${user.name} (@${user.login})`,
+              user: `${user.name || user.username} (@${user.login || user.username})`,
               repository: storageConfig.configured
                 ? `${storageConfig.owner}/${storageConfig.repo}`
                 : 'Not configured',
-              branch: storageConfig.branch || 'main',
-              documentsPath: storageConfig.documentsPath || 'documents',
-              // Debug info for sync indicators
-              debug: {
-                'Auth Token': status.authenticated ? 'Present ✅' : 'Missing ❌',
-                'Storage Configured': storageConfig.configured ? 'Yes ✅' : 'No ❌',
-                'Owner Set': storageConfig.owner ? `${storageConfig.owner} ✅` : 'Missing ❌',
-                'Repo Set': storageConfig.repo ? `${storageConfig.repo} ✅` : 'Missing ❌',
-                'Sync Indicators Should Show':
-                  status.authenticated && storageConfig.configured ? 'YES ✅' : 'NO ❌'
-              }
+              branch: storageConfig.branch || 'main'
             }
           }
         } else {
@@ -68,24 +58,25 @@ export function registerGitHubCommands(registry, app) {
       icon: '🔑',
       aliases: [':glo'],
       handler: async () => {
-        if (!app.githubAuth) {
+        if (!app.authManager) {
           return {
             success: false,
             message: 'Git repository integration not initialized. Please configure OAuth first.'
           }
         }
 
-        if (app.githubAuth.isAuthenticated()) {
-          const user = app.githubAuth.getCurrentUser()
+        if (app.authManager.isAuthenticated()) {
+          const user = app.authManager.getCurrentUser()
+          const username = user.login || user.username
           return {
             success: true,
-            message: `Already logged in as ${user.name} (@${user.login})`
+            message: `Already logged in as ${user.name || username} (@${username})`
           }
         }
 
         try {
           // Start OAuth Web Application Flow
-          await app.githubAuth.login()
+          await app.authManager.login('github')
 
           return {
             success: true,
@@ -107,26 +98,26 @@ export function registerGitHubCommands(registry, app) {
       icon: '🚪',
       aliases: [':gou'],
       handler: async () => {
-        if (!app.githubAuth) {
+        if (!app.authManager) {
           return {
             success: false,
             message: 'Git repository integration not initialized'
           }
         }
 
-        if (!app.githubAuth.isAuthenticated()) {
+        if (!app.authManager.isAuthenticated()) {
           return {
             success: true,
             message: 'Already logged out from Git repository'
           }
         }
 
-        const user = app.githubAuth.getCurrentUser()
-        app.githubAuth.logout()
+        const user = app.authManager.getCurrentUser()
+        app.authManager.logout()
 
         return {
           success: true,
-          message: `Logged out from GitHub (was: ${user.name})`
+          message: `Logged out from GitHub (was: ${user.name || user.username})`
         }
       }
     },
@@ -212,7 +203,7 @@ export function registerGitHubCommands(registry, app) {
       icon: '🔄',
       aliases: [':gsy'],
       handler: async () => {
-        if (!app.githubAuth?.isAuthenticated()) {
+        if (!app.authManager?.isAuthenticated()) {
           return {
             success: false,
             message: 'Not logged in to Git repository. Use ":glo" to log in first.'
@@ -271,7 +262,7 @@ export function registerGitHubCommands(registry, app) {
       icon: '⬆️',
       aliases: [':gpu'],
       handler: async () => {
-        if (!app.githubAuth?.isAuthenticated()) {
+        if (!app.authManager?.isAuthenticated()) {
           return {
             success: false,
             message: 'Not logged in to Git repository. Use ":glo" to log in first.'
@@ -353,7 +344,7 @@ export function registerGitHubCommands(registry, app) {
         }
       ],
       handler: async (args) => {
-        if (!app.githubAuth?.isAuthenticated()) {
+        if (!app.authManager?.isAuthenticated()) {
           return {
             success: false,
             message: 'Not logged in to Git repository. Use ":glo" to log in first.'
@@ -512,7 +503,7 @@ export function registerGitHubCommands(registry, app) {
       icon: '📋',
       aliases: [':gls'],
       handler: async () => {
-        if (!app.githubAuth?.isAuthenticated()) {
+        if (!app.authManager?.isAuthenticated()) {
           return {
             success: false,
             message: 'Not logged in to Git repository. Use ":glo" to log in first.'
@@ -561,7 +552,7 @@ export function registerGitHubCommands(registry, app) {
       icon: '🚀',
       aliases: [':gin'],
       handler: async () => {
-        if (!app.githubAuth?.isAuthenticated()) {
+        if (!app.authManager?.isAuthenticated()) {
           return {
             success: false,
             message: 'Not logged in to Git repository. Use ":glo" to log in first.'
