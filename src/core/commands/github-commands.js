@@ -228,7 +228,7 @@ export function registerGitHubCommands(registry, app) {
             }
 
             // Update GitHub UI to reflect sync status changes
-            app.updateGitHubUI()
+            // app.updateGitHubUI() - Method not implemented yet
 
             return {
               success: true,
@@ -314,7 +314,7 @@ export function registerGitHubCommands(registry, app) {
           }
 
           // Update GitHub UI to reflect sync status changes
-          app.updateGitHubUI()
+          // app.updateGitHubUI() - Method not implemented yet
 
           return {
             success: true,
@@ -374,7 +374,7 @@ export function registerGitHubCommands(registry, app) {
             }
 
             // Update GitHub UI
-            app.updateGitHubUI()
+            // app.updateGitHubUI() - Method not implemented yet
 
             return {
               success: true,

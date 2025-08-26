@@ -431,7 +431,8 @@ class FantasyEditorApp {
 
     // Listen for GitHub authentication state changes
     window.addEventListener('github-auth-state-changed', () => {
-      this.updateGitHubUI()
+      // this.updateGitHubUI() - Method not implemented yet
+      // TODO: Update UI to reflect GitHub authentication state
     })
   }
 
