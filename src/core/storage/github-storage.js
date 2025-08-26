@@ -81,7 +81,13 @@ export class GitHubStorage {
       const content = this.formatDocumentContent(document)
 
       // Check if file already exists (using GUID-based filename)
-      const existingFile = await this.getFileInfo(filepath)
+      let existingFile = null
+      try {
+        existingFile = await this.getFileInfo(filepath)
+      } catch (error) {
+        // If we can't check file existence, throw error to prevent data loss
+        throw new Error(`Failed to verify file existence: ${error.message}`)
+      }
 
       const requestBody = {
         message: existingFile
@@ -284,9 +290,20 @@ export class GitHubStorage {
         return await response.json()
       }
 
-      return null
+      // Check if this is a 404 (file not found) vs other errors
+      if (response.status === 404) {
+        return null // File doesn't exist - this is expected
+      }
+
+      // For other HTTP errors, throw to let caller handle
+      throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`)
     } catch (error) {
-      return null
+      // Check if this is a specific 404 error message
+      if (error.message && error.message.includes('404')) {
+        return null // File doesn't exist
+      }
+      // Re-throw other errors (network, rate limit, auth, etc.)
+      throw error
     }
   }
 

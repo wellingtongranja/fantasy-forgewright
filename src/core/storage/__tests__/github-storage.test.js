@@ -125,4 +125,59 @@ describe('GitHubStorage - Repository Already Exists', () => {
       expect(githubStorage.ensureDocumentsDirectory).toHaveBeenCalled()
     })
   })
+
+  describe('getFileInfo and saveDocument SHA handling', () => {
+    it('should properly handle 404 errors in getFileInfo', async () => {
+      const filepath = 'documents/test-doc.md'
+      
+      // Configure repository first
+      githubStorage.updateConfig({ owner: 'testuser', repo: 'test-repo', branch: 'main' })
+      
+      // Mock 404 response
+      const mockResponse = { ok: false, status: 404, statusText: 'Not Found' }
+      mockAuth.makeAuthenticatedRequest.mockResolvedValue(mockResponse)
+      
+      const result = await githubStorage.getFileInfo(filepath)
+      
+      expect(result).toBe(null)
+      expect(mockAuth.makeAuthenticatedRequest).toHaveBeenCalledWith(
+        '/repos/testuser/test-repo/contents/documents/test-doc.md',
+        { headers: { Accept: 'application/vnd.github.v3.object' } }
+      )
+    })
+
+    it('should throw error for non-404 HTTP errors in getFileInfo', async () => {
+      const filepath = 'documents/test-doc.md'
+      
+      // Mock 403 response (permission denied)
+      const mockResponse = { ok: false, status: 403, statusText: 'Forbidden' }
+      mockAuth.makeAuthenticatedRequest.mockResolvedValue(mockResponse)
+      
+      await expect(githubStorage.getFileInfo(filepath)).rejects.toThrow('GitHub API error: 403 - Forbidden')
+    })
+
+    it('should handle network errors in getFileInfo', async () => {
+      const filepath = 'documents/test-doc.md'
+      
+      // Mock network error
+      mockAuth.makeAuthenticatedRequest.mockRejectedValue(new Error('Network error'))
+      
+      await expect(githubStorage.getFileInfo(filepath)).rejects.toThrow('Network error')
+    })
+
+    it('should handle saveDocument when getFileInfo fails', async () => {
+      const testDocument = {
+        id: 'test-id',
+        title: 'Test Document',
+        content: 'Test content'
+      }
+      
+      githubStorage.updateConfig({ owner: 'testuser', repo: 'test-repo', branch: 'main' })
+      
+      // Mock getFileInfo to throw an error (simulating API failure)
+      mockAuth.makeAuthenticatedRequest.mockRejectedValue(new Error('Rate limit exceeded'))
+      
+      await expect(githubStorage.saveDocument(testDocument)).rejects.toThrow('Failed to verify file existence: Rate limit exceeded')
+    })
+  })
 })
