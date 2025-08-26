@@ -25,9 +25,20 @@ export class HeaderIntegration {
     this.headerElement = document.querySelector('.app-header')
     this.titleElement = document.querySelector('.app-title')
 
-    if (!this.headerElement || !this.titleElement) {
-      throw new Error('Required header elements not found')
+    if (!this.headerElement) {
+      console.warn('Header element (.app-header) not found in DOM')
+      throw new Error('Header element (.app-header) not found')
     }
+    
+    if (!this.titleElement) {
+      console.warn('Title element (.app-title) not found in DOM')
+      throw new Error('Title element (.app-title) not found')
+    }
+
+    console.log('Header elements found successfully:', {
+      header: this.headerElement,
+      title: this.titleElement
+    })
   }
 
   /**

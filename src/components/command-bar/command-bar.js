@@ -46,9 +46,33 @@ export class CommandBar {
     try {
       this.headerIntegration = new HeaderIntegration(this)
       this.headerIntegration.integrate()
+      console.log('Header integration successful')
     } catch (error) {
       console.warn('Header integration failed, falling back to floating mode:', error.message)
-      // Continue with floating mode if header integration fails
+      // Ensure element is properly positioned for floating mode
+      this.restoreFloatingMode()
+    }
+  }
+
+  /**
+   * Restore floating mode if header integration fails
+   */
+  restoreFloatingMode() {
+    if (this.element) {
+      // Remove any integrated classes
+      this.element.classList.remove('command-bar-integrated')
+      this.element.classList.add('command-bar-floating')
+      
+      // Ensure the element is properly appended to body for floating mode
+      if (this.element.parentNode !== document.body) {
+        document.body.appendChild(this.element)
+      }
+      
+      // Reset styles that might have been modified
+      this.element.style.position = ''
+      this.element.style.top = ''
+      this.element.style.left = ''
+      this.element.style.transform = ''
     }
   }
 
@@ -56,9 +80,9 @@ export class CommandBar {
    * Create DOM structure for command bar
    */
   createDOM() {
-    // Create main command bar
+    // Create main command bar with floating mode as default
     this.element = document.createElement('div')
-    this.element.className = 'command-bar'
+    this.element.className = 'command-bar command-bar-floating'
     this.element.innerHTML = `
       <div class="command-bar-input-container">
         <input 
