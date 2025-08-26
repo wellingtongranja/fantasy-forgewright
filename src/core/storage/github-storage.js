@@ -102,7 +102,7 @@ export class GitHubStorage {
         requestBody.sha = existingFile.sha
       }
 
-      const response = await this.auth.makeAuthenticatedRequest(
+      const result = await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           method: 'PUT',
@@ -113,11 +113,7 @@ export class GitHubStorage {
         }
       )
 
-      if (!response.ok) {
-        throw new Error(`Failed to save document: ${response.status}`)
-      }
-
-      const result = await response.json()
+      // makeAuthenticatedRequest returns JSON data on success or throws on error
 
       return {
         ...result,
@@ -144,7 +140,7 @@ export class GitHubStorage {
     }
 
     try {
-      const response = await this.auth.makeAuthenticatedRequest(
+      const fileData = await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           headers: {
@@ -153,14 +149,7 @@ export class GitHubStorage {
         }
       )
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Document not found')
-        }
-        throw new Error(`Failed to load document: ${response.status}`)
-      }
-
-      const fileData = await response.json()
+      // makeAuthenticatedRequest returns JSON data on success or throws on error
       const content = decodeURIComponent(escape(atob(fileData.content)))
 
       return this.parseDocumentContent(content, {
@@ -183,24 +172,25 @@ export class GitHubStorage {
     }
 
     try {
-      const response = await this.auth.makeAuthenticatedRequest(
-        `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}`,
-        {
-          headers: {
-            Accept: 'application/vnd.github.v3+json'
+      let files
+      try {
+        files = await this.auth.makeAuthenticatedRequest(
+          `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}`,
+          {
+            headers: {
+              Accept: 'application/vnd.github.v3+json'
+            }
           }
+        )
+      } catch (error) {
+        // Check if this is a 404 error (documents folder doesn't exist)
+        if (error.message && error.message.includes('404')) {
+          return [] // Documents folder doesn't exist yet
         }
-      )
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          // Documents folder doesn't exist yet
-          return []
-        }
-        throw new Error(`Failed to list documents: ${response.status}`)
+        throw error
       }
 
-      const files = await response.json()
+      // makeAuthenticatedRequest returns JSON data on success
 
       if (!Array.isArray(files)) {
         return []
@@ -247,7 +237,7 @@ export class GitHubStorage {
     }
 
     try {
-      const response = await this.auth.makeAuthenticatedRequest(
+      await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           method: 'DELETE',
@@ -262,9 +252,7 @@ export class GitHubStorage {
         }
       )
 
-      if (!response.ok) {
-        throw new Error(`Failed to delete document: ${response.status}`)
-      }
+      // makeAuthenticatedRequest throws on error, success if we reach here
     } catch (error) {
       throw new Error(`GitHub delete failed: ${error.message}`)
     }
@@ -308,52 +296,13 @@ export class GitHubStorage {
     }
 
     try {
-      const response = await this.auth.makeAuthenticatedRequest(`/repos/${this.owner}/${this.repo}`)
-
-      return response.ok
+      await this.auth.makeAuthenticatedRequest(`/repos/${this.owner}/${this.repo}`)
+      return true // If we reach here, repository is accessible
     } catch (error) {
       return false
     }
   }
 
-  /**
-   * Create documents directory if it doesn't exist
-   * @returns {Promise<void>}
-   */
-  async ensureDocumentsDirectory() {
-    if (!this.isConfigured()) {
-      throw new Error('Git repository storage not configured or not authenticated')
-    }
-
-    try {
-      // Check if documents directory exists
-      const response = await this.auth.makeAuthenticatedRequest(
-        `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}`
-      )
-
-      if (response.status === 404) {
-        // Create README.md in documents directory
-        const readmeContent = '# Documents\n\nThis directory contains Fantasy Editor documents.\n'
-
-        await this.auth.makeAuthenticatedRequest(
-          `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}/README.md`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              message: 'Initialize documents directory',
-              content: btoa(readmeContent),
-              branch: this.branch
-            })
-          }
-        )
-      }
-    } catch (error) {
-      throw new Error(`Failed to ensure documents directory: ${error.message}`)
-    }
-  }
 
   /**
    * Generate filename for document
@@ -410,7 +359,7 @@ export class GitHubStorage {
       throw new Error('Git repository storage not configured or not authenticated')
     }
 
-    const response = await this.auth.makeAuthenticatedRequest(
+    await this.auth.makeAuthenticatedRequest(
       `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
       {
         method: 'DELETE',
@@ -425,9 +374,7 @@ export class GitHubStorage {
       }
     )
 
-    if (!response.ok) {
-      throw new Error(`Failed to delete file: ${response.status}`)
-    }
+    // makeAuthenticatedRequest throws on error, success if we reach here
   }
 
   /**
@@ -752,7 +699,7 @@ Created: ${new Date().toISOString()}
 `
 
     try {
-      const response = await this.auth.makeAuthenticatedRequest(
+      await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/README.md`,
         {
           method: 'PUT',
@@ -767,9 +714,7 @@ Created: ${new Date().toISOString()}
         }
       )
 
-      if (!response.ok) {
-        throw new Error(`Failed to create repository README: ${response.status}`)
-      }
+      // makeAuthenticatedRequest throws on error, success if we reach here
     } catch (error) {
       console.error('Failed to create repository README:', error)
       throw error
@@ -787,17 +732,18 @@ Created: ${new Date().toISOString()}
 
     try {
       // Check if documents directory exists
-      const response = await this.auth.makeAuthenticatedRequest(
+      await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/${this.documentsPath}`,
         { method: 'GET' }
       )
-
-      if (response.ok) {
-        // Documents directory already exists
-        return
-      }
+      // If we reach here, directory exists
+      return
     } catch (error) {
-      // Directory doesn't exist, we'll create it
+      // Directory doesn't exist (404 error), we'll create it
+      if (!error.message || !error.message.includes('404')) {
+        // Not a 404 error, re-throw
+        throw error
+      }
     }
 
     // Create documents directory with a README
@@ -845,9 +791,7 @@ Created: ${new Date().toISOString()}
         }
       )
 
-      if (!response.ok) {
-        throw new Error(`Failed to create README: ${response.status}`)
-      }
+      // makeAuthenticatedRequest throws on error, success if we reach here
       // Documents directory created successfully
     } catch (error) {
       console.error('Failed to create documents directory:', error)
