@@ -1,5 +1,10 @@
 /* Header Integration Styles */
 
+/* Ensure header has relative positioning for absolute children */
+.app-header {
+  position: relative !important;
+}
+
 .command-bar-header-wrapper {
   position: absolute;
   left: 50%;
