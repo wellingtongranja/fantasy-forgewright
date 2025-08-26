@@ -202,3 +202,70 @@
     transition: opacity 100ms ease;
   }
 }
+
+/* Category grouping styles */
+.command-category {
+  margin-bottom: var(--spacing-sm);
+}
+
+.command-category:last-child {
+  margin-bottom: 0;
+}
+
+.command-category-header {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: rgba(var(--color-bg-secondary-rgb, 248, 249, 250), 0.5);
+  border-bottom: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.command-category-icon {
+  margin-right: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+.command-category-name {
+  flex: 1;
+}
+
+.command-category-count {
+  font-size: var(--font-size-xs);
+  opacity: 0.5;
+  font-weight: var(--font-weight-normal);
+}
+
+.command-category-results {
+  /* No additional padding needed, command-result handles it */
+}
+
+.command-category .command-result {
+  border-left: 2px solid transparent;
+  margin-left: var(--spacing-xs);
+  margin-right: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+}
+
+.command-category .command-result:hover,
+.command-category .command-result.selected {
+  border-left-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.05);
+}
+
+/* Dark theme category adjustments */
+[data-theme='dark'] .command-category-header {
+  background: rgba(55, 55, 55, 0.3);
+  border-bottom-color: rgba(64, 64, 64, 0.4);
+}
+
+/* Fantasy theme category adjustments */
+[data-theme='fantasy'] .command-category-header {
+  background: rgba(26, 0, 51, 0.3);
+  border-bottom-color: rgba(106, 27, 154, 0.3);
+}

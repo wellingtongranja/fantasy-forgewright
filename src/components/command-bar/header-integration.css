@@ -1,0 +1,149 @@
+/* Header Integration Styles */
+
+.command-bar-header-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  max-width: calc(100% - 160px); /* Leave space for title and auth */
+  z-index: 10;
+  cursor: text;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.command-bar-header-wrapper:hover {
+  opacity: 0.9;
+}
+
+.command-bar-header-wrapper:focus {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* Integrated command bar styling */
+.command-bar-integrated {
+  position: static !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: none !important;
+  top: auto !important;
+  left: auto !important;
+  background: rgba(var(--color-bg-rgb, 255, 255, 255), 0.1) !important;
+  border: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.3) !important;
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.command-bar-integrated .command-bar-input {
+  background: transparent !important;
+  color: var(--color-text) !important;
+  font-size: var(--font-size-sm) !important;
+  padding: var(--spacing-xs) var(--spacing-sm) !important;
+}
+
+.command-bar-integrated .command-bar-input::placeholder {
+  color: rgba(var(--color-text-rgb, 0, 0, 0), 0.4) !important;
+  font-size: var(--font-size-sm) !important;
+}
+
+.command-bar-integrated .command-bar-input-container {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+/* Hide results when integrated and not focused */
+.command-bar-integrated .command-bar-results {
+  display: none;
+}
+
+.command-bar-integrated.show .command-bar-results {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* Mobile responsive */
+.command-bar-header-wrapper.mobile {
+  width: calc(100% - 80px);
+  max-width: none;
+}
+
+.command-bar-header-wrapper.mobile .command-bar-integrated {
+  font-size: var(--font-size-xs);
+}
+
+/* Theme-specific adjustments */
+[data-theme='dark'] .command-bar-integrated {
+  background: rgba(45, 45, 45, 0.2) !important;
+  border-color: rgba(64, 64, 64, 0.4) !important;
+}
+
+[data-theme='dark'] .command-bar-integrated .command-bar-input::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme='fantasy'] .command-bar-integrated {
+  background: rgba(26, 0, 51, 0.2) !important;
+  border-color: rgba(106, 27, 154, 0.3) !important;
+}
+
+[data-theme='fantasy'] .command-bar-integrated .command-bar-input::placeholder {
+  color: rgba(138, 43, 226, 0.4) !important;
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .command-bar-integrated {
+    background: var(--color-bg) !important;
+    border-width: 2px !important;
+  }
+  
+  .command-bar-header-wrapper:focus {
+    outline-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .command-bar-header-wrapper {
+    transition: opacity 100ms ease;
+  }
+}
+
+/* Focus states for better accessibility */
+.command-bar-integrated:focus-within {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+/* Animation for smooth integration */
+.command-bar-integrated.show {
+  animation: commandBarIntegratedShow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes commandBarIntegratedShow {
+  from {
+    opacity: 0.7;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
