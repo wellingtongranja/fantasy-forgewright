@@ -197,7 +197,6 @@ class FantasyEditorApp {
       const user = await this.authManager.handleCallback(window.location.href)
 
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
-      console.log('Git repository authentication successful:', user)
 
       // Update authentication UI
       this.updateAuthUI()
