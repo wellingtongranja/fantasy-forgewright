@@ -103,5 +103,26 @@ describe('GitHubStorage - Repository Already Exists', () => {
       
       consoleSpy.mockRestore()
     })
+
+    it('should create repository README when creating new repository', async () => {
+      const username = 'testuser'
+      
+      // Mock successful repository creation
+      mockAuth.makeAuthenticatedRequest
+        .mockRejectedValueOnce(new Error('Repository not found')) // First call fails (repo check)
+        .mockResolvedValueOnce({ name: 'fantasy-editor', default_branch: 'main' }) // Create repo succeeds
+        .mockResolvedValueOnce({ ok: true }) // createRepositoryReadme succeeds
+        .mockResolvedValueOnce({ ok: true }) // ensureDocumentsDirectory succeeds
+
+      // Mock the new methods
+      githubStorage.createRepositoryReadme = jest.fn().mockResolvedValue()
+      githubStorage.ensureDocumentsDirectory = jest.fn().mockResolvedValue()
+
+      const result = await githubStorage.createDefaultRepository(username)
+
+      expect(result).toBe(true)
+      expect(githubStorage.createRepositoryReadme).toHaveBeenCalled()
+      expect(githubStorage.ensureDocumentsDirectory).toHaveBeenCalled()
+    })
   })
 })
