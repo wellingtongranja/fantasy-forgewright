@@ -133,9 +133,8 @@ describe('GitHubStorage - Repository Already Exists', () => {
       // Configure repository first
       githubStorage.updateConfig({ owner: 'testuser', repo: 'test-repo', branch: 'main' })
       
-      // Mock 404 response
-      const mockResponse = { ok: false, status: 404, statusText: 'Not Found' }
-      mockAuth.makeAuthenticatedRequest.mockResolvedValue(mockResponse)
+      // Mock 404 error from AuthManager (throws error instead of returning response)
+      mockAuth.makeAuthenticatedRequest.mockRejectedValue(new Error('API request failed: 404 - Not Found'))
       
       const result = await githubStorage.getFileInfo(filepath)
       
@@ -149,11 +148,10 @@ describe('GitHubStorage - Repository Already Exists', () => {
     it('should throw error for non-404 HTTP errors in getFileInfo', async () => {
       const filepath = 'documents/test-doc.md'
       
-      // Mock 403 response (permission denied)
-      const mockResponse = { ok: false, status: 403, statusText: 'Forbidden' }
-      mockAuth.makeAuthenticatedRequest.mockResolvedValue(mockResponse)
+      // Mock 403 error from AuthManager
+      mockAuth.makeAuthenticatedRequest.mockRejectedValue(new Error('API request failed: 403 - Forbidden'))
       
-      await expect(githubStorage.getFileInfo(filepath)).rejects.toThrow('GitHub API error: 403 - Forbidden')
+      await expect(githubStorage.getFileInfo(filepath)).rejects.toThrow('API request failed: 403 - Forbidden')
     })
 
     it('should handle network errors in getFileInfo', async () => {

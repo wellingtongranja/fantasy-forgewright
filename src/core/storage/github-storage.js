@@ -277,7 +277,8 @@ export class GitHubStorage {
    */
   async getFileInfo(filepath) {
     try {
-      const response = await this.auth.makeAuthenticatedRequest(
+      // makeAuthenticatedRequest returns JSON data on success or throws on error
+      const fileData = await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           headers: {
@@ -286,21 +287,11 @@ export class GitHubStorage {
         }
       )
 
-      if (response.ok) {
-        return await response.json()
-      }
-
-      // Check if this is a 404 (file not found) vs other errors
-      if (response.status === 404) {
-        return null // File doesn't exist - this is expected
-      }
-
-      // For other HTTP errors, throw to let caller handle
-      throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`)
+      return fileData // File exists, return the data
     } catch (error) {
-      // Check if this is a specific 404 error message
-      if (error.message && error.message.includes('404')) {
-        return null // File doesn't exist
+      // Check if this is a 404 error (file not found)
+      if (error.message && (error.message.includes('404') || error.message.includes('Not Found'))) {
+        return null // File doesn't exist - this is expected
       }
       // Re-throw other errors (network, rate limit, auth, etc.)
       throw error
