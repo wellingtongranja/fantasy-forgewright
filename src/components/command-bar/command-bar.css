@@ -16,10 +16,31 @@
   overflow: hidden;
 }
 
+/* Floating mode (fallback) - explicit styling */
+.command-bar-floating {
+  position: fixed !important;
+  top: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) scale(0.95) !important;
+  width: 600px !important;
+  max-width: calc(100vw - 32px) !important;
+  background: var(--color-bg) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--border-radius-lg) !important;
+  box-shadow: var(--shadow-xl) !important;
+  z-index: 1000 !important;
+}
+
 .command-bar.show {
   transform: translateX(-50%) scale(1);
   opacity: 1;
   visibility: visible;
+}
+
+.command-bar-floating.show {
+  transform: translateX(-50%) scale(1) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .command-bar-input-container {
