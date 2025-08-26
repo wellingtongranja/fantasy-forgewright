@@ -1,15 +1,16 @@
 /**
- * GitHub Commands - GitHub integration commands for Fantasy Editor
- * Implements OAuth authentication and document synchronization
+ * Git Commands - Git integration commands for Fantasy Editor
+ * Implements OAuth authentication and document synchronization with Git providers
+ * Supports GitHub, GitLab, Bitbucket, and other Git providers
  */
-export function registerGitHubCommands(registry, app) {
+export function registerGitCommands(registry, app) {
   const commands = [
-    // GitHub Authentication Commands
+    // Git Authentication Commands
     {
-      name: 'github status',
+      name: 'git status',
       description: 'show Git repository connection status',
-      category: 'github',
-      icon: '🐙',
+      category: 'git',
+      icon: '🔧',
       aliases: [':gst'],
       handler: async () => {
         if (!app.authManager) {
@@ -52,9 +53,9 @@ export function registerGitHubCommands(registry, app) {
     },
 
     {
-      name: 'github login',
+      name: 'git login',
       description: 'log in to Git repository',
-      category: 'github',
+      category: 'git',
       icon: '🔑',
       aliases: [':glo'],
       handler: async () => {
@@ -80,21 +81,21 @@ export function registerGitHubCommands(registry, app) {
 
           return {
             success: true,
-            message: 'Redirecting to repository provider for authorization...'
+            message: 'Redirecting to Git provider for authorization...'
           }
         } catch (error) {
           return {
             success: false,
-            message: `GitHub login failed: ${error.message}`
+            message: `Git login failed: ${error.message}`
           }
         }
       }
     },
 
     {
-      name: 'github logout',
+      name: 'git logout',
       description: 'log out from Git repository',
-      category: 'github',
+      category: 'git',
       icon: '🚪',
       aliases: [':gou'],
       handler: async () => {
@@ -117,16 +118,16 @@ export function registerGitHubCommands(registry, app) {
 
         return {
           success: true,
-          message: `Logged out from GitHub (was: ${user.name || user.username})`
+          message: `Logged out from Git repository (was: ${user.name || user.username})`
         }
       }
     },
 
-    // GitHub Repository Configuration
+    // Git Repository Configuration
     {
-      name: 'github config',
+      name: 'git config',
       description: 'configure Git repository',
-      category: 'github',
+      category: 'git',
       icon: '⚙️',
       aliases: [':gcf'],
       parameters: [
@@ -160,7 +161,7 @@ export function registerGitHubCommands(registry, app) {
               branch: config.branch || 'main',
               documentsPath: config.documentsPath || 'documents',
               configured: config.configured ? 'Yes ✅' : 'No ❌',
-              usage: 'Use: github config <owner> <repo> [branch]'
+              usage: 'Use: git config <owner> <repo> [branch]'
             }
           }
         }
@@ -178,7 +179,7 @@ export function registerGitHubCommands(registry, app) {
           if (isAccessible) {
             return {
               success: true,
-              message: `GitHub repository configured: ${owner}/${repo}`
+              message: `Git repository configured: ${owner}/${repo}`
             }
           } else {
             return {
@@ -195,11 +196,11 @@ export function registerGitHubCommands(registry, app) {
       }
     },
 
-    // GitHub Document Synchronization
+    // Git Document Synchronization
     {
-      name: 'github sync',
+      name: 'git sync',
       description: 'sync documents with Git repository',
-      category: 'github',
+      category: 'git',
       icon: '🔄',
       aliases: [':gsy'],
       handler: async () => {
@@ -227,8 +228,8 @@ export function registerGitHubCommands(registry, app) {
               app.navigator.refresh()
             }
 
-            // Update GitHub UI to reflect sync status changes
-            // app.updateGitHubUI() - Method not implemented yet
+            // Update Git UI to reflect sync status changes
+            // app.updateGitUI() - Method not implemented yet
 
             return {
               success: true,
@@ -256,9 +257,9 @@ export function registerGitHubCommands(registry, app) {
     },
 
     {
-      name: 'github push',
+      name: 'git push',
       description: 'push current document to Git repository',
-      category: 'github',
+      category: 'git',
       icon: '⬆️',
       aliases: [':gpu'],
       handler: async () => {
@@ -292,7 +293,7 @@ export function registerGitHubCommands(registry, app) {
           const docToSync = savedDoc || app.currentDocument
           const result = await app.githubStorage.saveDocument(docToSync)
 
-          // Update document with GitHub metadata, preserving the existing metadata
+          // Update document with Git metadata, preserving the existing metadata
           const updatedDoc = {
             ...docToSync,
             githubSha: result.document.githubSha,
@@ -300,7 +301,7 @@ export function registerGitHubCommands(registry, app) {
             lastSyncedAt: docToSync.metadata?.modified || new Date().toISOString()
           }
 
-          // Save updated document locally with GitHub metadata
+          // Save updated document locally with Git metadata
           await app.storageManager.saveDocument(updatedDoc)
 
           // Update current document if it's the same one
@@ -313,8 +314,8 @@ export function registerGitHubCommands(registry, app) {
             app.navigator.onDocumentSave(updatedDoc)
           }
 
-          // Update GitHub UI to reflect sync status changes
-          // app.updateGitHubUI() - Method not implemented yet
+          // Update Git UI to reflect sync status changes
+          // app.updateGitUI() - Method not implemented yet
 
           return {
             success: true,
@@ -330,9 +331,9 @@ export function registerGitHubCommands(registry, app) {
     },
 
     {
-      name: 'github pull',
+      name: 'git pull',
       description: 'pull documents from Git repository',
-      category: 'github',
+      category: 'git',
       icon: '⬇️',
       aliases: [':gpl'],
       parameters: [
@@ -373,8 +374,8 @@ export function registerGitHubCommands(registry, app) {
               app.navigator.onDocumentSave(savedDoc)
             }
 
-            // Update GitHub UI
-            // app.updateGitHubUI() - Method not implemented yet
+            // Update Git UI
+            // app.updateGitUI() - Method not implemented yet
 
             return {
               success: true,
@@ -407,9 +408,9 @@ export function registerGitHubCommands(registry, app) {
     },
 
     {
-      name: 'github import',
+      name: 'git import',
       description: 'import document from Git repository URL',
-      category: 'github',
+      category: 'git',
       icon: '📥',
       aliases: [':gim'],
       parameters: [
@@ -421,11 +422,11 @@ export function registerGitHubCommands(registry, app) {
         if (!url) {
           return {
             success: false,
-            message: 'Git repository URL required. Usage: github import <url>'
+            message: 'Git repository URL required. Usage: git import <url>'
           }
         }
 
-        if (!url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
+        if (!url.includes('github.com') && !url.includes('gitlab.com') && !url.includes('bitbucket.org') && !url.includes('raw.githubusercontent.com')) {
           return {
             success: false,
             message: 'Invalid Git repository URL. Please provide a valid Git repository file URL.'
@@ -433,7 +434,7 @@ export function registerGitHubCommands(registry, app) {
         }
 
         try {
-          // Convert GitHub file URL to raw URL if needed
+          // Convert Git file URL to raw URL if needed
           let rawUrl = url
           if (url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
             rawUrl = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
@@ -484,7 +485,7 @@ export function registerGitHubCommands(registry, app) {
 
           return {
             success: true,
-            message: `Document "${document.title}" imported successfully from GitHub`
+            message: `Document "${document.title}" imported successfully from Git repository`
           }
         } catch (error) {
           return {
@@ -495,11 +496,11 @@ export function registerGitHubCommands(registry, app) {
       }
     },
 
-    // GitHub Repository Management
+    // Git Repository Management
     {
-      name: 'github list',
+      name: 'git list',
       description: 'list documents in Git repository',
-      category: 'github',
+      category: 'git',
       icon: '📋',
       aliases: [':gls'],
       handler: async () => {
@@ -530,7 +531,7 @@ export function registerGitHubCommands(registry, app) {
 
           return {
             success: true,
-            message: `Found ${documents.length} documents in GitHub repository:`,
+            message: `Found ${documents.length} documents in Git repository:`,
             data: documents.map((doc) => {
               const size = Math.round(doc.size / 1024)
               return `${doc.title} (${size}KB, updated: ${new Date(doc.updatedAt).toLocaleDateString()})`
@@ -539,16 +540,16 @@ export function registerGitHubCommands(registry, app) {
         } catch (error) {
           return {
             success: false,
-            message: `Failed to list GitHub documents: ${error.message}`
+            message: `Failed to list Git repository documents: ${error.message}`
           }
         }
       }
     },
 
     {
-      name: 'github init',
+      name: 'git init',
       description: 'initialize Git repository for documents',
-      category: 'github',
+      category: 'git',
       icon: '🚀',
       aliases: [':gin'],
       handler: async () => {
@@ -590,6 +591,6 @@ export function registerGitHubCommands(registry, app) {
     ...command
   }))
 
-  // Register all GitHub commands
+  // Register all Git commands
   registry.registerCommands(processedCommands)
 }
