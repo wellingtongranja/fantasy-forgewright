@@ -7,7 +7,7 @@ import { CommandBar } from './components/command-bar/command-bar.js'
 import { Navigator } from './components/navigator/navigator.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
-import { registerGitHubCommands } from './core/commands/github-commands.js'
+import { registerGitCommands } from './core/commands/git-commands.js'
 import { guidManager } from './utils/guid.js'
 import { devHelpers } from './utils/dev-helpers.js'
 import { AuthManager } from './core/auth/auth-manager.js'
@@ -121,8 +121,8 @@ class FantasyEditorApp {
     // Register core commands
     registerCoreCommands(this.commandRegistry, this)
 
-    // Register GitHub commands
-    registerGitHubCommands(this.commandRegistry, this)
+    // Register Git commands
+    registerGitCommands(this.commandRegistry, this)
 
     // Initialize dev helpers for console access
     devHelpers.init(this)

@@ -2,7 +2,7 @@
  * Core Commands - Essential editor commands for Fantasy Editor
  * Integrates with existing EditorManager, StorageManager, and ThemeManager
  */
-import { registerGitHubCommands } from './github-commands.js'
+import { registerGitCommands } from './git-commands.js'
 
 export function registerCoreCommands(registry, app) {
   const commands = [
@@ -1193,7 +1193,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'license',
       description: 'view AGPL v3 license (Community Edition)',
-      category: 'legal',
+      category: 'about',
       icon: '⚖️',
       aliases: [':license'],
       handler: async () => {
@@ -1219,7 +1219,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'commercial',
       description: 'view commercial license terms',
-      category: 'legal',
+      category: 'about',
       icon: '💼',
       aliases: [':commercial'],
       handler: async () => {
@@ -1246,7 +1246,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'release',
       description: 'view release notes and version history',
-      category: 'info',
+      category: 'about',
       icon: '📋',
       aliases: [':release'],
       handler: async () => {
@@ -1272,7 +1272,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'eula',
       description: 'view End User License Agreement',
-      category: 'legal',
+      category: 'about',
       icon: '📄',
       aliases: [':eula'],
       handler: async () => {
@@ -1298,7 +1298,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'privacy',
       description: 'view Privacy Policy',
-      category: 'legal',
+      category: 'about',
       icon: '🔐',
       aliases: [':privacy'],
       handler: async () => {
@@ -1324,7 +1324,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'edition',
       description: 'show current Fantasy Editor edition',
-      category: 'info',
+      category: 'about',
       icon: 'ℹ️',
       aliases: [':edition'],
       handler: async () => {
@@ -1367,7 +1367,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'upgrade',
       description: 'information about Premium Edition features',
-      category: 'info',
+      category: 'about',
       icon: '⬆️',
       aliases: [':upgrade'],
       handler: async () => {
@@ -1392,7 +1392,7 @@ export function registerCoreCommands(registry, app) {
     {
       name: 'version',
       description: 'show version',
-      category: 'info',
+      category: 'about',
       icon: '🏷️',
       aliases: [':v'],
       handler: async () => {
@@ -1413,14 +1413,75 @@ export function registerCoreCommands(registry, app) {
           }
         }
       }
+    },
+
+    // Help and About Commands
+    {
+      name: 'help',
+      description: 'show help and available commands',
+      category: 'about',
+      icon: '❓',
+      aliases: [':help', ':?'],
+      handler: async () => {
+        const allCommands = registry.getAllCommands()
+        const categories = {}
+        
+        allCommands.forEach(cmd => {
+          const category = cmd.category || 'general'
+          if (!categories[category]) {
+            categories[category] = []
+          }
+          const alias = cmd.aliases?.[0] || cmd.name
+          categories[category].push(`${alias}: ${cmd.description}`)
+        })
+
+        const categoryOrder = ['document', 'git', 'search', 'export', 'preferences', 'about', 'general']
+        const orderedCategories = categoryOrder.filter(cat => categories[cat])
+        
+        return {
+          success: true,
+          message: 'Available Commands:',
+          data: orderedCategories.flatMap(cat => [
+            `\n${cat.toUpperCase()}:`,
+            ...categories[cat].sort()
+          ])
+        }
+      }
+    },
+
+    {
+      name: 'about',
+      description: 'about Fantasy Editor',
+      category: 'about',
+      icon: 'ℹ️',
+      aliases: [':about'],
+      handler: async () => {
+        return {
+          success: true,
+          message: 'Fantasy Editor - A distraction-free markdown editor for fantasy writers',
+          data: [
+            'Version: v0.0.1-alpha (Community Edition)',
+            'License: AGPL v3 (Open Source)',
+            'Features: PWA, Offline Storage, Multi-theme, Command Palette',
+            '',
+            'Commands:',
+            '• Type ":help" for all available commands',
+            '• Press Ctrl+Space to open command palette',
+            '• Use ":license" for license information',
+            '• Use ":edition" to see current edition features',
+            '',
+            'Created with ❤️ for fantasy writers'
+          ]
+        }
+      }
     }
   ]
 
   // Register all commands
   registry.registerCommands(commands)
 
-  // Register GitHub commands
-  registerGitHubCommands(registry, app)
+  // Register Git commands
+  registerGitCommands(registry, app)
 
   // Add command execution event listener for feedback
   document.addEventListener('commandregistry:execute', (event) => {

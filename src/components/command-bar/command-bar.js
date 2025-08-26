@@ -4,6 +4,9 @@
  */
 
 import './command-bar.css'
+import { HeaderIntegration } from './header-integration.js'
+import { CommandCategories } from './command-categories.js'
+import { AboutMenu } from './about-menu.js'
 
 export class CommandBar {
   constructor(commandRegistry) {
@@ -12,11 +15,17 @@ export class CommandBar {
     this.selectedIndex = 0
     this.filteredResults = []
     this.currentQuery = ''
+    this.showCategories = false
 
     this.element = null
     this.overlay = null
     this.input = null
     this.results = null
+
+    // Initialize new components
+    this.headerIntegration = null
+    this.commandCategories = new CommandCategories(commandRegistry)
+    this.aboutMenu = new AboutMenu(commandRegistry)
 
     this.init()
   }
@@ -27,6 +36,20 @@ export class CommandBar {
   init() {
     this.createDOM()
     this.attachEventListeners()
+    this.initializeHeaderIntegration()
+  }
+
+  /**
+   * Initialize header integration
+   */
+  initializeHeaderIntegration() {
+    try {
+      this.headerIntegration = new HeaderIntegration(this)
+      this.headerIntegration.integrate()
+    } catch (error) {
+      console.warn('Header integration failed, falling back to floating mode:', error.message)
+      // Continue with floating mode if header integration fails
+    }
   }
 
   /**
@@ -275,6 +298,90 @@ export class CommandBar {
       return
     }
 
+    // Group by category if no query or show categories is enabled
+    const shouldGroupByCategory = !this.currentQuery || this.showCategories
+    
+    if (shouldGroupByCategory) {
+      this.renderGroupedResults()
+    } else {
+      this.renderFlatResults()
+    }
+
+    // Add click listeners to results
+    this.results.querySelectorAll('.command-result').forEach((result, index) => {
+      result.addEventListener('click', () => {
+        this.selectedIndex = index
+        this.executeSelected()
+      })
+    })
+  }
+
+  /**
+   * Render results grouped by category
+   */
+  renderGroupedResults() {
+    const grouped = this.commandCategories.groupCommandsByCategory()
+    const orderedCategories = this.commandCategories.getOrderedCategories()
+    let resultIndex = 0
+
+    const categoryHtml = orderedCategories
+      .filter(categoryKey => grouped[categoryKey] && grouped[categoryKey].commands.length > 0)
+      .map(categoryKey => {
+        const category = grouped[categoryKey]
+        const categoryCommands = category.commands
+        
+        const commandsHtml = categoryCommands
+          .map((command) => {
+            const parametersDisplay = this.formatParameters(command.parameters)
+            const aliasDisplay = this.formatAliases(command.aliases, this.currentQuery)
+            const isSelected = resultIndex === this.selectedIndex
+            
+            const html = `
+              <div class="command-result ${isSelected ? 'selected' : ''}" data-index="${resultIndex}">
+                <div class="command-result-icon">
+                  ${command.icon || '⚡'}
+                </div>
+                <div class="command-result-content">
+                  <div class="command-result-title">
+                    ${this.highlightMatch(command.name, this.currentQuery)}
+                    ${parametersDisplay ? `<span class="command-parameters">${parametersDisplay}</span>` : ''}
+                    ${aliasDisplay ? `<span class="command-aliases">${aliasDisplay}</span>` : ''}
+                  </div>
+                  <div class="command-result-description">
+                    ${this.highlightMatch(command.description, this.currentQuery)}
+                  </div>
+                </div>
+                ${command.shortcut ? `<div class="command-result-shortcut">${command.shortcut}</div>` : ''}
+              </div>
+            `
+            resultIndex++
+            return html
+          })
+          .join('')
+
+        return `
+          <div class="command-category">
+            <div class="command-category-header">
+              <span class="command-category-icon">${category.icon}</span>
+              <span class="command-category-name">${category.name}</span>
+              <span class="command-category-count">${categoryCommands.length}</span>
+            </div>
+            <div class="command-category-results">
+              ${commandsHtml}
+            </div>
+          </div>
+        `
+      })
+      .join('')
+
+    this.results.innerHTML = categoryHtml
+    this.filteredResults = orderedCategories.flatMap(key => grouped[key]?.commands || [])
+  }
+
+  /**
+   * Render results in flat list (for search)
+   */
+  renderFlatResults() {
     this.results.innerHTML = this.filteredResults
       .map((command, index) => {
         const parametersDisplay = this.formatParameters(command.parameters)
@@ -300,14 +407,6 @@ export class CommandBar {
       `
       })
       .join('')
-
-    // Add click listeners to results
-    this.results.querySelectorAll('.command-result').forEach((result, index) => {
-      result.addEventListener('click', () => {
-        this.selectedIndex = index
-        this.executeSelected()
-      })
-    })
   }
 
   /**
@@ -479,11 +578,22 @@ export class CommandBar {
    * Destroy command bar
    */
   destroy() {
+    // Destroy header integration first
+    if (this.headerIntegration) {
+      this.headerIntegration.destroy()
+      this.headerIntegration = null
+    }
+
+    // Remove main element
     if (this.element) {
       this.element.remove()
     }
 
     // Remove event listeners
     document.removeEventListener('keydown', this.globalKeyHandler)
+
+    // Clean up component references
+    this.commandCategories = null
+    this.aboutMenu = null
   }
 }
