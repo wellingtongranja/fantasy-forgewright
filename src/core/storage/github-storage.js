@@ -653,7 +653,8 @@ export class GitHubStorage {
         // Wait a moment for GitHub to set up the repository
         await new Promise((resolve) => setTimeout(resolve, 2000))
 
-        // Initialize the repository with documents directory
+        // Initialize the repository with root README and documents directory
+        await this.createRepositoryReadme()
         await this.ensureDocumentsDirectory()
 
         return true
@@ -688,6 +689,82 @@ export class GitHubStorage {
     } catch (error) {
       console.error('Failed to create default repository:', error)
       return false
+    }
+  }
+
+  /**
+   * Create main repository README.md file
+   * @returns {Promise<void>}
+   */
+  async createRepositoryReadme() {
+    if (!this.isConfigured()) {
+      throw new Error('Git repository storage not configured')
+    }
+
+    const readmeContent = `# Fantasy Editor
+
+A distraction-free markdown editor for creative writers, powered by GitHub storage.
+
+## About This Repository
+
+This repository contains documents created with Fantasy Editor. Your creative works are stored securely and can be accessed from anywhere.
+
+## Features
+
+- **Offline-first**: Documents are stored locally and synced to GitHub
+- **Keyboard-focused**: Complete control via command palette (Ctrl+Space)
+- **Writer-friendly**: Optimized for long-form writing and creativity
+- **GitHub Integration**: Automatic backup and synchronization
+- **Markdown Support**: Full-featured markdown editor with live preview
+
+## Repository Structure
+
+- \`documents/\` - Your creative works and stories
+- \`README.md\` - This file
+
+## Getting Started
+
+1. Open [Fantasy Editor](https://forgewright.io)
+2. Sign in with GitHub
+3. Start writing your stories
+4. Use commands like \`:ghp\` to push documents or \`:ghs\` to sync
+
+## Commands
+
+- \`:ghs\` - Sync all documents
+- \`:ghp\` - Push current document
+- \`:ghls\` - List all documents
+- \`:gst\` - Show GitHub status
+
+## About Fantasy Editor
+
+Fantasy Editor is designed specifically for creative writers who want a distraction-free environment for their storytelling. With GitHub integration, your work is automatically backed up and accessible from any device.
+
+Created: ${new Date().toISOString()}
+`
+
+    try {
+      const response = await this.auth.makeAuthenticatedRequest(
+        `/repos/${this.owner}/${this.repo}/contents/README.md`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'Initialize Fantasy Editor repository',
+            content: btoa(unescape(encodeURIComponent(readmeContent))),
+            branch: this.branch
+          })
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`Failed to create repository README: ${response.status}`)
+      }
+    } catch (error) {
+      console.error('Failed to create repository README:', error)
+      throw error
     }
   }
 
