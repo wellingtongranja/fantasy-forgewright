@@ -17,6 +17,7 @@ import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 import { ExportManager } from './core/export/export-manager.js'
 import { WidthManager } from './core/editor/width-manager.js'
+import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -48,6 +49,7 @@ class FantasyEditorApp {
     // Writer enhancements
     this.exportManager = null
     this.widthManager = null
+    this.statusBarManager = null
   }
 
   async init() {
@@ -93,11 +95,33 @@ class FantasyEditorApp {
 
     // Initialize editor with theme manager integration
     const editorElement = document.getElementById('editor')
-    this.editor = new EditorManager(editorElement, this.themeManager)
+    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this))
 
     // Initialize writer enhancements
     this.exportManager = new ExportManager(this)
     this.widthManager = new WidthManager(this)
+    this.statusBarManager = new StatusBarManager(this)
+    
+    // Set up width manager callbacks to update status bar
+    if (this.widthManager && this.statusBarManager) {
+      this.widthManager.setWidthChangeCallback((width) => {
+        this.statusBarManager.updateEditorWidth(width)
+      })
+      this.widthManager.setZoomChangeCallback((zoom) => {
+        this.statusBarManager.updateEditorZoom(zoom)
+      })
+      
+      // Initialize status bar with current values
+      const currentWidth = this.widthManager.getCurrentWidth()
+      const currentZoom = this.widthManager.getCurrentZoom()
+      
+      if (currentWidth && currentWidth.columns) {
+        this.statusBarManager.updateEditorWidth(currentWidth.columns)
+      }
+      if (currentZoom && typeof currentZoom.level === 'number') {
+        this.statusBarManager.updateEditorZoom(currentZoom.level)
+      }
+    }
 
     // Initialize multi-provider authentication integration
     await this.initializeAuthIntegration()
@@ -600,7 +624,9 @@ class FantasyEditorApp {
       const content = this.editor?.getContent() || ''
       if (typeof content !== 'string') {
         console.warn('Editor content is not a string:', content)
-        document.getElementById('word-count').textContent = '0 words'
+        if (this.statusBarManager) {
+          this.statusBarManager.updateWordCount(0)
+        }
         return
       }
 
@@ -609,15 +635,25 @@ class FantasyEditorApp {
         .split(/\s+/)
         .filter((word) => word.length > 0).length
       const wordCount = isNaN(words) ? 0 : words
-      document.getElementById('word-count').textContent = `${wordCount} words`
+      
+      // Update status bar if available
+      if (this.statusBarManager) {
+        this.statusBarManager.updateWordCount(wordCount)
+      }
+      
+      return wordCount
     } catch (error) {
       console.error('Error updating word count:', error)
-      document.getElementById('word-count').textContent = '0 words'
+      if (this.statusBarManager) {
+        this.statusBarManager.updateWordCount(0)
+      }
     }
   }
 
   updateSyncStatus(status) {
-    document.getElementById('sync-status').textContent = status
+    if (this.statusBarManager) {
+      this.statusBarManager.updateSyncStatus(status)
+    }
   }
 
   /**
@@ -639,33 +675,9 @@ class FantasyEditorApp {
    * Update readonly status indicator in the footer
    */
   updateReadonlyStatusIndicator(doc) {
-    const centerContent = document.querySelector('.footer-center-content')
-    if (!centerContent) return
-
-    // Remove existing readonly indicator
-    const existingIndicator = centerContent.querySelector('.readonly-status-indicator')
-    if (existingIndicator) {
-      existingIndicator.remove()
-    }
-
-    // Add readonly indicator if document is readonly
-    const isReadonly = doc.readonly === true || doc.type === 'system'
-    if (isReadonly) {
-      const readonlyStatus = document.createElement('div')
-      readonlyStatus.className = 'readonly-status-indicator'
-
-      if (doc.type === 'system') {
-        readonlyStatus.innerHTML =
-          '<span class="status-icon">📖</span><span class="status-text">System</span>'
-        readonlyStatus.title = 'System document - readonly'
-      } else {
-        readonlyStatus.innerHTML =
-          '<span class="status-icon">🔒</span><span class="status-text">Readonly</span>'
-        readonlyStatus.title = 'Document is readonly'
-      }
-
-      // Insert into center content
-      centerContent.appendChild(readonlyStatus)
+    // Use status bar manager if available
+    if (this.statusBarManager) {
+      this.statusBarManager.updateReadonlyStatus(doc)
     }
   }
 
@@ -704,14 +716,8 @@ class FantasyEditorApp {
    * Update GitHub sync status indicator in footer
    */
   updateGitHubSyncStatus() {
-    const syncIndicator = document.getElementById('github-sync-indicator')
-    const repoName = document.getElementById('repo-name')
-    const syncIcon = document.getElementById('sync-status-icon')
-
-    if (!syncIndicator || !repoName || !syncIcon) {
-      console.warn('GitHub sync indicator elements not found')
-      return
-    }
+    // Use status bar manager if available
+    if (!this.statusBarManager) return
 
     // Check if GitHub is configured and authenticated
     const config = this.githubStorage?.getConfig() || {}
@@ -719,33 +725,19 @@ class FantasyEditorApp {
     const isConfigured = config.configured && config.owner && config.repo
 
     if (!isAuthenticated) {
-      syncIndicator.style.display = 'none'
-      return
-    }
-
-    // If authenticated but not configured, try auto-setup (only once per session)
-    if (!isConfigured && this.authManager?.getCurrentUser()) {
-      // TEMPORARILY DISABLED: Auto-setup caused GitHub rate limit spam
-      // Check if we've already attempted setup to avoid spamming
-      // if (!this.hasAttemptedRepositorySetup && !this.isSettingUpRepository) {
-      //   console.log('Authenticated but not configured, attempting auto-setup...')
-      //   this.isSettingUpRepository = true
-      //   this.hasAttemptedRepositorySetup = true
-      //   this.setupDefaultRepository(this.authManager.getCurrentUser()).finally(() => {
-      //     this.isSettingUpRepository = false
-      //   })
-      // }
-      syncIndicator.style.display = 'none'
+      this.statusBarManager.updateGitHubSyncIndicator(false)
+      this.statusBarManager.updateRepositoryInfo(null, false)
       return
     }
 
     if (!isConfigured) {
-      syncIndicator.style.display = 'none'
+      this.statusBarManager.updateGitHubSyncIndicator(false)
+      this.statusBarManager.updateRepositoryInfo(null, false)
       return
     }
 
     // Show repository name (just repo name, not owner/repo)
-    repoName.textContent = config.repo
+    this.statusBarManager.updateRepositoryInfo(config.repo, true)
 
     // Determine sync status
     let status = 'local-only'
@@ -766,7 +758,7 @@ class FantasyEditorApp {
 
         if (lastSynced && lastModified && lastSynced >= lastModified) {
           status = 'synced'
-          icon = '🟢'
+          icon = '🔴'
         } else {
           status = 'out-of-sync'
           icon = '🟡'
@@ -774,9 +766,8 @@ class FantasyEditorApp {
       }
     }
 
-    syncIcon.textContent = icon
-    syncIcon.setAttribute('data-status', status)
-    syncIndicator.style.display = 'flex'
+    this.statusBarManager.updateSyncStatus(status, icon)
+    this.statusBarManager.updateGitHubSyncIndicator(true)
   }
 
   updateUI() {
@@ -784,6 +775,11 @@ class FantasyEditorApp {
     this.updateSyncStatus('Ready')
     this.updateGuidLabel()
     this.updateGitHubSyncStatus()
+    
+    // Refresh status bar if available
+    if (this.statusBarManager) {
+      this.statusBarManager.refresh()
+    }
   }
 
   showNotification(message, type = 'info', duration = 3000) {

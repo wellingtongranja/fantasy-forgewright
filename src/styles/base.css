@@ -261,8 +261,68 @@ body {
   border-top: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+  gap: var(--spacing-md);
 }
 
+/* Footer Sections */
+.footer-left-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-self: start;
+}
+
+.footer-center-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  justify-self: center;
+}
+
+.footer-right-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-self: end;
+}
+
+/* Status Items */
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  opacity: 0.9;
+  transition: all var(--transition-fast);
+}
+
+.status-item.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.status-item.clickable:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.status-item.clickable:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Center Content */
 .footer-center-content {
   display: flex;
   align-items: center;
@@ -271,14 +331,8 @@ body {
   justify-self: center;
 }
 
-.sync-status-container {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  justify-self: end;
-}
-
-.github-sync-indicator {
+/* Repository Info */
+.repository-info {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
@@ -295,6 +349,25 @@ body {
   font-family: var(--font-family-mono);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+/* Sync Status Container */
+.sync-status-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.github-sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  opacity: 0.9;
+  font-size: var(--font-size-xs);
 }
 
 .sync-status-icon {
@@ -323,14 +396,6 @@ body {
   font-family: var(--font-family-mono);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
-}
-
-.app-footer > span:first-child {
-  justify-self: start;
-}
-
-.app-footer > span:last-child {
-  justify-self: end;
 }
 
 .command-hint-footer {
@@ -399,6 +464,38 @@ body {
 
   .doc-title {
     font-size: var(--font-size-base);
+  }
+
+  /* Footer responsive adjustments */
+  .app-footer {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    height: auto;
+    min-height: var(--footer-height);
+  }
+
+  .footer-left-section,
+  .footer-center-section,
+  .footer-right-section {
+    justify-self: center;
+  }
+
+  .footer-left-section {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+
+  .footer-right-section {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+
+  .status-item {
+    font-size: var(--font-size-xs);
+    padding: 2px var(--spacing-xs);
   }
 }
 
