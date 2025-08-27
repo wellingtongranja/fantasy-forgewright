@@ -20,9 +20,18 @@ import { EditorView } from '@codemirror/view'
  * Handles CodeMirror readonly state and visual indicators
  */
 export class ReadonlyExtensions {
-  constructor() {
+  constructor(notificationCallback = null) {
     this.readonlyCompartment = new Compartment()
     this.isReadonly = false
+    this.notificationCallback = notificationCallback
+  }
+
+  /**
+   * Set notification callback for readonly warnings
+   * @param {Function} callback - Function to call with notification message and type
+   */
+  setNotificationCallback(callback) {
+    this.notificationCallback = callback
   }
 
   /**
@@ -127,6 +136,20 @@ export class ReadonlyExtensions {
    * @private
    */
   showReadonlyMessage(view) {
+    // Show toast notification if callback is available
+    if (this.notificationCallback && typeof this.notificationCallback === 'function') {
+      this.notificationCallback('Document is readonly - use :rw to make editable', 'warning')
+    } else {
+      // Fallback to temporary tooltip for backward compatibility
+      this.showReadonlyTooltip(view)
+    }
+  }
+
+  /**
+   * Show readonly tooltip (fallback method)
+   * @private
+   */
+  showReadonlyTooltip(view) {
     // Create temporary tooltip to show readonly message
     const tooltip = document.createElement('div')
     tooltip.className = 'readonly-tooltip'

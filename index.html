@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="/src/components/auth/github-user-menu.css">
   <link rel="stylesheet" href="/src/styles/components/auth-button.css">
   <link rel="stylesheet" href="/src/styles/components/provider-selector.css">
+  <link rel="stylesheet" href="/src/components/status-bar/status-bar.css">
   
   <script type="module" src="/src/app.js"></script>
 </head>
@@ -69,16 +70,33 @@
     </main>
     
     <footer class="app-footer">
-      <span id="word-count">0 words</span>
-      <div class="footer-center-content" id="footer-center-content">
-        <!-- Center content like readonly status indicators will be inserted here -->
+      <!-- Left Section: Word Count, Editor Width, Zoom, Format -->
+      <div class="footer-left-section">
+        <span id="word-count" class="status-item">0 words</span>
+        <span id="editor-width" class="status-item clickable" title="Double-click to cycle through widths">65ch</span>
+        <span id="editor-zoom" class="status-item clickable" title="Double-click to cycle through zoom levels">100%</span>
+        <span id="text-format" class="status-item">Markdown</span>
       </div>
-      <div class="sync-status-container">
-        <div class="github-sync-indicator" id="github-sync-indicator" style="display: none;">
-          <span class="repo-name" id="repo-name"></span>
-          <span class="sync-status-icon" id="sync-status-icon"></span>
+      
+      <!-- Center Section: Repository and Readonly Info -->
+      <div class="footer-center-section">
+        <div class="footer-center-content" id="footer-center-content">
+          <!-- Center content like readonly status indicators will be inserted here -->
         </div>
-        <span id="sync-status">Ready</span>
+        <div class="repository-info" id="repository-info" style="display: none;">
+          <span class="repo-name" id="repo-name"></span>
+        </div>
+      </div>
+      
+      <!-- Right Section: Version and Ready State -->
+      <div class="footer-right-section">
+        <span id="app-version" class="status-item">v0.0.1</span>
+        <div class="sync-status-container">
+          <div class="github-sync-indicator" id="github-sync-indicator" style="display: none;">
+            <span class="sync-status-icon" id="sync-status-icon"></span>
+          </div>
+          <span id="sync-status">Ready</span>
+        </div>
       </div>
     </footer>
   </div>

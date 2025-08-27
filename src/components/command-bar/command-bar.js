@@ -88,7 +88,7 @@ export class CommandBar {
           <input 
             type="text" 
             class="command-bar-input" 
-            placeholder="type command..."
+            placeholder="Type command..."
             autocomplete="off"
             autocorrect="off"
             autocapitalize="off"
@@ -201,9 +201,13 @@ export class CommandBar {
     this.results.addEventListener('click', (e) => {
       const resultElement = e.target.closest('.command-result')
       if (resultElement) {
-        const index = Array.from(this.results.children).indexOf(resultElement)
-        this.selectedIndex = index
-        this.executeSelected()
+        // Find index among all .command-result elements (works for both flat and grouped)
+        const allResults = this.results.querySelectorAll('.command-result')
+        const index = Array.from(allResults).indexOf(resultElement)
+        if (index >= 0) {
+          this.selectedIndex = index
+          this.executeSelected()
+        }
       }
     })
 
@@ -211,8 +215,12 @@ export class CommandBar {
     this.results.addEventListener('mouseover', (e) => {
       const resultElement = e.target.closest('.command-result')
       if (resultElement) {
-        const index = Array.from(this.results.children).indexOf(resultElement)
-        this.selectIndex(index)
+        // Find index among all .command-result elements (works for both flat and grouped)
+        const allResults = this.results.querySelectorAll('.command-result')
+        const index = Array.from(allResults).indexOf(resultElement)
+        if (index >= 0) {
+          this.selectIndex(index)
+        }
       }
     })
 
@@ -400,13 +408,8 @@ export class CommandBar {
       this.results.style.display = 'block'
     }
 
-    // Add click listeners to results
-    this.results.querySelectorAll('.command-result').forEach((result, index) => {
-      result.addEventListener('click', () => {
-        this.selectedIndex = index
-        this.executeSelected()
-      })
-    })
+    // Note: Click handling is done via event delegation in attachEventListeners()
+    // No need for individual click listeners on each result
   }
 
   /**

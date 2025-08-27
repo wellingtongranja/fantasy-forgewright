@@ -18,6 +18,10 @@ export class WidthManager {
     this.currentWidth = this.loadWidth() || 65
     this.currentZoom = this.loadZoom() || 1.0
 
+    // Callbacks for external listeners
+    this.onWidthChange = null
+    this.onZoomChange = null
+
     this.initialize()
   }
 
@@ -43,6 +47,11 @@ export class WidthManager {
     this.applyWidth(widthColumns)
     this.saveWidth(widthColumns)
 
+    // Notify callback if set
+    if (this.onWidthChange) {
+      this.onWidthChange(widthColumns)
+    }
+
     return {
       success: true,
       message: `Editor width set to ${widthColumns}ch`,
@@ -60,6 +69,11 @@ export class WidthManager {
     this.currentZoom = clampedZoom
     this.applyZoom(clampedZoom)
     this.saveZoom(clampedZoom)
+
+    // Notify callback if set
+    if (this.onZoomChange) {
+      this.onZoomChange(clampedZoom)
+    }
 
     return {
       success: true,
@@ -91,6 +105,20 @@ export class WidthManager {
    */
   resetZoom() {
     return this.setZoom(1.0)
+  }
+
+  /**
+   * Set width change callback
+   */
+  setWidthChangeCallback(callback) {
+    this.onWidthChange = callback
+  }
+
+  /**
+   * Set zoom change callback
+   */
+  setZoomChangeCallback(callback) {
+    this.onZoomChange = callback
   }
 
   /**

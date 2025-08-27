@@ -65,59 +65,80 @@
   max-width: none !important;
   top: auto !important;
   left: auto !important;
-  background: rgba(var(--color-bg-rgb, 255, 255, 255), 0.1) !important;
-  border: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.3) !important;
+  background: var(--color-bg-secondary) !important;
+  border: 1px solid var(--color-border) !important;
   border-radius: var(--border-radius-md) !important;
-  box-shadow: none !important;
+  box-shadow: var(--shadow-sm) !important;
   opacity: 1 !important;
   visibility: visible !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--transition-fast) !important;
+}
+
+.command-bar-integrated:hover {
+  border-color: var(--color-primary) !important;
+  background: var(--color-bg-tertiary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.command-bar-integrated:focus-within {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1) !important;
+  outline: none !important;
 }
 
 .command-bar-integrated .command-bar-input {
   background: transparent !important;
   color: var(--color-text) !important;
   font-size: var(--font-size-sm) !important;
-  padding: var(--spacing-xs) var(--spacing-sm) !important;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   padding-right: 80px !important; /* Make room for key indicator */
+  border: none !important;
+  outline: none !important;
+}
+
+.command-bar-integrated .command-bar-input:focus {
+  outline: none !important;
+}
+
+.command-bar-integrated .command-bar-input::placeholder {
+  color: var(--color-text-secondary) !important;
+  font-size: var(--font-size-sm) !important;
+  font-style: normal !important;
 }
 
 /* Key indicator for integrated command bar */
 .command-bar-integrated .command-bar-key-indicator {
   position: absolute !important;
-  right: var(--spacing-xs) !important;
+  right: var(--spacing-sm) !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  background: rgba(var(--color-bg-rgb, 255, 255, 255), 0.15) !important;
-  border: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.3) !important;
+  background: rgba(var(--color-bg-rgb, 255, 255, 255), 0.8) !important;
+  border: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.6) !important;
   border-radius: var(--border-radius-sm) !important;
-  padding: 1px var(--spacing-xs) !important;
+  padding: 2px var(--spacing-xs) !important;
   pointer-events: none !important;
   z-index: 2 !important;
   backdrop-filter: blur(4px) !important;
   -webkit-backdrop-filter: blur(4px) !important;
+  transition: all var(--transition-fast) !important;
 }
 
 .command-bar-integrated .key-indicator-text {
   font-family: var(--font-family-mono) !important;
   font-size: var(--font-size-xs) !important;
-  color: rgba(var(--color-text-rgb, 0, 0, 0), 0.6) !important;
+  color: var(--color-text-secondary) !important;
   font-weight: var(--font-weight-medium) !important;
   letter-spacing: 0.025em !important;
   opacity: 0.8 !important;
   white-space: nowrap !important;
 }
 
-.command-bar-integrated .command-bar-input::placeholder {
-  color: rgba(var(--color-text-rgb, 0, 0, 0), 0.4) !important;
-  font-size: var(--font-size-sm) !important;
-}
+
 
 /* Disable MacOS secrets button and autofill suggestions for integrated mode */
 .command-bar-integrated .command-bar-input::-webkit-credentials-auto-fill-button {
@@ -268,39 +289,49 @@
 
 /* Theme-specific adjustments */
 [data-theme='dark'] .command-bar-integrated {
-  background: rgba(45, 45, 45, 0.2) !important;
-  border-color: rgba(64, 64, 64, 0.4) !important;
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme='dark'] .command-bar-integrated:hover {
+  background: var(--color-bg-tertiary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 [data-theme='dark'] .command-bar-integrated .command-bar-input::placeholder {
-  color: rgba(255, 255, 255, 0.3) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 [data-theme='dark'] .command-bar-integrated .command-bar-key-indicator {
-  background: rgba(45, 45, 45, 0.3) !important;
-  border-color: rgba(64, 64, 64, 0.5) !important;
+  background: rgba(45, 45, 45, 0.9) !important;
+  border-color: rgba(64, 64, 64, 0.8) !important;
 }
 
 [data-theme='dark'] .command-bar-integrated .key-indicator-text {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 [data-theme='fantasy'] .command-bar-integrated {
-  background: rgba(26, 0, 51, 0.2) !important;
-  border-color: rgba(106, 27, 154, 0.3) !important;
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme='fantasy'] .command-bar-integrated:hover {
+  background: var(--color-bg-tertiary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 [data-theme='fantasy'] .command-bar-integrated .command-bar-input::placeholder {
-  color: rgba(138, 43, 226, 0.4) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 [data-theme='fantasy'] .command-bar-integrated .command-bar-key-indicator {
-  background: rgba(26, 0, 51, 0.3) !important;
-  border-color: rgba(106, 27, 154, 0.4) !important;
+  background: rgba(26, 0, 51, 0.9) !important;
+  border-color: rgba(106, 27, 154, 0.8) !important;
 }
 
 [data-theme='fantasy'] .command-bar-integrated .key-indicator-text {
-  color: rgba(138, 43, 226, 0.8) !important;
+  color: var(--color-text-secondary) !important;
 }
 
 /* High contrast support */
@@ -322,11 +353,7 @@
   }
 }
 
-/* Focus states for better accessibility */
-.command-bar-integrated:focus-within {
-  outline: 1px solid var(--color-primary);
-  outline-offset: 1px;
-}
+
 
 /* Animation for smooth integration */
 .command-bar-integrated.show {

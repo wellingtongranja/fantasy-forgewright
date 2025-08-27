@@ -1,0 +1,273 @@
+/**
+ * Status Bar Component Styles
+ * Enhanced status bar with theme-aware styling
+ */
+
+/* Status Bar Container */
+.status-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 var(--spacing-lg);
+  height: var(--footer-height);
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  gap: var(--spacing-md);
+}
+
+/* Status Bar Sections */
+.status-bar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-self: start;
+}
+
+.status-bar-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  justify-self: center;
+}
+
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  justify-self: end;
+}
+
+/* Status Items */
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  opacity: 0.9;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.status-item.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.status-item.clickable:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.status-item.clickable:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.status-item.clickable:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Status Item Variants */
+.status-item.word-count {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+.status-item.editor-width {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+.status-item.editor-zoom {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+.status-item.text-format {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+.status-item.app-version {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+  opacity: 0.7;
+}
+
+/* Repository Info */
+.repository-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  opacity: 0.9;
+  font-size: var(--font-size-xs);
+}
+
+.repo-name {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Sync Status Container */
+.sync-status-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.github-sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  opacity: 0.9;
+  font-size: var(--font-size-xs);
+}
+
+.sync-status-icon {
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}
+
+/* Readonly Status Indicator */
+.readonly-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.readonly-status-indicator .status-icon {
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}
+
+.readonly-status-indicator .status-text {
+  font-family: var(--font-family-mono);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Theme-specific adjustments */
+[data-theme='dark'] .status-item {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+[data-theme='dark'] .status-item.clickable:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
+[data-theme='fantasy'] .status-item {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+[data-theme='fantasy'] .status-item.clickable:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .status-bar {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    height: auto;
+    min-height: var(--footer-height);
+  }
+
+  .status-bar-left,
+  .status-bar-center,
+  .status-bar-right {
+    justify-self: center;
+  }
+
+  .status-bar-left {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+
+  .status-bar-right {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+
+  .status-item {
+    font-size: var(--font-size-xs);
+    padding: 2px var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .status-bar {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .status-item {
+    font-size: var(--font-size-xs);
+    padding: 1px var(--spacing-xs);
+  }
+
+  .status-bar-left,
+  .status-bar-right {
+    gap: var(--spacing-xs);
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .status-item {
+    border-width: 2px;
+    background-color: var(--color-bg);
+  }
+
+  .status-item.clickable:focus {
+    outline-width: 3px;
+    outline-offset: 1px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .status-item {
+    transition: none;
+  }
+
+  .status-item.clickable:hover {
+    transform: none;
+  }
+}

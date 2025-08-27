@@ -6,16 +6,24 @@ import { foldAll, unfoldAll, foldCode, unfoldCode } from '@codemirror/language'
 import { openSearchPanel } from '@codemirror/search'
 
 export class EditorManager {
-  constructor(element, themeManager = null) {
+  constructor(element, themeManager = null, notificationCallback = null) {
     this.element = element
     this.view = null
     this.state = null
     this.themeManager = themeManager
     this.editorExtensions = new EditorExtensions(themeManager)
-    this.readonlyExtensions = new ReadonlyExtensions()
+    this.readonlyExtensions = new ReadonlyExtensions(notificationCallback)
     this.extensionCompartment = new Compartment()
     this.isReadonly = false
     this.initialize()
+  }
+
+  /**
+   * Set notification callback for readonly warnings
+   * @param {Function} callback - Function to call with notification message and type
+   */
+  setNotificationCallback(callback) {
+    this.readonlyExtensions.setNotificationCallback(callback)
   }
 
   initialize() {
