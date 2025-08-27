@@ -115,29 +115,9 @@ export class WidthManager {
     // Set CodeMirror specific font size
     document.documentElement.style.setProperty('--codemirror-font-size', `${zoomedFontSize}px`)
 
-    // Debug logging
-    console.log('Zoom applied:', {
-      zoomLevel,
-      zoomedFontSize: `${zoomedFontSize}px`,
-      currentValue: getComputedStyle(document.documentElement).getPropertyValue(
-        '--codemirror-font-size'
-      )
-    })
-
     // Trigger CodeMirror theme reconfiguration with fontSize if app is available
     if (this.app && this.app.editor && this.app.editor.reconfigureWithFontSize) {
-      console.log('Reconfiguring CodeMirror with font size:', `${zoomedFontSize}px`)
       this.app.editor.reconfigureWithFontSize(`${zoomedFontSize}px`)
-    } else {
-      console.log('Cannot reconfigure CodeMirror with font size:', {
-        hasApp: !!this.app,
-        hasEditor: !!(this.app && this.app.editor),
-        hasReconfigureWithFontSize: !!(
-          this.app &&
-          this.app.editor &&
-          this.app.editor.reconfigureWithFontSize
-        )
-      })
     }
   }
 

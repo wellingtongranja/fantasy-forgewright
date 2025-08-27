@@ -287,10 +287,18 @@ export function registerGitCommands(registry, app) {
 
         try {
           // Ensure document is saved locally first
-          const savedDoc = await app.saveDocument()
+          const saveResult = await app.saveDocument()
+
+          // Handle save result
+          if (!saveResult.success && saveResult.reason === 'readonly') {
+            return { success: false, message: 'Cannot push readonly document to Git repository' }
+          }
+          if (!saveResult.success && saveResult.reason === 'error') {
+            return { success: false, message: 'Failed to save document before push' }
+          }
 
           // Use the saved document (which has the updated metadata.modified)
-          const docToSync = savedDoc || app.currentDocument
+          const docToSync = saveResult.success && saveResult.document ? saveResult.document : app.currentDocument
           const result = await app.githubStorage.saveDocument(docToSync)
 
           // Update document with Git metadata, preserving the existing metadata

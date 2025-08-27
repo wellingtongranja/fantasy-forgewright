@@ -35,10 +35,7 @@ export class HeaderIntegration {
       throw new Error('Title element (.app-title) not found')
     }
 
-    console.log('Header elements found successfully:', {
-      header: this.headerElement,
-      title: this.titleElement
-    })
+    // Header elements found successfully
   }
 
   /**
@@ -178,28 +175,34 @@ export class HeaderIntegration {
   updateWrapperPositioning() {
     if (!this.headerWrapper) return
     
+    // Don't set inline styles that override CSS responsive breakpoints
+    // CSS media queries handle responsive widths automatically
+    // Only handle visibility and extreme overlap cases
+    
     const headerWidth = this.headerElement.offsetWidth
     const titleWidth = this.titleElement.offsetWidth
     const authWidth = this.headerElement.querySelector('#github-auth-container')?.offsetWidth || 0
     
-    // Calculate available space for command bar with aggressive margins
-    const leftMargin = 20 // Left margin from title
-    const rightMargin = 20 // Right margin from auth button
-    const minSpacing = 40 // Minimum spacing between elements
+    // Calculate available space - minimum required for wrapper to be visible
+    const minRequiredSpace = 120 // Minimum space needed for wrapper
+    const leftMargin = 20
+    const rightMargin = 20
+    const minSpacing = 40
     
     const availableWidth = headerWidth - titleWidth - authWidth - leftMargin - rightMargin - minSpacing
     
-    // Update wrapper width to fit available space with safety margin
-    if (availableWidth > 0) {
-      const safeWidth = Math.min(availableWidth, 300) // Cap at 300px max
-      this.headerWrapper.style.maxWidth = `${safeWidth}px`
-      this.headerWrapper.style.width = `${safeWidth}px`
+    // Only hide wrapper if there's absolutely no space, otherwise let CSS handle sizing
+    if (availableWidth < minRequiredSpace) {
+      this.headerWrapper.style.display = 'none'
+    } else {
+      // Ensure wrapper is visible and let CSS responsive breakpoints handle width
+      this.headerWrapper.style.display = ''
+      // Remove any inline width/maxWidth that might override CSS media queries
+      this.headerWrapper.style.width = ''
+      this.headerWrapper.style.maxWidth = ''
       
       // Force repositioning to prevent overlap
       this.repositionWrapper()
-    } else {
-      // If no space available, hide the wrapper
-      this.headerWrapper.style.display = 'none'
     }
   }
   

@@ -75,7 +75,7 @@ class FantasyEditorApp {
       // Set up periodic sync status updates
       this.startPeriodicSyncStatusUpdates()
 
-      console.log('Fantasy Editor initialized successfully')
+      // Fantasy Editor initialized successfully
     } catch (error) {
       console.error('Failed to initialize app:', error)
       this.showError('Failed to initialize the editor. Please refresh the page.')
@@ -232,7 +232,7 @@ class FantasyEditorApp {
       if (success) {
         // Only show success notification when everything is working
         this.showNotification(`Repository "${username}/fantasy-editor" ready!`, 'success')
-        console.log(`Repository setup complete: ${username}/fantasy-editor`)
+        // Repository setup complete
         // Reset the flag so future configuration changes work
         this.hasAttemptedRepositorySetup = false
         // Update UI to reflect new repository configuration
@@ -241,7 +241,7 @@ class FantasyEditorApp {
         this.updateGitHubSyncStatus()
       } else {
         // Only log to console, don't show warning notification for setup issues
-        console.log('Repository auto-setup skipped - can be configured manually with :gcf')
+        // Repository auto-setup skipped
       }
     } catch (error) {
       console.error('Repository auto-setup failed:', error)
@@ -272,8 +272,7 @@ class FantasyEditorApp {
         autoSyncInterval: 5 * 60 * 1000 // 5 minutes
       })
 
-      console.log('✅ Multi-provider authentication integration initialized')
-      console.log(`Available providers: ${availableProviders.map(p => p.displayName).join(', ')}`)
+      // Multi-provider authentication integration initialized
 
       // Initialize authentication UI components
       this.initializeAuthUI()
@@ -472,7 +471,7 @@ class FantasyEditorApp {
         this.fileTree.setSelectedDocument(this.currentDocument.id)
       }
 
-      console.log(`Created new document with GUID: ${this.currentDocument.id}`)
+      // Created new document with GUID
       return this.currentDocument
     } catch (error) {
       console.error('Failed to create document:', error)
@@ -527,25 +526,18 @@ class FantasyEditorApp {
     // Update all UI components including GitHub sync status
     this.updateUI()
 
-    // Log document info for debugging
-    if (this.guidManager.isValidGuid(doc.id)) {
-      console.log(
-        `Loaded GUID document: ${doc.filename || doc.title} (${doc.id}) [${doc.type || 'user'}${isReadonly ? ', readonly' : ''}]`
-      )
-    } else if (this.guidManager.isOldUidFormat(doc.id)) {
-      console.log(`Loaded legacy UID document: ${doc.title} (${doc.id}) - consider migration`)
-    }
+    // Document loaded successfully
   }
 
   async saveDocument() {
-    if (!this.currentDocument) return
+    if (!this.currentDocument) return { success: false, reason: 'no_document' }
 
     // Check if document is readonly
     const isReadonly =
       this.currentDocument.readonly === true || this.currentDocument.type === 'system'
     if (isReadonly) {
       this.showNotification('Cannot save readonly document', 'warning')
-      return
+      return { success: false, reason: 'readonly' }
     }
 
     try {
@@ -567,7 +559,7 @@ class FantasyEditorApp {
       if (!hasContentChanges && !hasTitleChanges && !hasTagChanges) {
         this.updateSyncStatus('No changes')
         setTimeout(() => this.updateSyncStatus('Ready'), 1000)
-        return
+        return { success: true, reason: 'no_changes' }
       }
 
       // Update document (preserve existing properties like tags)
@@ -589,22 +581,17 @@ class FantasyEditorApp {
         this.fileTree.updateDocument(savedDoc)
       }
 
-      // Show GUID info if this is a newly created GUID document
-      if (
-        this.guidManager.isValidGuid(savedDoc.id) &&
-        savedDoc.metadata?.created === savedDoc.metadata?.modified
-      ) {
-        console.log(`Saved new GUID document: ${savedDoc.filename} (${savedDoc.id})`)
-      }
+      // Document saved successfully
 
       this.updateSyncStatus('Saved')
       setTimeout(() => this.updateSyncStatus('Ready'), 2000)
 
-      return savedDoc
+      return { success: true, reason: 'saved', document: savedDoc }
     } catch (error) {
       console.error('Failed to save document:', error)
       this.showError('Failed to save document. Your changes are preserved locally.')
       this.updateSyncStatus('Error')
+      return { success: false, reason: 'error', error: error.message }
     }
   }
 
@@ -652,11 +639,11 @@ class FantasyEditorApp {
    * Update readonly status indicator in the footer
    */
   updateReadonlyStatusIndicator(doc) {
-    const syncContainer = document.querySelector('.sync-status-container')
-    if (!syncContainer) return
+    const centerContent = document.querySelector('.footer-center-content')
+    if (!centerContent) return
 
     // Remove existing readonly indicator
-    const existingIndicator = syncContainer.querySelector('.readonly-status-indicator')
+    const existingIndicator = centerContent.querySelector('.readonly-status-indicator')
     if (existingIndicator) {
       existingIndicator.remove()
     }
@@ -677,9 +664,8 @@ class FantasyEditorApp {
         readonlyStatus.title = 'Document is readonly'
       }
 
-      // Insert before the sync status
-      const syncStatus = document.getElementById('sync-status')
-      syncContainer.insertBefore(readonlyStatus, syncStatus)
+      // Insert into center content
+      centerContent.appendChild(readonlyStatus)
     }
   }
 
@@ -900,6 +886,14 @@ class FantasyEditorApp {
   scheduleAutoSave() {
     if (!this.currentDocument) return
 
+    // Check if document is readonly - don't schedule auto-save for readonly documents
+    const isReadonly =
+      this.currentDocument.readonly === true || this.currentDocument.type === 'system'
+    if (isReadonly) {
+      // Don't show pending status for readonly documents
+      return
+    }
+
     // Clear existing timeout
     if (this.autoSaveTimeout) {
       clearTimeout(this.autoSaveTimeout)
@@ -919,6 +913,14 @@ class FantasyEditorApp {
    */
   async performAutoSave() {
     if (!this.currentDocument) return
+
+    // Double-check if document is readonly before attempting auto-save
+    const isReadonly =
+      this.currentDocument.readonly === true || this.currentDocument.type === 'system'
+    if (isReadonly) {
+      // Don't attempt to save readonly documents
+      return
+    }
 
     try {
       // Get current title and content

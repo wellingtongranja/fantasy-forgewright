@@ -46,7 +46,6 @@ export class CommandBar {
     try {
       this.headerIntegration = new HeaderIntegration(this)
       this.headerIntegration.integrate()
-      console.log('Header integration successful')
     } catch (error) {
       console.warn('Header integration failed, falling back to floating mode:', error.message)
       // Ensure element is properly positioned for floating mode
@@ -371,14 +370,7 @@ export class CommandBar {
       }
     }
     
-    // Debug logging for troubleshooting
-    console.log('CommandBar: Results updated', {
-      query,
-      resultCount: this.filteredResults.length,
-      isVisible: this.isVisible,
-      hasShowClass: this.element?.classList.contains('show'),
-      resultsDisplay: this.results?.style.display
-    })
+    // Update results for command bar
   }
 
   /**
