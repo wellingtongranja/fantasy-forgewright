@@ -90,7 +90,12 @@ export class CommandBar {
           class="command-bar-input" 
           placeholder="type command..."
           autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
           spellcheck="false"
+          data-lpignore="true"
+          data-form-type="other"
+          inputmode="text"
         />
       </div>
       <div class="command-bar-results"></div>
@@ -100,13 +105,39 @@ export class CommandBar {
     this.input = this.element.querySelector('.command-bar-input')
     this.results = this.element.querySelector('.command-bar-results')
 
+    // Disable MacOS secrets and autofill features
+    this.disableAutofillFeatures()
+
     // Append to body
     document.body.appendChild(this.element)
   }
 
   /**
-   * Inject CSS styles
+   * Disable MacOS secrets and autofill features
    */
+  disableAutofillFeatures() {
+    if (this.input) {
+      // Set additional attributes to disable autofill
+      this.input.setAttribute('data-lpignore', 'true')
+      this.input.setAttribute('data-form-type', 'other')
+      this.input.setAttribute('data-1p-ignore', 'true')
+      this.input.setAttribute('data-gramm', 'false')
+      
+      // Disable autocomplete on focus
+      this.input.addEventListener('focus', () => {
+        this.input.setAttribute('autocomplete', 'new-password')
+        setTimeout(() => {
+          this.input.setAttribute('autocomplete', 'off')
+        }, 1)
+      })
+      
+      // Prevent autofill suggestions
+      this.input.addEventListener('input', () => {
+        this.input.setAttribute('autocomplete', 'off')
+      })
+    }
+  }
+
   /**
    * Attach all event listeners
    */
