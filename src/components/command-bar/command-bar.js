@@ -202,8 +202,13 @@ export class CommandBar {
 
     this.input.value = ''
 
-    // Show element
+    // Show element with proper class management
     this.element.classList.add('show')
+    
+    // Ensure results are visible for integrated mode
+    if (this.results) {
+      this.results.style.display = 'block'
+    }
 
     // Show sidebar when command bar opens
     const sidebar = document.querySelector('.sidebar')
@@ -219,6 +224,12 @@ export class CommandBar {
     setTimeout(() => {
       this.input.focus()
       this.updateResults()
+      
+      // Double-check that the show class is applied
+      if (!this.element.classList.contains('show')) {
+        console.warn('CommandBar: Show class not applied, forcing it')
+        this.element.classList.add('show')
+      }
     }, 50)
 
     // Dispatch event
@@ -235,6 +246,11 @@ export class CommandBar {
 
     // Hide element
     this.element.classList.remove('show')
+    
+    // Ensure results are hidden for integrated mode
+    if (this.results) {
+      this.results.style.display = 'none'
+    }
 
     // Hide sidebar when command bar closes
     const sidebar = document.querySelector('.sidebar')
@@ -307,6 +323,26 @@ export class CommandBar {
 
     this.selectedIndex = 0
     this.renderResults()
+    
+    // Ensure results are visible when command bar is shown
+    if (this.isVisible && this.results) {
+      this.results.style.display = 'block'
+      
+      // Force show class if not present
+      if (!this.element.classList.contains('show')) {
+        console.warn('CommandBar: Show class missing in updateResults, forcing it')
+        this.element.classList.add('show')
+      }
+    }
+    
+    // Debug logging for troubleshooting
+    console.log('CommandBar: Results updated', {
+      query,
+      resultCount: this.filteredResults.length,
+      isVisible: this.isVisible,
+      hasShowClass: this.element?.classList.contains('show'),
+      resultsDisplay: this.results?.style.display
+    })
   }
 
   /**
@@ -329,6 +365,11 @@ export class CommandBar {
       this.renderGroupedResults()
     } else {
       this.renderFlatResults()
+    }
+
+    // Ensure results are visible after rendering
+    if (this.isVisible && this.results) {
+      this.results.style.display = 'block'
     }
 
     // Add click listeners to results
