@@ -154,12 +154,82 @@ export class HeaderIntegration {
   updateResponsiveClasses() {
     if (!this.headerWrapper) return
 
-    const isMobile = window.innerWidth <= 768
+    // Remove all responsive classes first
+    this.headerWrapper.classList.remove('mobile', 'tablet', 'desktop', 'wide')
     
-    if (isMobile) {
+    // Add appropriate responsive class based on viewport width
+    if (window.innerWidth <= 480) {
       this.headerWrapper.classList.add('mobile')
+    } else if (window.innerWidth <= 800) {
+      this.headerWrapper.classList.add('tablet')
+    } else if (window.innerWidth <= 1200) {
+      this.headerWrapper.classList.add('desktop')
     } else {
-      this.headerWrapper.classList.remove('mobile')
+      this.headerWrapper.classList.add('wide')
+    }
+    
+    // Update wrapper positioning to prevent overlap
+    this.updateWrapperPositioning()
+  }
+  
+  /**
+   * Update wrapper positioning to prevent overlap with header elements
+   */
+  updateWrapperPositioning() {
+    if (!this.headerWrapper) return
+    
+    const headerWidth = this.headerElement.offsetWidth
+    const titleWidth = this.titleElement.offsetWidth
+    const authWidth = this.headerElement.querySelector('#github-auth-container')?.offsetWidth || 0
+    
+    // Calculate available space for command bar with aggressive margins
+    const leftMargin = 20 // Left margin from title
+    const rightMargin = 20 // Right margin from auth button
+    const minSpacing = 40 // Minimum spacing between elements
+    
+    const availableWidth = headerWidth - titleWidth - authWidth - leftMargin - rightMargin - minSpacing
+    
+    // Update wrapper width to fit available space with safety margin
+    if (availableWidth > 0) {
+      const safeWidth = Math.min(availableWidth, 300) // Cap at 300px max
+      this.headerWrapper.style.maxWidth = `${safeWidth}px`
+      this.headerWrapper.style.width = `${safeWidth}px`
+      
+      // Force repositioning to prevent overlap
+      this.repositionWrapper()
+    } else {
+      // If no space available, hide the wrapper
+      this.headerWrapper.style.display = 'none'
+    }
+  }
+  
+  /**
+   * Force repositioning of wrapper to prevent overlap
+   */
+  repositionWrapper() {
+    if (!this.headerWrapper) return
+    
+    // Get current positions
+    const titleRect = this.titleElement.getBoundingClientRect()
+    const authRect = this.headerElement.querySelector('#github-auth-container')?.getBoundingClientRect()
+    const wrapperRect = this.headerWrapper.getBoundingClientRect()
+    
+    if (authRect) {
+      // Check if wrapper overlaps with auth button
+      if (wrapperRect.right > authRect.left - 20) {
+        // Move wrapper left to prevent overlap
+        const overlap = wrapperRect.right - (authRect.left - 20)
+        const newLeft = 50 - (overlap / this.headerElement.offsetWidth) * 100
+        this.headerWrapper.style.left = `${newLeft}%`
+      }
+      
+      // Check if wrapper overlaps with title
+      if (wrapperRect.left < titleRect.right + 20) {
+        // Move wrapper right to prevent overlap
+        const overlap = (titleRect.right + 20) - wrapperRect.left
+        const newLeft = 50 + (overlap / this.headerElement.offsetWidth) * 100
+        this.headerWrapper.style.left = `${newLeft}%`
+      }
     }
   }
 

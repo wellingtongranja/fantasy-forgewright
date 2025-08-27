@@ -241,7 +241,59 @@
   font-weight: var(--font-weight-normal);
 }
 
-/* Mobile responsive */
+/* Responsive breakpoints for floating command bar */
+@media (max-width: 1200px) {
+  .command-bar {
+    width: 500px;
+    max-width: calc(100vw - 64px);
+  }
+}
+
+@media (max-width: 1000px) {
+  .command-bar {
+    width: 450px;
+    max-width: calc(100vw - 48px);
+  }
+}
+
+@media (max-width: 800px) {
+  .command-bar {
+    width: 400px;
+    max-width: calc(100vw - 40px);
+  }
+}
+
+@media (max-width: 600px) {
+  .command-bar {
+    width: calc(100vw - 32px);
+    max-width: none;
+    top: calc(var(--header-height, 60px) + 8px);
+    left: 16px;
+    transform: none;
+  }
+  
+  .command-bar-input {
+    font-size: var(--font-size-sm) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .command-bar {
+    width: calc(100vw - 24px);
+    left: 12px;
+    top: calc(var(--header-height, 60px) + 4px);
+  }
+  
+  .command-bar-input {
+    font-size: var(--font-size-xs) !important;
+  }
+  
+  .command-bar-results {
+    max-height: 280px;
+  }
+}
+
+/* Mobile responsive (legacy support) */
 @media (max-width: 768px) {
   .command-bar {
     width: calc(100vw - 32px);
