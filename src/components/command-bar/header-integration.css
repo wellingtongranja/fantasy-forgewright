@@ -59,6 +59,35 @@
   font-size: var(--font-size-sm) !important;
 }
 
+/* Disable MacOS secrets button and autofill suggestions for integrated mode */
+.command-bar-integrated .command-bar-input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.command-bar-integrated .command-bar-input::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.command-bar-integrated .command-bar-input::-webkit-strong-password-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Disable autofill styling for integrated mode */
+.command-bar-integrated .command-bar-input:-webkit-autofill,
+.command-bar-integrated .command-bar-input:-webkit-autofill:hover,
+.command-bar-integrated .command-bar-input:-webkit-autofill:focus,
+.command-bar-integrated .command-bar-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px rgba(var(--color-bg-rgb, 255, 255, 255), 0.1) inset !important;
+  -webkit-text-fill-color: var(--color-text) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
 .command-bar-integrated .command-bar-input-container {
   padding: 0 !important;
   border-bottom: none !important;
