@@ -85,6 +85,33 @@
   box-sizing: border-box !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  padding-right: 80px !important; /* Make room for key indicator */
+}
+
+/* Key indicator for integrated command bar */
+.command-bar-integrated .command-bar-key-indicator {
+  position: absolute !important;
+  right: var(--spacing-xs) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: rgba(var(--color-bg-rgb, 255, 255, 255), 0.15) !important;
+  border: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.3) !important;
+  border-radius: var(--border-radius-sm) !important;
+  padding: 1px var(--spacing-xs) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.command-bar-integrated .key-indicator-text {
+  font-family: var(--font-family-mono) !important;
+  font-size: var(--font-size-xs) !important;
+  color: rgba(var(--color-text-rgb, 0, 0, 0), 0.6) !important;
+  font-weight: var(--font-weight-medium) !important;
+  letter-spacing: 0.025em !important;
+  opacity: 0.8 !important;
+  white-space: nowrap !important;
 }
 
 .command-bar-integrated .command-bar-input::placeholder {
@@ -249,6 +276,15 @@
   color: rgba(255, 255, 255, 0.3) !important;
 }
 
+[data-theme='dark'] .command-bar-integrated .command-bar-key-indicator {
+  background: rgba(45, 45, 45, 0.3) !important;
+  border-color: rgba(64, 64, 64, 0.5) !important;
+}
+
+[data-theme='dark'] .command-bar-integrated .key-indicator-text {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
 [data-theme='fantasy'] .command-bar-integrated {
   background: rgba(26, 0, 51, 0.2) !important;
   border-color: rgba(106, 27, 154, 0.3) !important;
@@ -256,6 +292,15 @@
 
 [data-theme='fantasy'] .command-bar-integrated .command-bar-input::placeholder {
   color: rgba(138, 43, 226, 0.4) !important;
+}
+
+[data-theme='fantasy'] .command-bar-integrated .command-bar-key-indicator {
+  background: rgba(26, 0, 51, 0.3) !important;
+  border-color: rgba(106, 27, 154, 0.4) !important;
+}
+
+[data-theme='fantasy'] .command-bar-integrated .key-indicator-text {
+  color: rgba(138, 43, 226, 0.8) !important;
 }
 
 /* High contrast support */
