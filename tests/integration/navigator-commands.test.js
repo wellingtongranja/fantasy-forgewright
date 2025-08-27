@@ -219,7 +219,7 @@ describe('Navigator Command Integration Tests', () => {
 
       expect(parsed.name).toBe(':d')
       expect(parsed.args).toEqual(['fantasy', 'books'])
-      expect(parsed.cleanInput).toBe(':d fantasy books')
+      expect(parsed.cleanInput).toBe('d fantasy books')
     })
 
     it('should handle commands with extra whitespace', () => {

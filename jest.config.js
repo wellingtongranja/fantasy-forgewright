@@ -6,6 +6,16 @@ export default {
   transform: {
     "^.+\.jsx?$": "babel-jest"
   },
+  transformIgnorePatterns: [
+    "node_modules/(?!(@codemirror|@lezer|codemirror|lezer|style-mod|w3c-keyname)/)"
+  ],
+  globals: {
+    "import.meta": {
+      env: {
+        VITE_GITHUB_REDIRECT_URI: "https://fantasy.forgewright.io/"
+      }
+    }
+  },
   coverageDirectory: "coverage",
   collectCoverageFrom: [
     "src/**/*.js",

@@ -106,7 +106,7 @@ describe('GitHubErrorHandler', () => {
 
       expect(error.type).toBe('server_error')
       expect(error.canRetry).toBe(true)
-      expect(error.userMessage).toContain('GitHub is experiencing issues')
+      expect(error.userMessage).toContain('Git repository service is experiencing issues')
     })
 
     test('should handle unknown HTTP status', async () => {
@@ -295,7 +295,7 @@ describe('GitHubErrorHandler', () => {
         requiresAuth: true
       }
       const authMessage = errorHandler.formatUserMessage(authError)
-      expect(authMessage).toContain('check your GitHub authentication')
+      expect(authMessage).toContain('check your Git repository authentication')
     })
   })
 
@@ -320,7 +320,7 @@ describe('GitHubErrorHandler', () => {
       errorHandler.logError(errorResponse, { endpoint: '/test' })
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'GitHub Error:',
+        'Git repository Error:',
         expect.objectContaining({
           type: 'network_error',
           message: 'Network failed',
