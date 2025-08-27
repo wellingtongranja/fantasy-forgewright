@@ -35,8 +35,32 @@ export function registerCoreCommands(registry, app) {
       icon: '💾',
       aliases: [':s'],
       handler: async () => {
-        await app.saveDocument()
-        return { success: true, message: 'Document saved successfully' }
+        const result = await app.saveDocument()
+        
+        // Handle different save results
+        if (!result.success) {
+          switch (result.reason) {
+            case 'readonly':
+              // Don't show additional message - saveDocument already showed warning
+              return { success: false, message: null }
+            case 'no_document':
+              return { success: false, message: 'No document to save' }
+            case 'error':
+              return { success: false, message: `Save failed: ${result.error}` }
+            default:
+              return { success: false, message: 'Save failed' }
+          }
+        }
+        
+        // Handle successful results
+        switch (result.reason) {
+          case 'saved':
+            return { success: true, message: 'Document saved successfully' }
+          case 'no_changes':
+            return { success: true, message: 'No changes to save' }
+          default:
+            return { success: true, message: 'Document saved successfully' }
+        }
       }
     },
 
@@ -352,7 +376,15 @@ export function registerCoreCommands(registry, app) {
               return { success: false, message: `Tag "${tagName}" already exists` }
             }
             doc.tags.push(tagName)
-            await app.saveDocument()
+            const saveResult = await app.saveDocument()
+            if (!saveResult.success) {
+              // Revert the tag addition if save failed
+              doc.tags.pop()
+              if (saveResult.reason === 'readonly') {
+                return { success: false, message: 'Cannot add tag to readonly document' }
+              }
+              return { success: false, message: 'Failed to save tag changes' }
+            }
             return { success: true, message: `Added tag "${tagName}"` }
 
           case 'remove':
@@ -363,8 +395,17 @@ export function registerCoreCommands(registry, app) {
             if (index === -1) {
               return { success: false, message: `Tag "${tagName}" not found` }
             }
+            const removedTag = tagName
             doc.tags.splice(index, 1)
-            await app.saveDocument()
+            const removeResult = await app.saveDocument()
+            if (!removeResult.success) {
+              // Revert the tag removal if save failed
+              doc.tags.splice(index, 0, removedTag)
+              if (removeResult.reason === 'readonly') {
+                return { success: false, message: 'Cannot remove tag from readonly document' }
+              }
+              return { success: false, message: 'Failed to save tag changes' }
+            }
             return { success: true, message: `Removed tag "${tagName}"` }
 
           case 'list':
