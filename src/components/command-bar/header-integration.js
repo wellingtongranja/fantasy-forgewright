@@ -89,6 +89,24 @@ export class HeaderIntegration {
    */
   focusCommandBar() {
     this.commandBar.show()
+    
+    // Ensure the command bar gets the show class and results are visible
+    if (this.commandBar.element) {
+      this.commandBar.element.classList.add('show')
+      
+      // Force the show class to be applied
+      setTimeout(() => {
+        if (!this.commandBar.element.classList.contains('show')) {
+          console.warn('HeaderIntegration: Forcing show class')
+          this.commandBar.element.classList.add('show')
+        }
+      }, 10)
+    }
+    
+    if (this.commandBar.results) {
+      this.commandBar.results.style.display = 'block'
+    }
+    
     if (this.commandBar.input && this.commandBar.input.focus) {
       this.commandBar.input.focus()
     }
