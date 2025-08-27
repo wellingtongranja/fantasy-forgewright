@@ -263,6 +263,14 @@ body {
   color: var(--color-text-secondary);
 }
 
+.footer-center-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  justify-self: center;
+}
+
 .sync-status-container {
   display: flex;
   align-items: center;
