@@ -49,6 +49,14 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Command bar input wrapper for key indicator */
+.command-bar-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
 .command-bar-input {
   width: 100%;
   padding: var(--spacing-sm) 0;
@@ -63,6 +71,70 @@
 
 .command-bar-input:focus {
   outline: none;
+}
+
+/* Professional key indicator styling */
+.command-bar-key-indicator {
+  position: absolute;
+  right: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(var(--color-bg-secondary-rgb, 248, 249, 250), 0.8);
+  border: 1px solid rgba(var(--color-border-rgb, 229, 231, 235), 0.6);
+  border-radius: var(--border-radius-sm);
+  padding: 2px var(--spacing-xs);
+  pointer-events: none;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.key-indicator-text {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.025em;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+/* Key indicator hover effects */
+.command-bar:hover .command-bar-key-indicator {
+  background: rgba(var(--color-bg-secondary-rgb, 248, 249, 250), 0.95);
+  border-color: rgba(var(--color-border-rgb, 229, 231, 235), 0.8);
+  opacity: 1;
+}
+
+/* Focus state enhancement */
+.command-bar:focus-within .command-bar-key-indicator {
+  background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1);
+  border-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.3);
+  color: var(--color-primary);
+}
+
+/* Dark theme adjustments */
+[data-theme='dark'] .command-bar-key-indicator {
+  background: rgba(55, 55, 55, 0.8);
+  border-color: rgba(64, 64, 64, 0.6);
+}
+
+[data-theme='dark'] .command-bar:focus-within .command-bar-key-indicator {
+  background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.15);
+  border-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.4);
+}
+
+/* Fantasy theme adjustments */
+[data-theme='fantasy'] .command-bar-key-indicator {
+  background: rgba(26, 0, 51, 0.8);
+  border-color: rgba(106, 27, 154, 0.4);
+}
+
+[data-theme='fantasy'] .command-bar:focus-within .command-bar-key-indicator {
+  background: rgba(138, 43, 226, 0.15);
+  border-color: rgba(138, 43, 226, 0.4);
+  color: #8a2be2;
 }
 
 /* Disable MacOS secrets button and autofill suggestions */

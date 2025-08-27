@@ -85,18 +85,23 @@ export class CommandBar {
     this.element.className = 'command-bar command-bar-floating'
     this.element.innerHTML = `
       <div class="command-bar-input-container">
-        <input 
-          type="text" 
-          class="command-bar-input" 
-          placeholder="type command..."
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-          data-lpignore="true"
-          data-form-type="other"
-          inputmode="text"
-        />
+        <div class="command-bar-input-wrapper">
+          <input 
+            type="text" 
+            class="command-bar-input" 
+            placeholder="type command..."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-lpignore="true"
+            data-form-type="other"
+            inputmode="text"
+          />
+          <div class="command-bar-key-indicator">
+            <span class="key-indicator-text">Ctrl+Space</span>
+          </div>
+        </div>
       </div>
       <div class="command-bar-results"></div>
     `
