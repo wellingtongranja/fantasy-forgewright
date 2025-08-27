@@ -72,19 +72,21 @@ describe('ThemeManager', () => {
 
   describe('theme information', () => {
     it('should return the next theme in cycle', () => {
-      themeManager.currentTheme = 'light'
-      expect(themeManager.getNextTheme()).toBe('dark')
+      const manager = new ThemeManager()
+      manager.currentTheme = 'light'
+      expect(manager.getNextTheme()).toBe('dark')
 
-      themeManager.currentTheme = 'dark'
-      expect(themeManager.getNextTheme()).toBe('fantasy')
+      manager.currentTheme = 'dark'
+      expect(manager.getNextTheme()).toBe('fantasy')
 
-      themeManager.currentTheme = 'fantasy'
-      expect(themeManager.getNextTheme()).toBe('light')
+      manager.currentTheme = 'fantasy'
+      expect(manager.getNextTheme()).toBe('light')
     })
 
     it('should return current theme', () => {
-      themeManager.currentTheme = 'dark'
-      expect(themeManager.getCurrentTheme()).toBe('dark')
+      const manager = new ThemeManager()
+      manager.currentTheme = 'dark'
+      expect(manager.getCurrentTheme()).toBe('dark')
     })
   })
 })
