@@ -102,18 +102,61 @@ export class CommandBar {
           </div>
         </div>
       </div>
+      <div class="command-bar-scroll-indicator top"></div>
       <div class="command-bar-results"></div>
+      <div class="command-bar-scroll-indicator bottom"></div>
     `
 
     // Get references
     this.input = this.element.querySelector('.command-bar-input')
     this.results = this.element.querySelector('.command-bar-results')
+    this.scrollIndicatorTop = this.element.querySelector('.command-bar-scroll-indicator.top')
+    this.scrollIndicatorBottom = this.element.querySelector('.command-bar-scroll-indicator.bottom')
 
     // Disable MacOS secrets and autofill features
     this.disableAutofillFeatures()
 
+    // Setup scroll indicator monitoring
+    this.setupScrollIndicators()
+
     // Append to body
     document.body.appendChild(this.element)
+  }
+
+  /**
+   * Setup scroll indicators
+   */
+  setupScrollIndicators() {
+    if (!this.results) return
+
+    this.results.addEventListener('scroll', () => {
+      this.updateScrollIndicators()
+    })
+  }
+
+  /**
+   * Update scroll indicator visibility
+   */
+  updateScrollIndicators() {
+    if (!this.results || !this.scrollIndicatorTop || !this.scrollIndicatorBottom) return
+
+    const scrollTop = this.results.scrollTop
+    const scrollHeight = this.results.scrollHeight
+    const clientHeight = this.results.clientHeight
+
+    // Show top indicator if scrolled down
+    if (scrollTop > 10) {
+      this.scrollIndicatorTop.classList.add('visible')
+    } else {
+      this.scrollIndicatorTop.classList.remove('visible')
+    }
+
+    // Show bottom indicator if more content below
+    if (scrollHeight - scrollTop - clientHeight > 10) {
+      this.scrollIndicatorBottom.classList.add('visible')
+    } else {
+      this.scrollIndicatorBottom.classList.remove('visible')
+    }
   }
 
   /**
@@ -242,6 +285,7 @@ export class CommandBar {
     this.isVisible = true
     this.selectedIndex = 0
     this.currentQuery = ''
+    this.showCategories = true  // Default to showing categories
 
     this.input.value = ''
 
@@ -251,6 +295,7 @@ export class CommandBar {
     // Ensure results are visible for integrated mode
     if (this.results) {
       this.results.style.display = 'block'
+      this.results.scrollTop = 0  // Reset scroll position
     }
 
     // Show sidebar when command bar opens
@@ -273,6 +318,9 @@ export class CommandBar {
         console.warn('CommandBar: Show class not applied, forcing it')
         this.element.classList.add('show')
       }
+      
+      // Initial scroll indicator check
+      this.updateScrollIndicators()
     }, 50)
 
     // Dispatch event
@@ -359,13 +407,27 @@ export class CommandBar {
     const query = this.currentQuery.trim()
 
     if (!query) {
+      // Show all commands grouped by category when no query
       this.filteredResults = this.commandRegistry.getAllCommands()
+      this.showCategories = true
     } else {
+      // Search and show results, keep categories if few results
       this.filteredResults = this.commandRegistry.searchCommands(query)
+      this.showCategories = this.filteredResults.length > 5
     }
 
     this.selectedIndex = 0
     this.renderResults()
+    
+    // Reset scroll position
+    if (this.results) {
+      this.results.scrollTop = 0
+    }
+    
+    // Update scroll indicators after a brief delay for rendering
+    setTimeout(() => {
+      this.updateScrollIndicators()
+    }, 50)
     
     // Ensure results are visible when command bar is shown
     if (this.isVisible && this.results) {
@@ -377,8 +439,6 @@ export class CommandBar {
         this.element.classList.add('show')
       }
     }
-    
-    // Update results for command bar
   }
 
   /**
@@ -391,13 +451,12 @@ export class CommandBar {
           ${this.currentQuery ? `No commands found for "${this.currentQuery}"` : 'No commands available'}
         </div>
       `
+      this.updateScrollIndicators()
       return
     }
 
-    // Group by category if no query or show categories is enabled
-    const shouldGroupByCategory = !this.currentQuery || this.showCategories
-    
-    if (shouldGroupByCategory) {
+    // Always show categories for better organization
+    if (this.showCategories) {
       this.renderGroupedResults()
     } else {
       this.renderFlatResults()
@@ -408,8 +467,10 @@ export class CommandBar {
       this.results.style.display = 'block'
     }
 
-    // Note: Click handling is done via event delegation in attachEventListeners()
-    // No need for individual click listeners on each result
+    // Update scroll indicators after render
+    setTimeout(() => {
+      this.updateScrollIndicators()
+    }, 10)
   }
 
   /**
@@ -419,15 +480,35 @@ export class CommandBar {
     const grouped = this.commandCategories.groupCommandsByCategory()
     const orderedCategories = this.commandCategories.getOrderedCategories()
     let resultIndex = 0
+    let allCommands = []
 
     const categoryHtml = orderedCategories
-      .filter(categoryKey => grouped[categoryKey] && grouped[categoryKey].commands.length > 0)
+      .filter(categoryKey => {
+        const categoryCommands = grouped[categoryKey]?.commands || []
+        // If searching, only show categories with matching commands
+        if (this.currentQuery) {
+          const matchingCommands = categoryCommands.filter(cmd => 
+            this.filteredResults.some(filtered => filtered.name === cmd.name)
+          )
+          return matchingCommands.length > 0
+        }
+        // If not searching, show all categories with commands
+        return categoryCommands.length > 0
+      })
       .map(categoryKey => {
         const category = grouped[categoryKey]
-        const categoryCommands = category.commands
+        let categoryCommands = category.commands
+        
+        // Filter commands if searching
+        if (this.currentQuery) {
+          categoryCommands = categoryCommands.filter(cmd => 
+            this.filteredResults.some(filtered => filtered.name === cmd.name)
+          )
+        }
         
         const commandsHtml = categoryCommands
           .map((command) => {
+            allCommands.push(command)
             const parametersDisplay = this.formatParameters(command.parameters)
             const aliasDisplay = this.formatAliases(command.aliases, this.currentQuery)
             const isSelected = resultIndex === this.selectedIndex
@@ -471,7 +552,7 @@ export class CommandBar {
       .join('')
 
     this.results.innerHTML = categoryHtml
-    this.filteredResults = orderedCategories.flatMap(key => grouped[key]?.commands || [])
+    this.filteredResults = allCommands
   }
 
   /**
@@ -586,14 +667,37 @@ export class CommandBar {
       el.classList.toggle('selected', index === this.selectedIndex)
     })
 
-    // Scroll selected item into view
+    // Scroll selected item into view with better behavior
     const selectedElement = resultElements[this.selectedIndex]
     if (selectedElement) {
-      selectedElement.scrollIntoView({
-        block: 'nearest',
-        behavior: 'smooth'
-      })
+      // Get the positions
+      const containerRect = this.results.getBoundingClientRect()
+      const elementRect = selectedElement.getBoundingClientRect()
+      
+      // Check if element is out of view
+      const isAbove = elementRect.top < containerRect.top
+      const isBelow = elementRect.bottom > containerRect.bottom
+      
+      if (isAbove || isBelow) {
+        // Calculate optimal scroll position
+        const scrollTop = selectedElement.offsetTop - this.results.offsetTop
+        const elementHeight = selectedElement.offsetHeight
+        const containerHeight = this.results.clientHeight
+        
+        // Center the element if possible, otherwise just bring into view
+        const targetScroll = scrollTop - (containerHeight / 2) + (elementHeight / 2)
+        
+        this.results.scrollTo({
+          top: Math.max(0, targetScroll),
+          behavior: 'smooth'
+        })
+      }
     }
+    
+    // Update scroll indicators after selection change
+    setTimeout(() => {
+      this.updateScrollIndicators()
+    }, 100)
   }
 
   /**
