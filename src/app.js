@@ -3,7 +3,8 @@ import { ThemeManager } from './core/themes/theme-manager.js'
 import { StorageManager } from './core/storage/storage-manager.js'
 import { SearchEngine } from './core/search/search-engine.js'
 import { CommandRegistry } from './core/commands/command-registry.js'
-import { CommandBar } from './components/command-bar/command-bar.js'
+import { CommandBar } from './components/command-bar-v2/components/CommandBar.js'
+import './components/command-bar-v2/styles/command-bar.css'
 import { Navigator } from './components/navigator/navigator.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
@@ -128,7 +129,14 @@ class FantasyEditorApp {
 
     // Initialize command system
     this.commandRegistry = new CommandRegistry()
-    this.commandBar = new CommandBar(this.commandRegistry)
+    this.commandBar = new CommandBar(this.commandRegistry, {
+      container: document.body,
+      options: {
+        placeholder: 'Type a command or search...',
+        position: 'top',
+        maxResults: 20
+      }
+    })
 
     // Initialize Navigator
     const navigatorContainer = document.getElementById('navigator')
@@ -147,6 +155,9 @@ class FantasyEditorApp {
 
     // Register Git commands
     registerGitCommands(this.commandRegistry, this)
+    
+    // Initialize command bar v2 after commands are registered
+    await this.commandBar.initialize()
 
     // Initialize dev helpers for console access
     devHelpers.init(this)
@@ -406,8 +417,13 @@ class FantasyEditorApp {
   }
 
   attachEventListeners() {
-    // No direct keyboard shortcuts - everything goes through Ctrl+Space command palette
-    // No icon buttons - everything goes through command palette
+    // Ctrl+Space to open command palette
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+        e.preventDefault()
+        this.commandBar.toggle()
+      }
+    })
 
     document.getElementById('doc-title').addEventListener('input', (e) => {
       if (this.currentDocument) {
