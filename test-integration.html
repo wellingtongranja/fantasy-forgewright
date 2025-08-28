@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Bar Integration Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+            font-family: monospace;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Command Bar v2 Integration Test</h1>
+        
+        <div id="status" class="status info">Loading...</div>
+        
+        <div>
+            <button onclick="testCommandBar()">Test Command Bar</button>
+            <button onclick="window.location.href='/'">Go to Main App</button>
+        </div>
+        
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click "Test Command Bar" or press <kbd>Ctrl+Space</kbd></li>
+            <li>Verify the command bar opens with categories</li>
+            <li>Check that commands are properly organized</li>
+            <li>Test search functionality</li>
+            <li>Test command execution</li>
+        </ol>
+        
+        <h3>Test Results:</h3>
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `status ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(entry);
+        }
+        
+        // Test if the main app loads
+        try {
+            const response = await fetch('/');
+            if (response.ok) {
+                status.textContent = '✅ Main app is running';
+                status.className = 'status success';
+                log('Main app loaded successfully', 'success');
+            } else {
+                throw new Error('Failed to load main app');
+            }
+        } catch (error) {
+            status.textContent = '❌ Error loading main app';
+            status.className = 'status error';
+            log(`Error: ${error.message}`, 'error');
+        }
+        
+        // Make test function globally available
+        window.testCommandBar = function() {
+            log('Opening command bar test page...', 'info');
+            window.open('/test-command-bar-v2.html', '_blank');
+        }
+        
+        // Listen for Ctrl+Space
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+                e.preventDefault();
+                log('Ctrl+Space detected - opening test page', 'info');
+                testCommandBar();
+            }
+        });
+        
+        log('Test page ready', 'success');
+    </script>
+</body>
+</html>
