@@ -13,7 +13,7 @@
   opacity: 0;
   visibility: hidden;
   transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: visible; /* Changed from hidden to visible to allow dropdown to show */
+  overflow: hidden; /* Must be hidden for scroll to work */
 }
 
 /* Floating mode (fallback) - explicit styling */
@@ -172,9 +172,32 @@
 }
 
 .command-bar-results {
-  max-height: 320px;
+  max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
   background: transparent;
+  position: relative;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.command-bar-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.command-bar-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.command-bar-results::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.command-bar-results::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
 }
 
 .command-bar-results:empty {
@@ -396,11 +419,12 @@
 
 /* Category grouping styles */
 .command-category {
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 0;
 }
 
 .command-category:last-child {
   margin-bottom: 0;
+  padding-bottom: var(--spacing-sm);
 }
 
 .command-category-header {
@@ -414,6 +438,7 @@
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  /* Removed sticky positioning to fix scrolling */
 }
 
 .command-category-icon {
@@ -432,8 +457,31 @@
   font-weight: var(--font-weight-normal);
 }
 
-.command-category-results {
-  /* No additional padding needed, command-result handles it */
+/* Scroll indicators */
+.command-bar-scroll-indicator {
+  display: none; /* Temporarily disable to fix scrolling */
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  pointer-events: none;
+  z-index: 15;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.command-bar-scroll-indicator.top {
+  top: 51px; /* Position below input container */
+  background: linear-gradient(to bottom, var(--color-bg) 0%, var(--color-bg) 20%, transparent 100%);
+}
+
+.command-bar-scroll-indicator.bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--color-bg) 0%, var(--color-bg) 20%, transparent 100%);
+}
+
+.command-bar-scroll-indicator.visible {
+  opacity: 1;
 }
 
 .command-category .command-result {
