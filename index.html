@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="/src/components/auth/github-user-menu.css">
   <link rel="stylesheet" href="/src/styles/components/auth-button.css">
   <link rel="stylesheet" href="/src/styles/components/provider-selector.css">
+  <link rel="stylesheet" href="/src/styles/components/command-bar-trigger.css">
   <link rel="stylesheet" href="/src/components/status-bar/status-bar.css">
   
   <script type="module" src="/src/app.js"></script>
@@ -34,6 +35,10 @@
   <div id="app" class="app-container">
     <header class="app-header">
       <h1 class="app-title">Fantasy</h1>
+      <button id="command-bar-trigger" class="command-bar-trigger" title="Open Command Palette (Ctrl+Space)">
+        <span class="command-bar-trigger__text">Commands</span>
+        <span class="command-bar-trigger__shortcut">Ctrl+Space</span>
+      </button>
       <div id="github-auth-container"></div>
     </header>
     
