@@ -425,6 +425,15 @@ class FantasyEditorApp {
       }
     })
 
+    // Command bar trigger button
+    const commandBarTrigger = document.getElementById('command-bar-trigger')
+    if (commandBarTrigger) {
+      commandBarTrigger.addEventListener('click', (e) => {
+        e.preventDefault()
+        this.commandBar.show()
+      })
+    }
+
     document.getElementById('doc-title').addEventListener('input', (e) => {
       if (this.currentDocument) {
         this.currentDocument.title = e.target.value
