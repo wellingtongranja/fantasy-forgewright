@@ -1,5 +1,5 @@
 /**
- * CommandBar v2 Styles - Minimal & Discrete Design
+ * CommandBar v2 Styles - Theme-integrated Design
  */
 
 .command-bar-v2 {
@@ -8,9 +8,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 10000;
+  z-index: var(--z-index-modal);
   pointer-events: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-family-base);
 }
 
 .command-bar-v2.visible {
@@ -21,35 +21,33 @@
   display: none;
 }
 
-/* Subtle overlay backdrop */
+/* Theme-aware overlay backdrop */
 .command-bar-v2__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(1px);
+  background: rgba(var(--color-text-rgb, 0, 0, 0), 0.15);
+  backdrop-filter: blur(2px);
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .command-bar-v2.visible .command-bar-v2__overlay {
   opacity: 1;
 }
 
-/* Minimal modal container */
+/* Theme-integrated modal container */
 .command-bar-v2__modal {
   position: absolute;
   left: 50%;
   transform: translateX(-50%) translateY(-10px);
   width: 90%;
   max-width: 520px;
-  background: var(--command-bar-bg, rgba(255, 255, 255, 0.98));
-  border: 1px solid var(--command-bar-border, rgba(0, 0, 0, 0.08));
-  border-radius: 8px;
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
   opacity: 0;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
   overflow: hidden;
 }
 
@@ -60,7 +58,7 @@
 
 /* Position variants */
 .command-bar-v2--top .command-bar-v2__modal {
-  top: 20px;
+  top: var(--spacing-lg);
 }
 
 .command-bar-v2--center .command-bar-v2__modal {
@@ -72,40 +70,43 @@
   transform: translate(-50%, -50%);
 }
 
-/* Minimal header */
+/* Theme-aware header */
 .command-bar-v2__header {
-  border-bottom: 1px solid var(--command-bar-border, rgba(0, 0, 0, 0.06));
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-/* Clean input container */
+/* Theme-integrated input container */
 .command-bar-v2__input-container {
-  padding: 8px 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .command-bar-v2__input {
   width: 100%;
-  padding: 6px 8px;
-  font-size: 14px;
-  border: none;
-  background: transparent;
-  color: var(--command-bar-text, #1a1a1a);
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-md);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
   outline: none;
   box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .command-bar-v2__input::placeholder {
-  color: var(--command-bar-placeholder, #999);
-  font-weight: 400;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-normal);
 }
 
-/* Minimal results container */
+/* Theme-aware results container */
 .command-bar-v2__results-container {
   max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-/* Invisible scrollbar */
+/* Theme-integrated scrollbar */
 .command-bar-v2__results-container::-webkit-scrollbar {
   width: 6px;
 }
@@ -115,25 +116,25 @@
 }
 
 .command-bar-v2__results-container::-webkit-scrollbar-thumb {
-  background: var(--command-bar-scrollbar, rgba(0, 0, 0, 0.1));
-  border-radius: 3px;
+  background: var(--color-border);
+  border-radius: var(--border-radius-sm);
 }
 
 .command-bar-v2__results-container::-webkit-scrollbar-thumb:hover {
-  background: var(--command-bar-scrollbar-hover, rgba(0, 0, 0, 0.2));
+  background: var(--color-text-secondary);
 }
 
-/* Clean results list */
+/* Theme-aware results list */
 .command-bar-v2__results-list {
   list-style: none;
   margin: 0;
-  padding: 4px;
+  padding: var(--spacing-xs);
 }
 
-/* Category header */
+/* Theme-integrated category header */
 .command-bar-v2__category-header {
-  padding: 6px 10px 2px;
-  margin-top: 6px;
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
+  margin-top: var(--spacing-sm);
   pointer-events: none;
 }
 
@@ -142,104 +143,105 @@
 }
 
 .command-bar-v2__category-title {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--command-bar-category, #999);
-  opacity: 0.7;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
 }
 
-/* Minimal result item */
+/* Theme-integrated result item */
 .command-bar-v2__result-item {
-  padding: 8px 10px;
+  padding: var(--spacing-sm);
   margin: 1px 0;
-  border-radius: 4px;
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   display: flex;
   align-items: flex-start;
-  transition: background-color 0.1s ease;
-  color: var(--command-bar-text, #1a1a1a);
+  transition: background-color var(--transition-fast);
+  color: var(--color-text);
 }
 
 .command-bar-v2__result-item:hover {
-  background: var(--command-bar-item-hover, rgba(0, 0, 0, 0.03));
+  background: var(--color-bg-tertiary);
 }
 
 .command-bar-v2__result-item.selected {
-  background: var(--command-bar-item-selected, rgba(0, 0, 0, 0.06));
+  background: var(--color-bg-secondary);
 }
 
 .command-bar-v2__result-item[aria-selected="true"] {
-  box-shadow: inset 0 0 0 1px var(--command-bar-outline, rgba(0, 0, 0, 0.1));
+  box-shadow: inset 0 0 0 1px var(--color-primary);
 }
 
-/* Result content structure */
+/* Theme-aware result content structure */
 .command-bar-v2__result-left {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-xs);
 }
 
 .command-bar-v2__result-main {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .command-bar-v2__result-name {
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--command-bar-text, #1a1a1a);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
 }
 
-/* Subtle alias badge */
+/* Theme-integrated alias badge */
 .command-bar-v2__result-alias {
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 11px;
-  padding: 1px 4px;
-  background: var(--command-bar-alias-bg, rgba(0, 0, 0, 0.06));
-  color: var(--command-bar-alias-text, #666);
-  border-radius: 3px;
-  font-weight: 500;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  padding: 2px var(--spacing-xs);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .command-bar-v2__result-params {
   display: inline-flex;
-  gap: 3px;
+  gap: var(--spacing-xs);
   align-items: center;
 }
 
 .command-bar-v2__result-param {
-  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-  font-size: 10px;
-  color: var(--command-bar-param-text, #999);
-  opacity: 0.7;
-}
-
-.command-bar-v2__result-description {
-  font-size: 11px;
-  color: var(--command-bar-text-secondary, #666);
-  line-height: 1.3;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
   opacity: 0.8;
 }
 
-/* No results message */
-.command-bar-v2__no-results {
-  padding: 24px 16px;
-  text-align: center;
-  color: var(--command-bar-text-secondary, #999);
-  font-size: 13px;
+.command-bar-v2__result-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-tight);
+  opacity: 0.9;
 }
 
-/* Minimal footer */
+/* Theme-aware no results message */
+.command-bar-v2__no-results {
+  padding: var(--spacing-xl) var(--spacing-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Theme-integrated footer */
 .command-bar-v2__footer {
-  padding: 6px 12px;
-  border-top: 1px solid var(--command-bar-border, rgba(0, 0, 0, 0.06));
-  font-size: 11px;
-  color: var(--command-bar-text-secondary, #999);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-top: 1px solid var(--color-border-light);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -251,29 +253,7 @@
   pointer-events: none;
 }
 
-/* Dark theme - Minimal adjustments */
-@media (prefers-color-scheme: dark) {
-  .command-bar-v2__modal {
-    --command-bar-bg: rgba(30, 30, 30, 0.98);
-    --command-bar-border: rgba(255, 255, 255, 0.08);
-    --command-bar-text: #e0e0e0;
-    --command-bar-text-secondary: #999;
-    --command-bar-placeholder: #666;
-    --command-bar-item-hover: rgba(255, 255, 255, 0.05);
-    --command-bar-item-selected: rgba(255, 255, 255, 0.08);
-    --command-bar-outline: rgba(255, 255, 255, 0.15);
-    --command-bar-scrollbar: rgba(255, 255, 255, 0.1);
-    --command-bar-scrollbar-hover: rgba(255, 255, 255, 0.2);
-    --command-bar-alias-bg: rgba(255, 255, 255, 0.08);
-    --command-bar-alias-text: #aaa;
-    --command-bar-param-text: #777;
-    --command-bar-category: #666;
-  }
-
-  .command-bar-v2__overlay {
-    background: rgba(0, 0, 0, 0.4);
-  }
-}
+/* Theme integration complete - uses CSS variables automatically */
 
 /* Mobile - Even more minimal */
 @media (max-width: 640px) {
@@ -295,15 +275,19 @@
   }
 }
 
-/* Accessibility - Subtle focus indicators */
+/* Theme-aware accessibility focus indicators */
 .command-bar-v2__result-item:focus-visible {
-  outline: 1px solid var(--command-bar-outline, rgba(0, 0, 0, 0.2));
-  outline-offset: 1px;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.command-bar-v2__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .command-bar-v2__input:focus-visible {
-  outline: 1px solid var(--command-bar-outline, rgba(0, 0, 0, 0.2));
-  outline-offset: -1px;
+  outline: none;
 }
 
 /* Reduced motion */

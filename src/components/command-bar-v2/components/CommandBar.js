@@ -303,19 +303,40 @@ export class CommandBar extends BaseComponent {
   search(query) {
     this.setState({ isSearching: true })
 
-    // Filter commands (temporary implementation)
+    // Filter commands with improved command + parameter parsing
     if (!query || query.length < this.options.minInputLength) {
       this.filteredCommands = [...this.commands]
     } else {
-      const lowerQuery = query.toLowerCase()
+      const trimmedQuery = query.trim()
+      
       this.filteredCommands = this.commands.filter(cmd => {
         const name = cmd.name?.toLowerCase() || ''
         const description = cmd.description?.toLowerCase() || ''
-        const aliases = cmd.aliases?.join(' ').toLowerCase() || ''
+        const aliases = cmd.aliases || []
         
-        return name.includes(lowerQuery) || 
-               description.includes(lowerQuery) || 
-               aliases.includes(lowerQuery)
+        // Check for exact colon alias match at start of query
+        const colonAlias = aliases.find(alias => 
+          alias.startsWith(':') && 
+          trimmedQuery.toLowerCase().startsWith(alias.toLowerCase())
+        )
+        
+        if (colonAlias) {
+          // If query starts with a colon alias, it's a match
+          return true
+        }
+        
+        // Check for command name match at start of query
+        if (trimmedQuery.toLowerCase().startsWith(name)) {
+          return true
+        }
+        
+        // For regular fuzzy search, use the first word only
+        const firstWord = trimmedQuery.split(/\s+/)[0].toLowerCase()
+        
+        // Check if first word matches command name, aliases, or description
+        return name.includes(firstWord) || 
+               description.toLowerCase().includes(firstWord) ||
+               aliases.some(alias => alias.toLowerCase().includes(firstWord))
       })
     }
 
@@ -569,27 +590,14 @@ export class CommandBar extends BaseComponent {
   executeCommand(command) {
     this.emit('command:execute', { command, query: this.state.query })
     
-    // Parse the query to extract command and arguments
+    // Parse the query to extract command and arguments  
     const query = this.state.query.trim()
-    let args = []
-    
-    // Check if query starts with a colon alias
-    const colonAlias = command.aliases?.find(alias => alias.startsWith(':') && query.startsWith(alias))
-    if (colonAlias) {
-      // Remove the alias from the query to get arguments
-      args = query.substring(colonAlias.length).trim().split(/\s+/).filter(Boolean)
-    } else if (query.toLowerCase().startsWith(command.name.toLowerCase())) {
-      // Remove command name from query to get arguments
-      args = query.substring(command.name.length).trim().split(/\s+/).filter(Boolean)
-    } else {
-      // Use the entire query as arguments
-      args = query.split(/\s+/).filter(Boolean)
-    }
     
     // Execute through command registry
     if (this.commandRegistry && this.commandRegistry.executeCommand) {
       try {
-        this.commandRegistry.executeCommand(command.name, args)
+        // CommandRegistry expects the full input string, not separate name and args
+        this.commandRegistry.executeCommand(query)
       } catch (error) {
         console.error('Command execution failed:', error)
         this.emit('command:error', { command, error })
