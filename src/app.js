@@ -520,6 +520,9 @@ class FantasyEditorApp {
         this.fileTree.setSelectedDocument(this.currentDocument.id)
       }
 
+      // Focus title field for new documents and select all text for easy editing
+      this.focusDocumentTitle(true)
+
       // Created new document with GUID
       return this.currentDocument
     } catch (error) {
@@ -533,7 +536,8 @@ class FantasyEditorApp {
     if (!doc) return
 
     this.currentDocument = doc
-    document.getElementById('doc-title').value = doc.title || 'Untitled Document'
+    const titleField = document.getElementById('doc-title')
+    titleField.value = doc.title || 'Untitled Document'
     this.editor.setContent(doc.content || '')
     this.updateWordCount()
     this.updateSyncStatus('Ready')
@@ -543,7 +547,6 @@ class FantasyEditorApp {
     this.editor.setReadonlyMode(isReadonly)
 
     // Update title field readonly state and add visual indicators
-    const titleField = document.getElementById('doc-title')
     const titleContainer = document.querySelector('.doc-title-container')
 
     if (titleField) {
@@ -576,6 +579,23 @@ class FantasyEditorApp {
     this.updateUI()
 
     // Document loaded successfully
+  }
+
+  /**
+   * Focus and select title field for new document creation
+   * @param {boolean} selectAll - Whether to select all text in title field
+   */
+  focusDocumentTitle(selectAll = false) {
+    // Use setTimeout to ensure DOM has updated
+    setTimeout(() => {
+      const titleField = document.getElementById('doc-title')
+      if (titleField && !titleField.readOnly) {
+        titleField.focus()
+        if (selectAll) {
+          titleField.select()
+        }
+      }
+    }, 100) // Small delay to ensure command bar has closed and DOM is ready
   }
 
   async saveDocument() {
