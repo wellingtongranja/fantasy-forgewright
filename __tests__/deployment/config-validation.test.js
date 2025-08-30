@@ -420,17 +420,11 @@ describe('🔒 Security & Dependencies Validation', () => {
       })
 
       // Check if test directories exist
-      const testDir = path.join(getRootPath(), 'tests')
-      const hasTestsDir = fs.existsSync(testDir)
       const hasTestsFolder = fs.existsSync(path.join(getRootPath(), '__tests__'))
 
       Object.entries(testScripts).forEach(([script, pattern]) => {
         if (pattern.includes('__tests__') && !hasTestsFolder) {
           throw new Error(`❌ ${script} pattern "${pattern}" but __tests__ folder not found`)
-        }
-        
-        if (pattern.includes('tests') && !hasTestsDir) {
-          throw new Error(`❌ ${script} pattern "${pattern}" but tests folder not found`)
         }
       })
     })

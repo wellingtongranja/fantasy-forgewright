@@ -3,7 +3,7 @@
  * Ensures Navigator functionality remains stable across future implementations
  */
 
-import { Navigator } from '../navigator.js'
+import { Navigator } from '../../src/components/navigator/navigator.js'
 
 // Mock DOM environment
 Object.defineProperty(global, 'HTMLElement', {
@@ -53,7 +53,7 @@ Object.defineProperty(global, 'document', {
 })
 
 // Mock tab components
-jest.mock('../tabs/documents-tab.js', () => ({
+jest.mock('../../src/components/navigator/tabs/documents-tab.js', () => ({
   DocumentsTab: jest.fn().mockImplementation(() => ({
     onActivate: jest.fn(),
     applyFilter: jest.fn(),
@@ -65,7 +65,7 @@ jest.mock('../tabs/documents-tab.js', () => ({
   }))
 }))
 
-jest.mock('../tabs/outline-tab.js', () => ({
+jest.mock('../../src/components/navigator/tabs/outline-tab.js', () => ({
   OutlineTab: jest.fn().mockImplementation(() => ({
     onActivate: jest.fn(),
     updateOutline: jest.fn(),
@@ -73,7 +73,7 @@ jest.mock('../tabs/outline-tab.js', () => ({
   }))
 }))
 
-jest.mock('../tabs/search-tab.js', () => ({
+jest.mock('../../src/components/navigator/tabs/search-tab.js', () => ({
   SearchTab: jest.fn().mockImplementation(() => ({
     onActivate: jest.fn(),
     performSearch: jest.fn(),

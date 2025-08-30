@@ -3,7 +3,7 @@
  * Tests document listing, filtering, and RECENT/PREVIOUS grouping functionality
  */
 
-import { DocumentsTab } from '../documents-tab.js'
+import { DocumentsTab } from '../../src/components/navigator/tabs/documents-tab.js'
 
 // Mock DOM environment
 Object.defineProperty(global, 'HTMLElement', {

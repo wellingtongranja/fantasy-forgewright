@@ -12,7 +12,7 @@
  * For commercial licensing options, please contact licensing@forgewright.io
  */
 
-import { StatusBarManager } from '../src/components/status-bar/status-bar-manager.js'
+import { StatusBarManager } from '../../src/components/status-bar/status-bar-manager.js'
 
 describe('StatusBarManager', () => {
   let statusBarManager

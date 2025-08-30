@@ -5,7 +5,7 @@ echo "🔍 Running pre-commit deployment validation..."
 
 # Run deployment configuration validation
 echo "📋 Validating deployment configuration..."
-npm test -- tests/deployment/config-validation.test.js --silent
+npm test -- __tests__/deployment/config-validation.test.js --silent
 if [ $? -ne 0 ]; then
   echo ""
   echo "❌ DEPLOYMENT VALIDATION FAILED"

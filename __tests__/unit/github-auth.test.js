@@ -1,7 +1,7 @@
 /**
  * Tests for GitHubAuth class
  */
-import { GitHubAuth } from '../github-auth.js'
+import { GitHubAuth } from '../../src/core/auth/github-auth.js'
 
 // Mock sessionStorage
 const mockSessionStorage = {

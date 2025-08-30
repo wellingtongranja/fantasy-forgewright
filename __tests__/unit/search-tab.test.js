@@ -3,7 +3,7 @@
  * Tests full-text search functionality, result rendering, and navigation
  */
 
-import { SearchTab } from '../search-tab.js'
+import { SearchTab } from '../../src/components/navigator/tabs/search-tab.js'
 
 // Mock DOM environment
 Object.defineProperty(global, 'HTMLElement', {

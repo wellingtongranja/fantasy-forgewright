@@ -1,8 +1,8 @@
 /**
  * Storage Manager Tests - Enhanced TDD approach for document persistence with GUID support
  */
-import { StorageManager } from '../storage-manager.js'
-import { guidManager } from '../../../utils/guid.js'
+import { StorageManager } from '../../src/core/storage/storage-manager.js'
+import { guidManager } from '../../src/utils/guid.js'
 
 describe('StorageManager', () => {
   let storageManager

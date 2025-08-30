@@ -1,7 +1,7 @@
 /**
  * Tests for GitHubStorage class - Repository Already Exists scenario
  */
-import { GitHubStorage } from '../github-storage.js'
+import { GitHubStorage } from '../../src/core/storage/github-storage.js'
 
 // Mock localStorage
 const mockLocalStorage = {

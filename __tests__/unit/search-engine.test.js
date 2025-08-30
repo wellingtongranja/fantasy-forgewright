@@ -1,7 +1,7 @@
 /**
  * Search Engine Tests - TDD approach for full-text search
  */
-import { SearchEngine } from '../search-engine.js'
+import { SearchEngine } from '../../src/core/search/search-engine.js'
 
 // Mock StorageManager
 const mockStorageManager = {

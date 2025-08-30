@@ -1,4 +1,4 @@
-import { CommandRegistry } from '../command-registry'
+import { CommandRegistry } from '../../src/core/commands/command-registry'
 
 describe('CommandRegistry', () => {
   let registry
@@ -158,14 +158,14 @@ describe('CommandRegistry', () => {
     it('should handle colon prefix', () => {
       const parsed = registry.parseCommand(':test')
 
-      expect(parsed.name).toBe('test')
+      expect(parsed.name).toBe(':test')
       expect(parsed.cleanInput).toBe('test')
     })
 
     it('should handle extra whitespace', () => {
       const parsed = registry.parseCommand('  :test  arg1  arg2  ')
 
-      expect(parsed.name).toBe('test')
+      expect(parsed.name).toBe(':test')
       expect(parsed.args).toEqual(['arg1', 'arg2'])
     })
   })

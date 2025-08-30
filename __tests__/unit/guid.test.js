@@ -3,7 +3,7 @@
  * Comprehensive test suite for GUID generation, validation, and document management
  */
 
-import { GuidManager, guidManager } from '../guid.js'
+import { GuidManager, guidManager } from '../../src/utils/guid.js'
 
 describe('GuidManager', () => {
   let manager
