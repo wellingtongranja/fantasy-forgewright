@@ -1,4 +1,4 @@
-import { ThemeManager } from '../theme-manager'
+import { ThemeManager } from '../../src/core/themes/theme-manager'
 
 describe('ThemeManager', () => {
   let themeManager
@@ -23,7 +23,12 @@ describe('ThemeManager', () => {
       }))
     }
 
-    global.localStorage = mockLocalStorage
+    // Mock localStorage properly for jsdom
+    Object.defineProperty(window, 'localStorage', {
+      value: mockLocalStorage,
+      writable: true
+    })
+    
     global.document = mockDocument
 
     // Note: ThemeManager is created individually in each test for proper mock setup

@@ -1,7 +1,7 @@
 /**
  * Tests for GitHubErrorHandler class
  */
-import { GitHubErrorHandler } from '../github-error-handler.js'
+import { GitHubErrorHandler } from '../../src/core/auth/github-error-handler.js'
 
 describe('GitHubErrorHandler', () => {
   let errorHandler

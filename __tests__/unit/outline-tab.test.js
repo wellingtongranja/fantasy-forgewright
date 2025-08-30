@@ -3,10 +3,10 @@
  * Tests markdown parsing, outline generation, and navigation functionality
  */
 
-import { OutlineTab } from '../outline-tab.js'
+import { OutlineTab } from '../../src/components/navigator/tabs/outline-tab.js'
 
 // Mock OutlineParser
-jest.mock('../../utils/outline-parser.js', () => ({
+jest.mock('../../src/components/navigator/utils/outline-parser.js', () => ({
   OutlineParser: {
     parse: jest.fn(),
     flatten: jest.fn(),
@@ -16,7 +16,7 @@ jest.mock('../../utils/outline-parser.js', () => ({
   }
 }))
 
-import { OutlineParser } from '../../utils/outline-parser.js'
+import { OutlineParser } from '../../src/components/navigator/utils/outline-parser.js'
 
 // Mock DOM environment
 Object.defineProperty(global, 'HTMLElement', {
