@@ -10,8 +10,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -904,16 +904,67 @@
   }
 }
 
+/* Theme-specific Adjustments */
+
+/* Light Theme */
+[data-theme="light"] .settings-dialog-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
 /* Dark Theme Adjustments */
+[data-theme="dark"] .settings-dialog-overlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
 [data-theme="dark"] .settings-dialog {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  border-color: #374151;
 }
 
 [data-theme="dark"] .settings-search:focus {
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
 }
 
+[data-theme="dark"] .settings-section {
+  background: var(--bg-color);
+  border-color: #374151;
+}
+
+[data-theme="dark"] .settings-field select {
+  background: var(--bg-secondary);
+  border-color: #374151;
+}
+
+[data-theme="dark"] .settings-checkbox-label {
+  background: var(--bg-secondary);
+  border-color: #374151;
+}
+
+[data-theme="dark"] .width-preset {
+  background: var(--bg-secondary);
+  border-color: #374151;
+}
+
+[data-theme="dark"] .settings-zoom-controls {
+  background: var(--bg-secondary);
+  border-color: #374151;
+}
+
+[data-theme="dark"] .zoom-display {
+  background: linear-gradient(135deg, var(--bg-color), var(--bg-tertiary));
+  border-color: #374151;
+}
+
 /* Fantasy Theme Adjustments */
+[data-theme="fantasy"] .settings-dialog-overlay {
+  background: rgba(139, 69, 19, 0.85);
+}
+
+[data-theme="fantasy"] .settings-dialog {
+  border-color: #d4af37;
+  box-shadow: 0 20px 40px rgba(139, 69, 19, 0.4);
+}
+
 [data-theme="fantasy"] .settings-tab.active {
   background: linear-gradient(135deg, #d4af37, #b8860b);
 }
@@ -925,6 +976,20 @@
 
 [data-theme="fantasy"] .settings-btn-primary:hover {
   background: linear-gradient(135deg, #e6c547, #cd9b1b);
+}
+
+[data-theme="fantasy"] .settings-section h4::before {
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+}
+
+[data-theme="fantasy"] .settings-section h4 {
+  border-bottom-color: #d4af37;
+}
+
+[data-theme="fantasy"] .width-preset.active {
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  border-color: #d4af37;
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
 }
 
 /* Focus Management */
