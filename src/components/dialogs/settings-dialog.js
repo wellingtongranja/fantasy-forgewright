@@ -11,6 +11,14 @@ export class SettingsDialog {
     this.currentTab = 'editor'
     this.searchQuery = ''
     this.filteredTabs = []
+    this.hasChanges = false
+    this.onClose = null
+    this.onSave = null
+    this.settings = null
+    
+    // Listen for theme changes to update dialog appearance
+    this.handleThemeChange = this.handleThemeChange.bind(this)
+    document.addEventListener('themechange', this.handleThemeChange)
     
     // Tab configuration
     this.tabs = [
@@ -715,6 +723,17 @@ export class SettingsDialog {
     if (zoomSlider) {
       zoomSlider.value = 1.0
       this.updateSetting('editor.zoom', 1.0)
+    }
+  }
+
+  /**
+   * Handle theme change events to update dialog appearance
+   */
+  handleThemeChange(event) {
+    if (this.isOpen && this.element) {
+      // Update theme-related UI elements if needed
+      // The CSS will automatically update based on data-theme attribute
+      this.refreshTabContent()
     }
   }
 
