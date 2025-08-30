@@ -3,6 +3,8 @@
  * Integrates with existing EditorManager, StorageManager, and ThemeManager
  */
 import { registerGitCommands } from './git-commands.js'
+import { SettingsDialog } from '../../components/dialogs/settings-dialog.js'
+import { SettingsManager } from '../settings/settings-manager.js'
 
 export function registerCoreCommands(registry, app) {
   const commands = [
@@ -1514,6 +1516,146 @@ export function registerCoreCommands(registry, app) {
             'Created with ❤️ for fantasy writers'
           ]
         }
+      }
+    },
+
+    // Settings Commands
+    {
+      name: 'settings',
+      description: 'open settings dialog',
+      category: 'system',
+      icon: '⚙️',
+      aliases: [':se'],
+      parameters: [
+        {
+          name: 'tab',
+          required: false,
+          type: 'string',
+          description: 'Initial tab (editor, themes, codemirror, sync, privacy)'
+        }
+      ],
+      handler: async (args) => {
+        // Initialize settings manager if not exists
+        if (!app.settingsManager) {
+          app.settingsManager = new SettingsManager()
+        }
+        
+        // Initialize settings dialog if not exists
+        if (!app.settingsDialog) {
+          app.settingsDialog = new SettingsDialog(app.settingsManager)
+        }
+
+        const tab = args[0] || 'editor'
+        const validTabs = ['editor', 'themes', 'codemirror', 'sync', 'privacy']
+        
+        if (!validTabs.includes(tab)) {
+          return {
+            success: false,
+            message: `Invalid tab: ${tab}. Available tabs: ${validTabs.join(', ')}`
+          }
+        }
+
+        app.settingsDialog.show(tab)
+        
+        return {
+          success: true,
+          message: `Settings dialog opened (${tab} tab)`
+        }
+      }
+    },
+
+    {
+      name: 'settings editor',
+      description: 'open editor settings tab',
+      category: 'system',
+      icon: '📝',
+      aliases: [':se editor'],
+      handler: async () => {
+        if (!app.settingsManager) {
+          app.settingsManager = new SettingsManager()
+        }
+        if (!app.settingsDialog) {
+          app.settingsDialog = new SettingsDialog(app.settingsManager)
+        }
+
+        app.settingsDialog.show('editor')
+        return { success: true, message: 'Editor settings opened' }
+      }
+    },
+
+    {
+      name: 'settings themes',
+      description: 'open theme customization tab',
+      category: 'system',
+      icon: '🎨',
+      aliases: [':se themes'],
+      handler: async () => {
+        if (!app.settingsManager) {
+          app.settingsManager = new SettingsManager()
+        }
+        if (!app.settingsDialog) {
+          app.settingsDialog = new SettingsDialog(app.settingsManager)
+        }
+
+        app.settingsDialog.show('themes')
+        return { success: true, message: 'Theme customization opened' }
+      }
+    },
+
+    {
+      name: 'settings codemirror',
+      description: 'open CodeMirror settings tab',
+      category: 'system',
+      icon: '🖥️',
+      aliases: [':se codemirror'],
+      handler: async () => {
+        if (!app.settingsManager) {
+          app.settingsManager = new SettingsManager()
+        }
+        if (!app.settingsDialog) {
+          app.settingsDialog = new SettingsDialog(app.settingsManager)
+        }
+
+        app.settingsDialog.show('codemirror')
+        return { success: true, message: 'CodeMirror settings opened' }
+      }
+    },
+
+    {
+      name: 'settings sync',
+      description: 'open sync provider settings tab',
+      category: 'system',
+      icon: '🔄',
+      aliases: [':se sync'],
+      handler: async () => {
+        if (!app.settingsManager) {
+          app.settingsManager = new SettingsManager()
+        }
+        if (!app.settingsDialog) {
+          app.settingsDialog = new SettingsDialog(app.settingsManager)
+        }
+
+        app.settingsDialog.show('sync')
+        return { success: true, message: 'Sync settings opened' }
+      }
+    },
+
+    {
+      name: 'settings privacy',
+      description: 'open privacy and about settings tab',
+      category: 'system',
+      icon: '🔒',
+      aliases: [':se privacy'],
+      handler: async () => {
+        if (!app.settingsManager) {
+          app.settingsManager = new SettingsManager()
+        }
+        if (!app.settingsDialog) {
+          app.settingsDialog = new SettingsDialog(app.settingsManager)
+        }
+
+        app.settingsDialog.show('privacy')
+        return { success: true, message: 'Privacy settings opened' }
       }
     }
   ]
