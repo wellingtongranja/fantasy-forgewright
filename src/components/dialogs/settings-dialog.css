@@ -1,0 +1,492 @@
+/**
+ * Settings Dialog Styles
+ * Theme-adaptive modal dialog with tabbed interface
+ */
+
+/* Dialog Overlay */
+.settings-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Main Dialog Container */
+.settings-dialog {
+  background: var(--bg-color);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-color);
+  animation: settingsDialogFadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes settingsDialogFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header */
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.settings-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-search-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Search Input */
+.settings-search-container {
+  position: relative;
+}
+
+.settings-search {
+  width: 280px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.settings-search:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb, 99, 102, 241), 0.1);
+}
+
+.settings-search::placeholder {
+  color: var(--text-muted);
+}
+
+/* Action Buttons */
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.settings-btn-primary {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.settings-btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.settings-btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.settings-btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-hover);
+}
+
+.settings-close-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.settings-close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Content Area */
+.settings-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Sidebar Navigation */
+.settings-sidebar {
+  width: 240px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  padding: 24px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 16px;
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: inherit;
+}
+
+.settings-tab:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.settings-tab.active {
+  background: var(--accent-color);
+  color: white;
+}
+
+.settings-tab:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb, 99, 102, 241), 0.2);
+}
+
+/* No Results State */
+.settings-no-results {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.settings-no-results p {
+  margin: 0 0 16px 0;
+  font-size: 0.9rem;
+}
+
+.settings-clear-search {
+  padding: 8px 16px;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.settings-clear-search:hover {
+  background: var(--accent-hover);
+}
+
+/* Main Content Area */
+.settings-main {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* Tab Panels */
+.settings-panel {
+  max-width: 800px;
+}
+
+.settings-panel-header h3 {
+  margin: 0 0 24px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Placeholder Content */
+.settings-placeholder {
+  padding: 32px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 2px dashed var(--border-color);
+  text-align: center;
+}
+
+.settings-placeholder p {
+  margin: 0 0 16px 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.settings-placeholder strong {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.settings-placeholder-preview {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Form Elements (Placeholder Preview) */
+.settings-field {
+  text-align: left;
+}
+
+.settings-field label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.settings-field select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.settings-field input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Toast Notifications */
+.settings-toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--accent-color);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 10001;
+  animation: settingsToastSlideIn 0.3s ease;
+}
+
+@keyframes settingsToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Error States */
+.settings-error {
+  padding: 24px;
+  color: var(--error-color);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-dialog-overlay {
+    padding: 12px;
+  }
+  
+  .settings-dialog {
+    max-height: 95vh;
+  }
+  
+  .settings-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .settings-search-actions {
+    justify-content: space-between;
+  }
+  
+  .settings-search {
+    width: 200px;
+  }
+  
+  .settings-content {
+    flex-direction: column;
+  }
+  
+  .settings-sidebar {
+    width: 100%;
+    padding: 16px 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .settings-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0 16px;
+    gap: 8px;
+  }
+  
+  .settings-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  .settings-main {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-search {
+    width: 160px;
+  }
+  
+  .settings-actions {
+    gap: 8px;
+  }
+  
+  .settings-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+  
+  .settings-main {
+    padding: 16px;
+  }
+  
+  .settings-placeholder {
+    padding: 20px;
+  }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .settings-dialog {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .settings-search:focus {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+/* Fantasy Theme Adjustments */
+[data-theme="fantasy"] .settings-tab.active {
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+}
+
+[data-theme="fantasy"] .settings-btn-primary {
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  border-color: #d4af37;
+}
+
+[data-theme="fantasy"] .settings-btn-primary:hover {
+  background: linear-gradient(135deg, #e6c547, #cd9b1b);
+}
+
+/* Focus Management */
+.dialog-open {
+  overflow: hidden;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .settings-tab.active {
+    outline: 2px solid currentColor;
+  }
+  
+  .settings-btn-primary {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .settings-dialog,
+  .settings-toast,
+  .settings-tab,
+  .settings-btn {
+    animation: none;
+    transition: none;
+  }
+}
