@@ -157,18 +157,35 @@ export class CommandRegistry {
 
     // For colon shortcuts, prioritize exact alias matches
     if (isColonShortcut) {
+      let hasExactMatch = false
+      
+      console.log('Searching for colon shortcut:', searchQuery)
+      
+      // First pass: check for exact matches
       for (const command of this.commands.values()) {
         if (!command.condition()) continue
-
+        
         // Check if any alias matches exactly (with colon)
         if (command.aliases && command.aliases.includes(searchQuery)) {
+          console.log('Found exact match:', command.name, command.aliases)
           results.push({ ...command, matchScore: 2000 }) // Highest priority for exact colon match
-        } else {
+          hasExactMatch = true
+        }
+      }
+      
+      console.log('Has exact match:', hasExactMatch)
+      
+      // Second pass: if no exact matches, look for partial matches
+      if (!hasExactMatch) {
+        for (const command of this.commands.values()) {
+          if (!command.condition()) continue
+          
           // For partial matches, check if any alias starts with the query
           const partialMatch = command.aliases && command.aliases.some(alias => 
             alias.toLowerCase().startsWith(searchQuery)
           )
           if (partialMatch) {
+            console.log('Found partial match:', command.name, command.aliases)
             results.push({ ...command, matchScore: 1500 })
           }
         }
