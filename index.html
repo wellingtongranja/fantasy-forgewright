@@ -93,15 +93,15 @@
         </div>
       </div>
       
-      <!-- Right Section: Version and Ready State -->
+      <!-- Right Section: App Status (Sync first, then Version) -->
       <div class="footer-right-section">
-        <span id="app-version" class="status-item">v0.0.1</span>
         <div class="sync-status-container">
-          <div class="github-sync-indicator" id="github-sync-indicator" style="display: none;">
-            <span class="sync-status-icon" id="sync-status-icon"></span>
-          </div>
-          <span id="sync-status">Ready</span>
+          <span id="sync-status" class="status-item sync-status">
+            <span class="sync-status-icon">🔴</span>
+            <span class="sync-status-text">local-only</span>
+          </span>
         </div>
+        <span id="app-version" class="status-item app-version">v0.0.1</span>
       </div>
     </footer>
   </div>

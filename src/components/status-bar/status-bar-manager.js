@@ -42,8 +42,8 @@ export class StatusBarManager {
       repoName: document.getElementById('repo-name'),
       appVersion: document.getElementById('app-version'),
       syncStatus: document.getElementById('sync-status'),
-      githubSyncIndicator: document.getElementById('github-sync-indicator'),
-      syncStatusIcon: document.getElementById('sync-status-icon')
+      syncStatusIcon: document.querySelector('#sync-status .sync-status-icon'),
+      syncStatusText: document.querySelector('#sync-status .sync-status-text')
     }
   }
 
@@ -136,21 +136,36 @@ export class StatusBarManager {
    */
   updateSyncStatus(status, icon = null) {
     if (this.elements.syncStatus) {
-      this.elements.syncStatus.textContent = status
-    }
-    
-    if (this.elements.syncStatusIcon && icon) {
-      this.elements.syncStatusIcon.textContent = icon
+      // Remove all sync status classes
+      this.elements.syncStatus.classList.remove('synced', 'out-of-sync', 'local-only')
+      
+      // Update the text content
+      if (this.elements.syncStatusText) {
+        this.elements.syncStatusText.textContent = status
+      }
+      
+      // Update the icon if provided
+      if (icon && this.elements.syncStatusIcon) {
+        this.elements.syncStatusIcon.textContent = icon
+      }
+      
+      // Add appropriate class based on status
+      if (status.toLowerCase().includes('sync') || (icon && icon.includes('🟢'))) {
+        this.elements.syncStatus.classList.add('synced')
+      } else if (status.toLowerCase().includes('out') || (icon && icon.includes('🟡'))) {
+        this.elements.syncStatus.classList.add('out-of-sync')
+      } else if (status.toLowerCase().includes('local') || (icon && icon.includes('🔴'))) {
+        this.elements.syncStatus.classList.add('local-only')
+      }
     }
   }
 
   /**
-   * Update GitHub sync indicator
+   * Update GitHub sync indicator (deprecated - now unified with sync status)
    */
   updateGitHubSyncIndicator(isVisible = false) {
-    if (this.elements.githubSyncIndicator) {
-      this.elements.githubSyncIndicator.style.display = isVisible ? 'flex' : 'none'
-    }
+    // This method is deprecated as we now use unified sync status display
+    // Kept for backwards compatibility but does nothing
   }
 
   /**
