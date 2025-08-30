@@ -803,7 +803,7 @@ class FantasyEditorApp {
 
         if (lastSynced && lastModified && lastSynced >= lastModified) {
           status = 'synced'
-          icon = '🔴'
+          icon = '🟢'
         } else {
           status = 'out-of-sync'
           icon = '🟡'
