@@ -62,3 +62,4 @@ Thumbs.db
 # PWA
 sw.js
 workbox-*.js
+workers/.wrangler/
