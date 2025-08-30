@@ -1,15 +1,32 @@
 # GitHub Integration Guide
 
-Fantasy Editor's GitHub integration enables seamless backup and synchronization of your documents with GitHub repositories. This guide covers setup, usage, and troubleshooting.
+Fantasy Editor provides seamless GitHub integration through a secure OAuth system that supports GitHub and other Git providers. This guide covers setup, authentication, synchronization, and troubleshooting.
 
 ## Overview
 
 The GitHub integration provides:
-- **OAuth Authentication** - Secure login with GitHub
-- **Document Backup** - Automatic document sync to GitHub repositories
+- **OAuth Authentication** - Secure login via Cloudflare Worker proxy
+- **Document Synchronization** - Automatic backup and sync with GitHub repositories
 - **Conflict Resolution** - Smart handling of concurrent edits
 - **Offline-First** - Local storage with optional cloud sync
-- **Security** - Tokens stored securely, never logged or committed
+- **Multi-Provider Support** - GitHub, GitLab, Bitbucket, and generic Git
+
+## Architecture
+
+### OAuth System Components
+
+1. **AuthManager** (`src/core/auth/auth-manager.js`)
+   - Provider-agnostic authentication manager
+   - Handles OAuth flow, token management, and user sessions
+
+2. **OAuth Worker** (`workers/oauth-proxy.js`)
+   - Cloudflare Worker acting as secure OAuth proxy
+   - Keeps client secrets server-side for security
+   - Deployed at: `https://fantasy-oauth-proxy.wellington-granja.workers.dev`
+
+3. **Provider Support**
+   - GitHub (primary)
+   - GitLab, Bitbucket, Generic Git (future)
 
 ## Quick Start
 
@@ -17,118 +34,97 @@ The GitHub integration provides:
 
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. Click "New OAuth App"
-3. Fill in the details:
-   - **Application name**: Fantasy Editor (or your preferred name)
-   - **Homepage URL**: `https://your-domain.com` (or `http://localhost:5173` for development)
-   - **Authorization callback URL**: `https://your-domain.com/auth/callback`
+3. Configure:
+   - **Application name**: Fantasy Editor
+   - **Homepage URL**: `https://forgewright.io`
+   - **Authorization callback URL**: `https://forgewright.io/`
 4. Save and note your **Client ID**
 
-### 2. Configure Fantasy Editor
+### 2. Environment Configuration
 
-Add your GitHub OAuth Client ID to the `.env` file:
-
+**Production (.env):**
 ```bash
-# .env file
-VITE_GITHUB_CLIENT_ID=your-github-oauth-client-id
+VITE_OAUTH_WORKER_URL=https://fantasy-oauth-proxy.wellington-granja.workers.dev
+VITE_GITHUB_CLIENT_ID=your_github_client_id
 ```
 
-Fantasy Editor will automatically initialize GitHub integration using the environment variable. No manual configuration needed!
+**Development (.env):**
+```bash
+VITE_OAUTH_WORKER_URL=http://localhost:8788
+VITE_GITHUB_CLIENT_ID=your_dev_client_id
+```
 
-### 3. Connect to GitHub
+### 3. Connect and Configure
 
-Use the command palette (`Ctrl+Space`) to connect:
+Use the command palette (`Ctrl+Space`):
 
 ```bash
-:ghl                    # Log in to GitHub
-:ghc owner repo         # Configure repository (e.g., :ghc johndoe my-docs)
-:ghs                    # Sync documents
+:glo                    # Log in to GitHub
+:gcf owner repo         # Configure repository (e.g., :gcf johndoe my-docs)
+:gsy                    # Sync documents
 ```
 
 ## Commands Reference
 
-All GitHub commands use the `:gh` prefix and follow CLAUDE.md guidelines:
+All GitHub commands use the `:g` prefix:
 
 | Command | Alias | Description | Example |
 |---------|-------|-------------|---------|
-| `github status` | `:gh` | Show connection status | `:gh` |
-| `github login` | `:ghl` | Log in to GitHub | `:ghl` |
-| `github logout` | `:gho` | Log out from GitHub | `:gho` |
-| `github config` | `:ghc` | Configure repository | `:ghc owner repo [branch]` |
-| `github sync` | `:ghs` | Sync all documents | `:ghs` |
-| `github push` | `:ghp` | Push current document | `:ghp` |
-| `github pull` | `:ghpl` | Pull documents from GitHub | `:ghpl [filename]` |
-| `github import` | `:ghi` | Import from GitHub URL | `:ghi https://github.com/...` |
-| `github list` | `:ghls` | List GitHub documents | `:ghls` |
-| `github init` | `:ghini` | Initialize repository | `:ghini` |
+| `github status` | `:gst` | Show connection status | `:gst` |
+| `github login` | `:glo` | Log in to GitHub | `:glo` |
+| `github logout` | `:gou` | Log out from GitHub | `:gou` |
+| `github config` | `:gcf` | Configure repository | `:gcf owner repo` |
+| `github sync` | `:gsy` | Sync all documents | `:gsy` |
+| `github push` | `:gpu` | Push current document | `:gpu` |
+| `github pull` | `:gpl` | Pull specific document | `:gpl filename` |
+| `github import` | `:gim` | Import from GitHub URL | `:gim https://github.com/...` |
+| `github list` | `:gls` | List GitHub documents | `:gls` |
+| `github init` | `:gin` | Initialize repository | `:gin` |
 
-## Setup Guide
+## Security & Authentication
 
-### Development Environment
+### OAuth Flow (PKCE)
 
-For local development, use these settings:
+1. **Authorization Request**: Redirect to GitHub with code challenge
+2. **User Authorization**: User grants permission on GitHub  
+3. **Authorization Code**: GitHub redirects back with code
+4. **Token Exchange**: Worker exchanges code for access token securely
 
-**OAuth App Configuration:**
-```
-Application name: Fantasy Editor (Dev)
-Homepage URL: http://localhost:3000
-Authorization callback URL: http://localhost:3000/auth/callback
-```
+### Security Features
 
-**Environment Configuration:**
-```bash
-# .env file
-VITE_GITHUB_CLIENT_ID=your-dev-client-id
-```
+- **Client Secrets**: Stored only on Cloudflare Worker (never exposed to client)
+- **Token Storage**: sessionStorage only (single browser session)
+- **Origin Validation**: Strict origin checking
+- **CORS Security**: Properly configured cross-origin requests
 
-### Production Environment
+### Permissions
 
-For production deployment:
+The OAuth app requests:
+- `repo`: Access to repositories for document storage
+- `user`: Basic user information for display
 
-**OAuth App Configuration:**
-```
-Application name: Fantasy Editor
-Homepage URL: https://forgewright.io
-Authorization callback URL: https://forgewright.io/auth/callback
-```
+## Document Synchronization
 
-**Environment Configuration:**
-```bash
-# .env file
-VITE_GITHUB_CLIENT_ID=your-prod-client-id
-```
+### Storage Architecture
 
-### Repository Setup
+- **Primary**: IndexedDB (local, offline-first)
+- **Secondary**: GitHub (backup/sync)
+- **Conflict Resolution**: User-prompted with visual diff
 
-1. Create a repository for your documents:
-   ```bash
-   # On GitHub, create a new repository
-   # e.g., https://github.com/yourusername/my-documents
-   ```
+### Document Format
 
-2. Configure Fantasy Editor to use the repository:
-   ```bash
-   :ghc yourusername my-documents
-   ```
-
-3. Initialize the repository structure:
-   ```bash
-   :ghini
-   ```
-
-## Document Format
-
-Documents are stored in GitHub with YAML front matter:
+Documents are stored with YAML front matter:
 
 ```markdown
 ---
-id: "doc-guid-123"
+id: "doc_1648125632_a1b2c3d4"
 title: "My Epic Tale"
 created: "2023-01-01T00:00:00.000Z"
-updated: "2023-01-01T12:00:00.000Z"
+updated: "2023-01-01T12:00:00.000Z" 
 tags:
   - fantasy
   - adventure
-checksum: "abc123def456"
+checksum: "sha256:abc123def456"
 ---
 
 # My Epic Tale
@@ -138,240 +134,89 @@ Once upon a time in a land far away...
 
 ### File Naming Convention
 
-Files are named using the format: `{document-id}-{sanitized-title}.md`
-
-Example: `doc-guid-123-my-epic-tale.md`
-
-## Sync Behavior
-
-### Offline-First Architecture
-
-- **Local Storage**: IndexedDB (primary)
-- **Cloud Storage**: GitHub (backup/sync)
-- **Conflict Resolution**: User-prompted with diff view
-
-### Sync Scenarios
-
-1. **New Document**: Created locally, pushed to GitHub on next sync
-2. **Updated Document**: Changes detected by timestamp and checksum
-3. **Conflict**: Both local and remote versions modified simultaneously
-
-### Automatic Sync
-
-Enable automatic synchronization:
-
-```javascript
-syncManager.init({
-  autoSync: true,
-  autoSyncInterval: 5 * 60 * 1000  // 5 minutes
-})
-```
+Files use the format: `{document-id}-{sanitized-title}.md`
+Example: `doc_1648125632_a1b2c3d4-my-epic-tale.md`
 
 ## Conflict Resolution
 
 When conflicts occur, Fantasy Editor provides a visual diff interface:
 
 ### Conflict Types
-
 - **Content Conflict**: Different content checksums
-- **Title Conflict**: Different document titles  
+- **Title Conflict**: Different document titles
 - **Timestamp Conflict**: Modified after last sync
 
 ### Resolution Options
-
 1. **Use Local** - Keep your changes, overwrite GitHub
 2. **Use Remote** - Keep GitHub changes, overwrite local
 3. **Merge Both** - Combine versions with conflict markers
 
-### Example Conflict Resolution
-
-```bash
-# View conflicts
-:gh                     # Shows conflict count in status
-
-# Conflicts appear in UI automatically
-# Choose resolution:
-# - Click "Use Local" to keep your version
-# - Click "Use Remote" to use GitHub version  
-# - Click "Merge Both" to combine versions
-```
-
-## Security
-
-### Authentication Flow
-
-Fantasy Editor uses OAuth 2.0 with PKCE (Proof Key for Code Exchange):
-
-1. **Authorization Request**: Redirect to GitHub with code challenge
-2. **User Authorization**: User grants permission on GitHub
-3. **Authorization Code**: GitHub redirects back with code
-4. **Token Exchange**: Exchange code for access token using PKCE verifier
-
-### Token Storage
-
-- **Storage**: Browser sessionStorage (memory-only)
-- **Lifetime**: Single browser session
-- **Security**: Never logged, committed, or persisted to disk
-
-### Permissions
-
-GitHub OAuth app requests these scopes:
-- `repo`: Access to repositories for document storage
-- `user`: Basic user information for display
-
 ## Rate Limiting
 
-GitHub API has rate limits that Fantasy Editor handles automatically:
+GitHub API limits are handled automatically:
 
 - **Authenticated**: 5,000 requests per hour
 - **Rate Limit Headers**: Tracked and displayed
 - **Retry Logic**: Automatic retry with exponential backoff
 - **User Feedback**: Clear error messages with reset time
 
-### Rate Limit Commands
-
-```bash
-:gh                     # Shows remaining rate limit in status
-```
+Check rate limit status with `:gst`
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### "Not authenticated" Error
-
-**Cause**: GitHub token expired or not set
-**Solution**: 
+**"Not authenticated" Error**
 ```bash
-:gho                    # Log out
-:ghl                    # Log back in
+:gou        # Log out
+:glo        # Log back in
 ```
 
-#### "Repository not found" Error
-
-**Cause**: Repository doesn't exist or no permission
-**Solution**:
+**"Repository not found" Error**
 1. Verify repository exists and is accessible
 2. Check repository name and owner
-3. Ensure GitHub user has access to repository
-
+3. Ensure GitHub user has repository access
 ```bash
-:ghc owner repo         # Reconfigure with correct details
+:gcf owner repo         # Reconfigure with correct details
 ```
 
-#### "Rate limit exceeded" Error
+**Rate Limit Exceeded**
+Wait for rate limit reset (shown in error message)
 
-**Cause**: Too many API requests
-**Solution**: Wait for rate limit reset (shown in error message)
-
-#### Sync Conflicts
-
-**Cause**: Document modified both locally and on GitHub
-**Solution**: Use conflict resolution dialog to choose resolution strategy
+**Sync Conflicts**
+Use conflict resolution dialog to choose resolution strategy
 
 ### Debug Mode
 
-Enable debug logging for troubleshooting:
-
+Enable detailed logging:
 ```javascript
-// Enable debug mode
 localStorage.setItem('fantasy_editor_debug', 'github')
-
-// View console for detailed logs
-console.log('GitHub operations logged here')
+// Check browser console for detailed logs
 ```
 
-### Network Issues
+## Worker Configuration
 
-For network connectivity problems:
+### Environment Variables (Cloudflare Dashboard)
 
-1. **Check Internet Connection**: Ensure stable connection
-2. **Verify GitHub Status**: Check [GitHub Status](https://githubstatus.com)
-3. **Proxy/Firewall**: Ensure `api.github.com` is accessible
-4. **CORS Issues**: Verify OAuth app domain matches current domain
+**Required:**
+- `GITHUB_CLIENT_ID` - GitHub OAuth app client ID
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth app secret (encrypted)
+- `CORS_ORIGIN` - `https://fantasy.forgewright.io`
+- `OAUTH_REDIRECT_URI` - `https://fantasy.forgewright.io/`
 
-## API Reference
+### Development Setup
 
-### GitHubAuth Class
-
-```javascript
-const auth = new GitHubAuth()
-
-// Initialize with OAuth client ID
-auth.init({ clientId: 'your-client-id' })
-
-// Check authentication status
-auth.isAuthenticated()          // Returns boolean
-auth.getCurrentUser()           // Returns user object or null
-auth.getAccessToken()           // Returns token string or null
-
-// Authentication flow
-await auth.login()              // Redirects to GitHub
-await auth.handleCallback(url)  // Handles OAuth callback
-auth.logout()                   // Clears authentication
-
-// API requests
-await auth.makeAuthenticatedRequest('/user')
-```
-
-### GitHubStorage Class
-
-```javascript
-const storage = new GitHubStorage(githubAuth)
-
-// Configure repository
-storage.init({
-  owner: 'username',
-  repo: 'repository',
-  branch: 'main',              // Optional, defaults to 'main'
-  documentsPath: 'documents'   // Optional, defaults to 'documents'
-})
-
-// Document operations
-await storage.saveDocument(document)
-await storage.loadDocument(filepath)
-await storage.listDocuments()
-await storage.deleteDocument(filepath, sha, title)
-
-// Repository operations
-await storage.verifyRepository()
-await storage.ensureDocumentsDirectory()
-```
-
-### SyncManager Class
-
-```javascript
-const syncManager = new SyncManager(storageManager, githubStorage, githubAuth)
-
-// Initialize sync manager
-syncManager.init({
-  autoSync: false,
-  autoSyncInterval: 300000     // 5 minutes
-})
-
-// Sync operations
-const results = await syncManager.syncWithGitHub()
-await syncManager.resolveConflict(conflictId, 'local')
-
-// Status and queue management
-const status = syncManager.getSyncStatus()
-const conflicts = syncManager.getPendingConflicts()
-syncManager.queueForSync(document)
-```
+1. Create development GitHub OAuth app (callback: `http://localhost:3000/`)
+2. Configure `.dev.vars` in workers directory
+3. Run Worker locally: `npx wrangler dev --env dev`
 
 ## Best Practices
 
 ### Repository Structure
-
-Organize your documents repository:
-
 ```
 my-documents/
 ├── documents/          # Fantasy Editor documents
-│   ├── story-1.md
-│   ├── story-2.md
-│   └── README.md
-├── assets/            # Images, references
+├── assets/            # Images, references  
 ├── backups/           # Manual backups
 └── README.md          # Repository documentation
 ```
@@ -380,7 +225,7 @@ my-documents/
 
 1. **Regular Sync**: Sync documents regularly to prevent conflicts
 2. **Meaningful Commits**: Fantasy Editor generates descriptive commit messages
-3. **Branch Strategy**: Use main branch for documents, feature branches for experiments
+3. **Branch Strategy**: Use main branch for documents
 4. **Backup Strategy**: GitHub serves as backup; maintain local copies
 
 ### Performance Tips
@@ -394,71 +239,17 @@ my-documents/
 
 ### From Local-Only
 
-If you have existing documents in Fantasy Editor:
-
 1. **Setup GitHub**: Create OAuth app and repository
-2. **Configure**: Use `:ghc owner repo` to set repository
-3. **Initial Sync**: Use `:ghs` to upload all documents
-4. **Verify**: Use `:ghls` to confirm documents in GitHub
+2. **Configure**: Use `:gcf owner repo` to set repository  
+3. **Initial Sync**: Use `:gsy` to upload all documents
+4. **Verify**: Use `:gls` to confirm documents in GitHub
 
 ### From Other Platforms
 
-To import documents from other platforms:
-
 1. **Export Documents**: Export to markdown format
-2. **Import to Fantasy Editor**: Use `:ghi url` for individual files
+2. **Import to Fantasy Editor**: Use `:gim url` for individual files
 3. **Bulk Import**: Copy files to GitHub repository documents folder
-4. **Sync**: Use `:ghs` to pull imported documents
-
-## Advanced Configuration
-
-### Custom OAuth Configuration
-
-For advanced deployments:
-
-```javascript
-githubAuth.init({
-  clientId: 'your-client-id',
-  redirectUri: 'https://custom-domain.com/auth/callback',
-  scope: 'repo user',          // Custom scopes
-})
-```
-
-### Custom Sync Settings
-
-```javascript
-syncManager.init({
-  autoSync: true,
-  autoSyncInterval: 600000,    // 10 minutes
-  conflictStrategy: 'prompt',  // 'prompt', 'local', 'remote'
-  retryAttempts: 3,
-  retryDelay: 5000
-})
-```
-
-### Event Handling
-
-Listen for GitHub events:
-
-```javascript
-// Authentication events
-document.addEventListener('github-auth-success', (event) => {
-  console.log('User authenticated:', event.detail.user)
-})
-
-document.addEventListener('github-auth-error', (event) => {
-  console.error('Auth failed:', event.detail.error)
-})
-
-// Sync events
-document.addEventListener('github-sync-complete', (event) => {
-  console.log('Sync results:', event.detail.results)
-})
-
-document.addEventListener('github-sync-conflict', (event) => {
-  console.log('Conflicts detected:', event.detail.conflicts)
-})
-```
+4. **Sync**: Use `:gsy` to pull imported documents
 
 ## FAQ
 
@@ -472,30 +263,11 @@ A: Yes, the OAuth flow requests repository access including private repositories
 A: Fantasy Editor detects conflicts and provides a visual diff interface for resolution.
 
 **Q: Can I sync to multiple repositories?**
-A: Currently, one repository per session. You can reconfigure using `:ghc owner repo`.
-
-**Q: Do I need to commit documents manually?**
-A: No, Fantasy Editor automatically creates commits with descriptive messages.
-
-**Q: Can I use GitHub Enterprise?**
-A: The current implementation targets GitHub.com. Enterprise support would require configuration changes.
+A: Currently, one repository per session. You can reconfigure using `:gcf owner repo`.
 
 **Q: What if GitHub is down?**
 A: Fantasy Editor works offline-first. Documents remain accessible locally until GitHub is available.
 
-**Q: Can I export my documents?**
-A: Yes, documents are stored as standard markdown files in your GitHub repository.
-
-## Support
-
-For issues with GitHub integration:
-
-1. **Check Status**: Use `:gh` to verify connection status
-2. **Review Logs**: Enable debug mode and check browser console
-3. **Test Repository**: Verify repository accessibility on GitHub
-4. **Network Issues**: Check internet connection and GitHub status
-5. **Report Issues**: Create issue at [GitHub repository](https://github.com/anthropics/claude-code/issues)
-
 ---
 
-*This documentation covers Fantasy Editor v1.0.0 GitHub integration. For updates and additional features, see the changelog and release notes.*
+*Fantasy Editor v0.0.1 - For updates and additional features, see release notes.*
