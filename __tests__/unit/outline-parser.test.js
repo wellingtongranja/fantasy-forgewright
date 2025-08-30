@@ -3,7 +3,7 @@
  * Tests markdown parsing and outline generation functionality
  */
 
-import { OutlineParser } from '../outline-parser.js'
+import { OutlineParser } from '../../src/components/navigator/utils/outline-parser.js'
 
 describe('OutlineParser', () => {
   describe('parse method', () => {

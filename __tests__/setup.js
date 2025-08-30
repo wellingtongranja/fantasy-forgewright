@@ -40,3 +40,15 @@ global.console = {
   error: jest.fn(),
   warn: jest.fn()
 }
+
+// Mock import.meta for Vite environment variables
+global.import = {
+  meta: {
+    env: {
+      VITE_GITHUB_REDIRECT_URI: 'https://fantasy.forgewright.io/',
+      MODE: 'test',
+      PROD: false,
+      DEV: true
+    }
+  }
+}

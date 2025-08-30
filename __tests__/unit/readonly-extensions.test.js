@@ -12,7 +12,7 @@
  * For commercial licensing options, please contact licensing@forgewright.io
  */
 
-import { ReadonlyExtensions } from '../src/core/editor/readonly-extensions.js'
+import { ReadonlyExtensions } from '../../src/core/editor/readonly-extensions.js'
 
 describe('ReadonlyExtensions', () => {
   let readonlyExtensions

@@ -3,8 +3,8 @@
  * Test suite for UID to GUID migration functionality
  */
 
-import { MigrationManager } from '../migration.js'
-import { guidManager } from '../guid.js'
+import { MigrationManager } from '../../src/utils/migration.js'
+import { guidManager } from '../../src/utils/guid.js'
 
 // Mock storage manager for testing
 class MockStorageManager {

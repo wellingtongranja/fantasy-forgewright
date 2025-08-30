@@ -12,16 +12,16 @@
  * For commercial licensing options, please contact licensing@forgewright.io
  */
 
-import { EditorManager } from '../src/core/editor/editor.js'
+import { EditorManager } from '../../src/core/editor/editor.js'
 
 // Mock the dependencies
-jest.mock('../src/core/editor/editor-extensions.js', () => ({
+jest.mock('../../src/core/editor/editor-extensions.js', () => ({
   EditorExtensions: jest.fn().mockImplementation(() => ({
     getExtensions: jest.fn().mockReturnValue([])
   }))
 }))
 
-jest.mock('../src/core/editor/readonly-extensions.js', () => ({
+jest.mock('../../src/core/editor/readonly-extensions.js', () => ({
   ReadonlyExtensions: jest.fn().mockImplementation((callback) => ({
     setNotificationCallback: jest.fn(),
     getReadonlyExtensions: jest.fn().mockReturnValue([]),
@@ -50,7 +50,7 @@ describe('EditorManager', () => {
 
   describe('constructor', () => {
     test('should initialize with notification callback', () => {
-      const { ReadonlyExtensions } = require('../src/core/editor/readonly-extensions.js')
+      const { ReadonlyExtensions } = require('../../src/core/editor/readonly-extensions.js')
       
       new EditorManager(mockElement, mockThemeManager, mockNotificationCallback)
       
@@ -58,7 +58,7 @@ describe('EditorManager', () => {
     })
 
     test('should initialize without notification callback', () => {
-      const { ReadonlyExtensions } = require('../src/core/editor/readonly-extensions.js')
+      const { ReadonlyExtensions } = require('../../src/core/editor/readonly-extensions.js')
       
       new EditorManager(mockElement, mockThemeManager)
       
