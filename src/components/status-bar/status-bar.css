@@ -132,24 +132,56 @@
 .sync-status-container {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
 }
 
-.github-sync-indicator {
+/* Sync Status Item - Enhanced for prominence with unified icon/text */
+.status-item.sync-status {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-full);
-  opacity: 0.9;
+  font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-xs);
+  opacity: 1;
+  border-width: 1px;
+  transition: all var(--transition-fast);
 }
 
 .sync-status-icon {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   line-height: 1;
+  flex-shrink: 0;
+}
+
+.sync-status-text {
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+/* Sync status color variants */
+.status-item.sync-status.synced {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: rgb(34, 197, 94);
+}
+
+.status-item.sync-status.out-of-sync {
+  background-color: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: rgb(251, 191, 36);
+}
+
+.status-item.sync-status.local-only {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgb(239, 68, 68);
+}
+
+/* App version styling - less prominent */
+.status-item.app-version {
+  opacity: 0.6;
+  font-weight: var(--font-weight-normal);
+  margin-left: var(--spacing-md);
 }
 
 /* Readonly Status Indicator */
@@ -200,7 +232,7 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .status-bar {
+  .app-footer {
     grid-template-columns: 1fr;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-md);
@@ -208,22 +240,33 @@
     min-height: var(--footer-height);
   }
 
-  .status-bar-left,
-  .status-bar-center,
-  .status-bar-right {
+  .footer-left-section,
+  .footer-center-section,
+  .footer-right-section {
     justify-self: center;
   }
 
-  .status-bar-left {
+  .footer-left-section {
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--spacing-sm);
   }
 
-  .status-bar-right {
+  .footer-right-section {
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--spacing-sm);
+  }
+
+  /* Maintain sync status prominence on mobile */
+  .status-item.sync-status {
+    order: -1; /* Show sync status first on mobile */
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .status-item.app-version {
+    margin-left: 0; /* Remove left margin on mobile */
+    order: 1; /* Show version last on mobile */
   }
 
   .status-item {
@@ -233,7 +276,7 @@
 }
 
 @media (max-width: 480px) {
-  .status-bar {
+  .app-footer {
     padding: var(--spacing-xs) var(--spacing-sm);
   }
 
@@ -242,8 +285,8 @@
     padding: 1px var(--spacing-xs);
   }
 
-  .status-bar-left,
-  .status-bar-right {
+  .footer-left-section,
+  .footer-right-section {
     gap: var(--spacing-xs);
   }
 }
