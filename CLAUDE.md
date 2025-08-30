@@ -6,6 +6,8 @@
 
 **Architecture**: Client-side PWA with GitHub storage, CodeMirror 6 editor, VS Code-style command palette
 
+**License**: GNU Affero General Public License v3 (AGPL-3.0)
+
 ## 🎯 Core Requirements
 
 ### Current Status
@@ -23,6 +25,7 @@
 - [x] **RECENT/PREVIOUS document organization** - Simplified grouping system
 - [x] **Editor Width & Zoom Controls** - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - [x] **Document Export System** - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
+- [x] **Status Bar Enhancement** - Unified sync status indicators with color-coded states
 - [ ] Project Gutenberg integration
 - [ ] Internationalization support
 
@@ -32,12 +35,15 @@
 
 - **Single trigger**: `Ctrl+Space` activates command palette
 - **Zero conflicts**: No browser shortcut interference
-- **Fuzzy search**: Real-time command filtering
+- **Fuzzy search**: Real-time command filtering with exact alias matching
 - **Command bar**: Positioned at browser top (16px edge)
 - **Layout alignment**: Title and editor share 65ch container
 
 ### Recent Improvements
 
+- **Status Bar Layout** - Reorganized with sync status prominently positioned before app version
+- **Unified Sync Indicator** - Combined red indicator and status text in single container with color-coded states
+- **Command Filtering Enhancement** - Fixed `:sp` filtering to show only spell check, not save command
 - **Navigator Component** - Complete tabbed sidebar replacing legacy sidebar with Documents, Outline, and Search tabs
 - **Auto-unhide System** - Mouse proximity detection (10px from left edge) with smooth animations
 - **Enhanced Pin Button** - Left seven-eighths block icon (▊) with CSS border styling for clear sidebar representation
@@ -45,7 +51,6 @@
 - **Smooth Animations** - 0.4s cubic-bezier transitions for polished Navigator show/hide effects
 - **Integrated Commands** - `:d`, `:f`, `:l` commands with proper focus management and filtering
 - **GitHub UI Integration** - Authentication button in header with user dropdown menu
-- **Sync Status Indicators** - Real-time document sync status in status bar (🟢🟡🔴)
 - **Document Synchronization** - Bidirectional sync between local IndexedDB and GitHub
 - **Command System Enhancement** - All GitHub operations via colon shortcuts
 - **Editor Width & Zoom Controls** - Dynamic width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
@@ -60,6 +65,7 @@
 - **Clean Code**: Max 20 lines/function, 200 lines/file
 - **Defensive**: Input validation, graceful error handling
 - **Security**: Never commit secrets, validate all inputs
+- **License Compliance**: AGPL-3.0 - Ensure network service compliance
 
 ## 📁 Key Structure
 
@@ -82,7 +88,9 @@ src/
 │   │   ├── tabs/          # Individual tab components
 │   │   └── utils/         # Navigator utilities (outline parser)
 │   ├── command-bar/       # Command palette interface
+│   ├── command-bar-v2/    # Enhanced command system with SearchEngine
 │   ├── auth/              # GitHub authentication UI
+│   ├── status-bar/        # Status bar with unified sync indicators
 │   └── sidebar/           # Legacy sidebar (fallback)
 ├── styles/                 # CSS themes & base styles
 ├── workers/               # Service worker + PWA
@@ -97,6 +105,21 @@ workers/                    # Cloudflare Workers (OAuth proxy)
 │   ├── bitbucket.js      # Bitbucket OAuth provider
 │   └── generic-git.js    # Generic Git provider
 └── wrangler.toml         # Cloudflare Worker configuration
+
+docs/                      # Documentation (simplified structure)
+├── README.md             # Main documentation index
+├── help.md              # User guide with essential commands
+├── github-integration.md # Complete GitHub/OAuth guide
+├── architecture.md      # System architecture
+├── testing.md           # Testing strategy
+├── security.md          # Security implementation
+├── deployment.md        # Deployment & troubleshooting guide
+├── dev-helpers.md       # Development utilities
+├── release-notes.md     # Version history
+├── privacy-policy.md    # Privacy policy
+├── license-agpl.md      # AGPL-3.0 license
+├── license-commercial.md # Commercial license option
+└── eula.md              # End User License Agreement
 ```
 
 ## 🎯 Command System (MANDATORY RULES)
@@ -119,7 +142,6 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:h`** | `help` | `:h` |
 | **`:d`** | `documents` | `:d` or `:d filter` |
 | **`:l`** | `outline` | `:l` |
-| **`:f`** | `search` | `:f` or `:f query` |
 | **`:fs`** | `focus search` | `:fs` |
 | **`:fd`** | `focus documents` | `:fd` |
 | **`:ts`** | `toggle sidebar` | `:ts` |
@@ -128,6 +150,8 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 #### Editor Width and Zoom Commands
 *Optimized for writer-focused editing experience*
 
+| Shortcut | Command | Usage Example |
+|----------|---------|---------------|
 | **`:65`** | `width 65` | `:65` |
 | **`:80`** | `width 80` | `:80` |
 | **`:90`** | `width 90` | `:90` |
@@ -139,6 +163,8 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 #### Export Commands
 *Writer-focused document export functionality*
 
+| Shortcut | Command | Usage Example |
+|----------|---------|---------------|
 | **`:ex`** | `export` | `:ex md` |
 | **`:em`** | `export markdown` | `:em` |
 | **`:et`** | `export text` | `:et` |
@@ -148,6 +174,8 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 #### Search and Navigation Commands
 *Enhanced document discovery and navigation*
 
+| Shortcut | Command | Usage Example |
+|----------|---------|---------------|
 | **`:fs`** | `focus search` | `:fs` |
 | **`:fd`** | `focus documents` | `:fd` |
 | **`:ts`** | `toggle sidebar` | `:ts` |
@@ -162,6 +190,8 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 #### System and Utility Commands
 *Editor configuration and system functions*
 
+| Shortcut | Command | Usage Example |
+|----------|---------|---------------|
 | **`:sp`** | `spell check` | `:sp` |
 | **`:wc`** | `word count` | `:wc` |
 | **`:se`** | `settings` | `:se` |
@@ -173,6 +203,8 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 #### GitHub Integration Commands
 *Aligned with standard Git aliases (st=status, pu=push, pl=pull, etc.)*
 
+| Shortcut | Command | Usage Example |
+|----------|---------|---------------|
 | **`:gst`** | `github status` | `:gst` |
 | **`:glo`** | `github login` | `:glo` |
 | **`:gou`** | `github logout` | `:gou` |
@@ -196,6 +228,7 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 - When user types `:n` → Show ONLY `new` command
 - When user types `:n My Story` → Show `new` command with parameters
 - Each colon shortcut is unique and unambiguous
+- **Fixed**: `:sp` now shows only spell check, not save command
 
 #### 3. **Parameter Display**
 - Show parameters in italics: `new <em>[title] Document title</em>`
@@ -283,17 +316,18 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 
 ### Sync Status Indicators (Status Bar - Bottom-right)
 
-**Pill-shaped status labels with discrete styling:**
-- 🟢 **Synced**: Document matches remote repository
-- 🟡 **Out of sync**: Local changes need push to GitHub
-- 🔴 **Local only**: Document never synced to GitHub
+**Unified status container with color-coded pill styling:**
+- 🟢 **synced**: Document matches remote repository (green background)
+- 🟡 **out-of-sync**: Local changes need push to GitHub (yellow background)
+- 🔴 **local-only**: Document never synced to GitHub (red background)
 - **Hidden**: When not authenticated or not configured
 
-**Features:**
-- Real-time updates every 5 seconds
-- Updates when tab regains focus
-- Updates after authentication changes
-- Shows repository name next to status icon
+**Enhanced Features:**
+- **Unified container**: Icon and text in same pill-shaped container
+- **Color-coded backgrounds**: Green/yellow/red backgrounds for quick status identification
+- **Proper positioning**: Sync status appears before app version for better information hierarchy
+- **Real-time updates**: Updates every 5 seconds and when tab regains focus
+- **Repository integration**: Shows repository name next to status when applicable
 
 ### UI Integration Details
 
@@ -301,6 +335,7 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 - Mobile-friendly dropdown positioning
 - Username truncation on smaller screens
 - Proper touch targets for mobile devices
+- Status bar adapts to mobile layout while maintaining sync status prominence
 
 **Theme Compatibility:**
 - Adapts to Light, Dark, and Fantasy themes
@@ -377,7 +412,7 @@ For local development with OAuth:
 2. Configure `.dev.vars` with client ID and secret
 3. Run Worker locally: `npx wrangler dev --env dev`
 
-See `/docs/OAUTH.md` for complete OAuth documentation.
+See `docs/github-integration.md` for complete OAuth documentation.
 
 ## ✏️ Editor Width and Zoom Controls
 
@@ -633,13 +668,34 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 1. Check GitHub Actions logs for specific error patterns
 2. Test build locally: `NODE_ENV=production npm run build`
 3. Verify environment variables match between local and CI
-4. Confirm Cloudflare Pages project name exacty matches workflow
+4. Confirm Cloudflare Pages project name exactly matches workflow
 5. Rollback by reverting to last working commit if needed
 
-**Reference:** See `docs/CICD_LESSONS_LEARNED.md` for comprehensive troubleshooting guide.
+**Reference:** See `docs/deployment.md` for comprehensive troubleshooting guide.
+
+## 📄 License Information
+
+**Fantasy Editor** is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
+
+### Key License Points
+- **Source Code**: Must be made available to users of the network service
+- **Copyleft**: Derivative works must also be licensed under AGPL-3.0
+- **Network Use**: Users accessing Fantasy Editor over a network have the right to receive the complete source code
+- **Commercial Use**: Separate commercial license available (see `docs/license-commercial.md`)
+
+### License Files
+- **Primary License**: `docs/license-agpl.md` - Full AGPL-3.0 text
+- **Commercial Option**: `docs/license-commercial.md` - Commercial licensing terms
+- **EULA**: `docs/eula.md` - End User License Agreement
+
+### Important Notes
+- Fantasy Editor is NOT under MIT license
+- Network deployment requires AGPL compliance
+- Users have the right to request source code
+- See `docs/license-agpl.md` for complete terms
 
 ---
 
 **Fantasy Editor** - Single source of truth for development at **forgewright.io**
 
-- Always remember that documentation files they have a specific folder: docs
+Documentation is organized in the `docs/` directory with a simplified, flat structure for better maintainability.
