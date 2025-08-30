@@ -449,14 +449,143 @@ describe('SettingsDialog', () => {
       expect(navigation).toContain('No settings found')
     })
 
-    test('renderTabContent() shows placeholder for current tab', () => {
+    test('renderTabContent() shows editor settings for editor tab', () => {
       settingsDialog.currentTab = 'editor'
       
       const content = settingsDialog.renderTabContent()
       
       expect(content).toContain('settings-panel')
       expect(content).toContain('Editor Settings')
-      expect(content).toContain('Coming in Step 4')
+      expect(content).toContain('Theme')
+      expect(content).toContain('Editor Width')
+      expect(content).toContain('Zoom Level')
+      expect(content).toContain('Enable spell checking')
+      expect(content).toContain('Auto-save documents')
+    })
+
+    test('renderTabContent() shows placeholder for non-editor tabs', () => {
+      settingsDialog.currentTab = 'themes'
+      
+      const content = settingsDialog.renderTabContent()
+      
+      expect(content).toContain('settings-panel')
+      expect(content).toContain('Theme Customization')
+      expect(content).toContain('Coming in Step 6')
+    })
+  })
+
+  describe('Editor Settings Functionality', () => {
+    beforeEach(() => {
+      settingsDialog.currentTab = 'editor'
+      settingsDialog.show() // Need the element to be created for event handling
+    })
+
+    test('parseSettingValue() correctly parses different value types', () => {
+      expect(settingsDialog.parseSettingValue('editor.theme', 'dark')).toBe('dark')
+      expect(settingsDialog.parseSettingValue('editor.width', '80', '', false)).toBe(80)
+      expect(settingsDialog.parseSettingValue('editor.zoom', '1.15', '', false)).toBe(1.15)
+      expect(settingsDialog.parseSettingValue('editor.spellCheck', '', 'checkbox', true)).toBe(true)
+      expect(settingsDialog.parseSettingValue('editor.autoSave', '', 'checkbox', false)).toBe(false)
+    })
+
+    test('updateZoomDisplay() updates zoom percentage', () => {
+      // Mock the DOM element
+      const mockZoomValue = { textContent: '' }
+      const mockQuerySelector = jest.fn(() => mockZoomValue)
+      settingsDialog.element = { querySelector: mockQuerySelector }
+      
+      settingsDialog.updateZoomDisplay(1.15)
+      
+      expect(mockQuerySelector).toHaveBeenCalledWith('.zoom-value')
+      expect(mockZoomValue.textContent).toBe('115%')
+    })
+
+    test('handleZoomReset() resets zoom to 100%', () => {
+      const mockSlider = { value: '1.15' }
+      const mockQuerySelector = jest.fn(() => mockSlider)
+      settingsDialog.element = { querySelector: mockQuerySelector }
+      
+      const updateSettingSpy = jest.spyOn(settingsDialog, 'updateSetting').mockImplementation(() => {})
+      
+      settingsDialog.handleZoomReset()
+      
+      expect(mockQuerySelector).toHaveBeenCalledWith('#editor-zoom')
+      expect(mockSlider.value).toBe(1.0)
+      expect(updateSettingSpy).toHaveBeenCalledWith('editor.zoom', 1.0)
+      
+      updateSettingSpy.mockRestore()
+    })
+
+    test('handleSettingChange() processes setting changes correctly', () => {
+      const updateSettingSpy = jest.spyOn(settingsDialog, 'updateSetting').mockImplementation(() => {})
+      
+      // Test select change
+      const selectEvent = {
+        target: {
+          dataset: { setting: 'editor.theme' },
+          value: 'dark',
+          type: 'select-one',
+          checked: false
+        }
+      }
+      
+      settingsDialog.handleSettingChange(selectEvent)
+      expect(updateSettingSpy).toHaveBeenCalledWith('editor.theme', 'dark')
+      
+      // Test checkbox change
+      const checkboxEvent = {
+        target: {
+          dataset: { setting: 'editor.spellCheck' },
+          value: 'on',
+          type: 'checkbox',
+          checked: true
+        }
+      }
+      
+      settingsDialog.handleSettingChange(checkboxEvent)
+      expect(updateSettingSpy).toHaveBeenCalledWith('editor.spellCheck', true)
+      
+      updateSettingSpy.mockRestore()
+    })
+
+    test('handleSettingInput() processes range input changes', () => {
+      const updateSettingSpy = jest.spyOn(settingsDialog, 'updateSetting').mockImplementation(() => {})
+      const updateZoomSpy = jest.spyOn(settingsDialog, 'updateZoomDisplay').mockImplementation(() => {})
+      
+      const rangeEvent = {
+        target: {
+          dataset: { setting: 'editor.zoom' },
+          value: '1.15',
+          type: 'range'
+        }
+      }
+      
+      settingsDialog.handleSettingInput(rangeEvent)
+      
+      expect(updateSettingSpy).toHaveBeenCalledWith('editor.zoom', 1.15)
+      expect(updateZoomSpy).toHaveBeenCalledWith(1.15)
+      
+      updateSettingSpy.mockRestore()
+      updateZoomSpy.mockRestore()
+    })
+
+    test('refreshSettingsUI() updates UI elements after setting changes', () => {
+      // Mock width preset buttons
+      const mockPresets = [
+        { dataset: { value: '65' }, classList: { toggle: jest.fn() } },
+        { dataset: { value: '80' }, classList: { toggle: jest.fn() } },
+        { dataset: { value: '90' }, classList: { toggle: jest.fn() } }
+      ]
+      
+      const mockQuerySelectorAll = jest.fn(() => mockPresets)
+      settingsDialog.element = { querySelectorAll: mockQuerySelectorAll }
+      
+      settingsDialog.refreshSettingsUI('editor.width', 80)
+      
+      expect(mockQuerySelectorAll).toHaveBeenCalledWith('.width-preset')
+      expect(mockPresets[0].classList.toggle).toHaveBeenCalledWith('active', false)
+      expect(mockPresets[1].classList.toggle).toHaveBeenCalledWith('active', true)
+      expect(mockPresets[2].classList.toggle).toHaveBeenCalledWith('active', false)
     })
   })
 })

@@ -227,7 +227,133 @@ export class SettingsDialog {
           <h3>${tab.label}</h3>
         </div>
         <div class="settings-panel-content">
-          ${this.renderTabContentPlaceholder(tab)}
+          ${this.renderTabContentBody(tab)}
+        </div>
+      </div>
+    `
+  }
+
+  /**
+   * Render tab content body based on tab type
+   */
+  renderTabContentBody(tab) {
+    switch (tab.id) {
+      case 'editor':
+        return this.renderEditorTabContent()
+      default:
+        return this.renderTabContentPlaceholder(tab)
+    }
+  }
+
+  /**
+   * Render Editor Settings tab with functional controls
+   */
+  renderEditorTabContent() {
+    const editorSettings = this.settings?.editor || {}
+    
+    return `
+      <div class="settings-sections">
+        <div class="settings-section">
+          <h4>Appearance</h4>
+          
+          <div class="settings-field">
+            <label for="editor-theme">Theme</label>
+            <select id="editor-theme" data-setting="editor.theme">
+              <option value="light" ${editorSettings.theme === 'light' ? 'selected' : ''}>☀️ Light Theme</option>
+              <option value="dark" ${editorSettings.theme === 'dark' ? 'selected' : ''}>🌙 Dark Theme</option>
+              <option value="fantasy" ${editorSettings.theme === 'fantasy' ? 'selected' : ''}>✨ Fantasy Theme</option>
+            </select>
+            <small>Choose your preferred editor theme</small>
+          </div>
+          
+          <div class="settings-field">
+            <label>Editor Width</label>
+            <div class="settings-width-controls">
+              <div class="width-presets">
+                <button type="button" class="width-preset ${editorSettings.width === 65 ? 'active' : ''}" data-setting="editor.width" data-value="65">
+                  <span class="width-label">65ch</span>
+                  <span class="width-description">Optimal reading</span>
+                </button>
+                <button type="button" class="width-preset ${editorSettings.width === 80 ? 'active' : ''}" data-setting="editor.width" data-value="80">
+                  <span class="width-label">80ch</span>
+                  <span class="width-description">Standard coding</span>
+                </button>
+                <button type="button" class="width-preset ${editorSettings.width === 90 ? 'active' : ''}" data-setting="editor.width" data-value="90">
+                  <span class="width-label">90ch</span>
+                  <span class="width-description">Wide editing</span>
+                </button>
+              </div>
+            </div>
+            <small>Select the maximum width for editor content</small>
+          </div>
+          
+          <div class="settings-field">
+            <label for="editor-zoom">Zoom Level</label>
+            <div class="settings-zoom-controls">
+              <div class="zoom-slider-container">
+                <input 
+                  type="range" 
+                  id="editor-zoom" 
+                  class="zoom-slider"
+                  data-setting="editor.zoom"
+                  min="0.85" 
+                  max="1.30" 
+                  step="0.05"
+                  value="${editorSettings.zoom || 1.0}"
+                >
+                <div class="zoom-labels">
+                  <span>85%</span>
+                  <span>100%</span>
+                  <span>115%</span>
+                  <span>130%</span>
+                </div>
+              </div>
+              <div class="zoom-display">
+                <span class="zoom-value">${Math.round((editorSettings.zoom || 1.0) * 100)}%</span>
+                <button type="button" class="zoom-reset" data-action="reset-zoom">Reset</button>
+              </div>
+            </div>
+            <small>Adjust the font size and scaling</small>
+          </div>
+        </div>
+        
+        <div class="settings-section">
+          <h4>Behavior</h4>
+          
+          <div class="settings-field">
+            <label class="settings-checkbox-label">
+              <input 
+                type="checkbox" 
+                data-setting="editor.spellCheck" 
+                ${editorSettings.spellCheck ? 'checked' : ''}
+              >
+              <span class="settings-checkbox-text">Enable spell checking</span>
+            </label>
+            <small>Check spelling while you type</small>
+          </div>
+          
+          <div class="settings-field">
+            <label class="settings-checkbox-label">
+              <input 
+                type="checkbox" 
+                data-setting="editor.autoSave" 
+                ${editorSettings.autoSave !== false ? 'checked' : ''}
+              >
+              <span class="settings-checkbox-text">Auto-save documents</span>
+            </label>
+            <small>Automatically save changes every few seconds</small>
+          </div>
+          
+          <div class="settings-field ${editorSettings.autoSave === false ? 'disabled' : ''}">
+            <label for="auto-save-interval">Auto-save interval</label>
+            <select id="auto-save-interval" data-setting="editor.autoSaveInterval" ${editorSettings.autoSave === false ? 'disabled' : ''}>
+              <option value="3000" ${editorSettings.autoSaveInterval === 3000 ? 'selected' : ''}>3 seconds</option>
+              <option value="5000" ${editorSettings.autoSaveInterval === 5000 ? 'selected' : ''}>5 seconds</option>
+              <option value="10000" ${editorSettings.autoSaveInterval === 10000 ? 'selected' : ''}>10 seconds</option>
+              <option value="30000" ${editorSettings.autoSaveInterval === 30000 ? 'selected' : ''}>30 seconds</option>
+            </select>
+            <small>How often to automatically save changes</small>
+          </div>
         </div>
       </div>
     `
@@ -238,7 +364,6 @@ export class SettingsDialog {
    */
   renderTabContentPlaceholder(tab) {
     const examples = {
-      editor: 'Theme selection, editor width, zoom controls, spell check, auto-save settings',
       themes: 'Custom theme creation, color picker, live preview',
       codemirror: 'Line numbers, word wrap, syntax highlighting, code folding options',
       sync: 'Provider selection (GitHub/GitLab/Bitbucket), authentication, sync preferences',
@@ -348,8 +473,10 @@ export class SettingsDialog {
       searchInput.addEventListener('keydown', this.handleSearchKeydown.bind(this))
     }
 
-    // Action buttons
+    // Action buttons and settings controls
     this.element.addEventListener('click', this.handleClick.bind(this))
+    this.element.addEventListener('change', this.handleSettingChange.bind(this))
+    this.element.addEventListener('input', this.handleSettingInput.bind(this))
     
     // Keyboard navigation
     this.element.addEventListener('keydown', this.handleKeydown.bind(this))
@@ -389,6 +516,8 @@ export class SettingsDialog {
   handleClick(event) {
     const action = event.target.dataset.action
     const tab = event.target.dataset.tab
+    const setting = event.target.dataset.setting
+    const value = event.target.dataset.value
     
     if (action === 'close') {
       this.hide()
@@ -396,10 +525,15 @@ export class SettingsDialog {
       this.saveSettings()
     } else if (action === 'reset') {
       this.resetSettings()
+    } else if (action === 'reset-zoom') {
+      this.handleZoomReset()
     } else if (action === 'clear-search') {
       this.clearSearch()
     } else if (tab) {
       this.switchTab(tab)
+    } else if (setting && value !== undefined) {
+      // Handle button-based settings (like width presets)
+      this.updateSetting(setting, this.parseSettingValue(setting, value))
     }
   }
 
@@ -440,6 +574,147 @@ export class SettingsDialog {
   handleOverlayClick(event) {
     if (event.target === this.element) {
       this.hide()
+    }
+  }
+
+  /**
+   * Handle setting change events (select, checkbox)
+   */
+  handleSettingChange(event) {
+    const setting = event.target.dataset.setting
+    if (!setting) return
+    
+    const value = this.parseSettingValue(setting, event.target.value, event.target.type, event.target.checked)
+    this.updateSetting(setting, value)
+  }
+
+  /**
+   * Handle setting input events (range, text)
+   */
+  handleSettingInput(event) {
+    const setting = event.target.dataset.setting
+    if (!setting) return
+    
+    // For range inputs, update live
+    if (event.target.type === 'range') {
+      const value = this.parseSettingValue(setting, event.target.value)
+      this.updateSetting(setting, value)
+      this.updateZoomDisplay(value)
+    }
+  }
+
+  /**
+   * Parse setting value based on type
+   */
+  parseSettingValue(setting, value, inputType = '', checked = false) {
+    if (inputType === 'checkbox') {
+      return checked
+    }
+    
+    if (setting.includes('width') || setting.includes('zoom') || setting.includes('interval')) {
+      return parseFloat(value) || parseInt(value)
+    }
+    
+    return value
+  }
+
+  /**
+   * Update a setting and apply changes
+   */
+  updateSetting(path, value) {
+    try {
+      // Update the local settings copy
+      this.settingsManager.set(path, value)
+      this.hasChanges = true
+      
+      // Apply the setting immediately for live preview
+      this.applySetting(path, value)
+      
+      // Update UI to reflect the change
+      this.refreshSettingsUI(path, value)
+      
+    } catch (error) {
+      console.warn('Failed to update setting:', error)
+      this.showToast('Failed to update setting', 'error')
+    }
+  }
+
+  /**
+   * Apply setting changes immediately (live preview)
+   */
+  applySetting(path, value) {
+    if (!window.app) return // No app context available
+    
+    switch (path) {
+      case 'editor.theme':
+        if (window.app.themeManager) {
+          window.app.themeManager.applyTheme(value)
+        }
+        break
+        
+      case 'editor.width':
+        if (window.app.widthManager) {
+          window.app.widthManager.setWidth(value)
+        }
+        break
+        
+      case 'editor.zoom':
+        if (window.app.widthManager) {
+          window.app.widthManager.setZoom(value)
+        }
+        break
+    }
+  }
+
+  /**
+   * Refresh settings UI after changes
+   */
+  refreshSettingsUI(path, value) {
+    if (this.currentTab !== 'editor') return
+    
+    // Update width preset buttons
+    if (path === 'editor.width') {
+      const presets = this.element.querySelectorAll('.width-preset')
+      presets.forEach(preset => {
+        const presetValue = parseInt(preset.dataset.value)
+        preset.classList.toggle('active', presetValue === value)
+      })
+    }
+    
+    // Update zoom display
+    if (path === 'editor.zoom') {
+      this.updateZoomDisplay(value)
+    }
+    
+    // Update auto-save interval field
+    if (path === 'editor.autoSave') {
+      const intervalField = this.element.querySelector('#auto-save-interval')?.closest('.settings-field')
+      if (intervalField) {
+        intervalField.classList.toggle('disabled', !value)
+        const select = intervalField.querySelector('#auto-save-interval')
+        if (select) select.disabled = !value
+      }
+    }
+  }
+
+  /**
+   * Update zoom display value
+   */
+  updateZoomDisplay(zoomValue) {
+    const zoomDisplay = this.element.querySelector('.zoom-value')
+    if (zoomDisplay) {
+      zoomDisplay.textContent = `${Math.round(zoomValue * 100)}%`
+    }
+  }
+
+  /**
+   * Handle zoom reset button
+   */
+  handleZoomReset() {
+    const zoomSlider = this.element.querySelector('#editor-zoom')
+    if (zoomSlider) {
+      zoomSlider.value = 1.0
+      this.updateSetting('editor.zoom', 1.0)
     }
   }
 
