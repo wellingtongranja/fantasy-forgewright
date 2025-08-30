@@ -1,46 +1,48 @@
 /**
  * Command Bar Trigger Button
- * Discrete, minimal button for accessing command palette
+ * Styled to match GitHub sign-in button, extended to editor width
  */
 
 .command-bar-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 13px;
-  font-family: var(--font-family-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
+  min-width: 65ch;
+  justify-content: center;
 }
 
 .command-bar-trigger:hover {
-  background: var(--color-bg-tertiary);
   color: var(--color-text);
-}
-
-.command-bar-trigger:active {
-  background: var(--color-bg-tertiary);
-  opacity: 0.8;
-  transform: translateX(-50%) scale(0.98);
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-tertiary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .command-bar-trigger:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.command-bar-trigger:active {
+  transform: translateX(-50%) translateY(1px);
 }
 
 .command-bar-trigger__text {
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  font-weight: var(--font-weight-medium);
 }
 
 .command-bar-trigger__shortcut {
@@ -57,21 +59,30 @@
 
 /* Dark theme adjustments - handled by CSS variables */
 
-/* Mobile responsive - hide shortcut on small screens */
-@media (max-width: 640px) {
+/* Mobile responsive - consistent with GitHub button */
+@media (max-width: 768px) {
+  .command-bar-trigger {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-width: auto;
+    width: auto;
+  }
+  
   .command-bar-trigger__shortcut {
     display: none;
   }
-  
+}
+
+@media (max-width: 640px) {
   .command-bar-trigger {
-    padding: 6px 10px;
+    padding: var(--spacing-xs) var(--spacing-sm);
   }
 }
 
 /* Focus states for accessibility */
 .command-bar-trigger:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
 }
 
 /* Hover effects for shortcut key */
