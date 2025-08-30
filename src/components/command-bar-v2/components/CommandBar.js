@@ -313,25 +313,52 @@ export class CommandBar extends BaseComponent {
         const name = cmd.name?.toLowerCase() || ''
         const description = cmd.description?.toLowerCase() || ''
         const aliases = cmd.aliases || []
+        const queryLower = trimmedQuery.toLowerCase()
         
-        // Check for exact colon alias match at start of query
-        const colonAlias = aliases.find(alias => 
-          alias.startsWith(':') && 
-          trimmedQuery.toLowerCase().startsWith(alias.toLowerCase())
-        )
-        
-        if (colonAlias) {
-          // If query starts with a colon alias, it's a match
-          return true
+        // Special handling for colon shortcuts - prioritize exact matches
+        if (queryLower.startsWith(':')) {
+          // First check for exact colon alias match
+          const exactColonMatch = aliases.find(alias => 
+            alias.startsWith(':') && 
+            alias.toLowerCase() === queryLower
+          )
+          
+          if (exactColonMatch) {
+            console.log('Exact colon match found for', queryLower, ':', cmd.name)
+            return true
+          }
+          
+          // If no exact match exists, check for prefix matches (for partial typing like ":s" when typing ":sp")
+          const hasExactMatch = this.commands.some(otherCmd => 
+            otherCmd.aliases?.some(alias => 
+              alias.startsWith(':') && alias.toLowerCase() === queryLower
+            )
+          )
+          
+          if (!hasExactMatch) {
+            // Only show prefix matches if no exact match exists
+            const prefixMatch = aliases.find(alias => 
+              alias.startsWith(':') && 
+              alias.toLowerCase().startsWith(queryLower)
+            )
+            
+            if (prefixMatch) {
+              console.log('Prefix colon match found for', queryLower, ':', cmd.name)
+              return true
+            }
+          }
+          
+          // No colon matches, skip this command for colon queries
+          return false
         }
         
-        // Check for command name match at start of query
-        if (trimmedQuery.toLowerCase().startsWith(name)) {
+        // Check for command name match at start of query (non-colon queries)
+        if (queryLower.startsWith(name)) {
           return true
         }
         
         // For regular fuzzy search, use the first word only
-        const firstWord = trimmedQuery.split(/\s+/)[0].toLowerCase()
+        const firstWord = queryLower.split(/\s+/)[0]
         
         // Check if first word matches command name, aliases, or description
         return name.includes(firstWord) || 

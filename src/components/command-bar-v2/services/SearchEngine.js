@@ -231,7 +231,32 @@ export class SearchEngine extends BaseService {
 
     let allMatches = []
 
-    // Run all search algorithms
+    // Special handling for colon shortcuts - prioritize exact matches
+    if (query.startsWith(':')) {
+      const exactMatches = await this.algorithms.exact(query, options)
+      
+      // If we have exact alias matches, only show those
+      const exactAliasMatches = exactMatches.filter(match => {
+        const metadata = match.command.getMetadata()
+        return metadata.aliases?.some(alias => 
+          this.normalizeText(alias) === query
+        )
+      })
+      
+      if (exactAliasMatches.length > 0) {
+        console.log('Found exact alias matches for', query, ':', exactAliasMatches.map(m => m.command.getMetadata().name))
+        return this.rankResults(exactAliasMatches, query).slice(0, options.maxResults)
+      }
+      
+      // If no exact matches, run prefix matching for partial colon shortcuts
+      const prefixMatches = await this.algorithms.prefix(query, options)
+      if (prefixMatches.length > 0) {
+        console.log('Found prefix matches for', query, ':', prefixMatches.map(m => m.command.getMetadata().name))
+        return this.rankResults(this.removeDuplicates(prefixMatches), query).slice(0, options.maxResults)
+      }
+    }
+
+    // Run all search algorithms for non-colon queries
     for (const [algorithmName, algorithm] of Object.entries(this.algorithms)) {
       try {
         const matches = await algorithm(query, options)
