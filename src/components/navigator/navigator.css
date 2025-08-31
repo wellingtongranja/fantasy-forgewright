@@ -88,6 +88,7 @@
   background: var(--color-bg);
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+  border-bottom-width: 2px;
 }
 
 .navigator-tab .tab-label {
@@ -912,69 +913,7 @@
   transform: translateY(-1px);
 }
 
-/* Theme Adjustments */
 
-/* Dark Theme */
-[data-theme='dark'] .navigator {
-  background: var(--color-bg);
-  border-color: var(--color-border);
-}
-
-[data-theme='dark'] .navigator-tab.active {
-  background: var(--color-bg);
-}
-
-[data-theme='dark'] .document-item.selected {
-  background: rgba(var(--color-primary-rgb), 0.15);
-}
-
-[data-theme='dark'] .outline-item.selected .outline-item-content {
-  background: rgba(var(--color-primary-rgb), 0.15);
-}
-
-[data-theme='dark'] .search-result-item.selected {
-  background: rgba(var(--color-primary-rgb), 0.1);
-}
-
-/* Fantasy Theme */
-[data-theme='fantasy'] .navigator {
-  background: var(--background-color);
-  backdrop-filter: blur(10px);
-  border-color: var(--border-color);
-}
-
-[data-theme='fantasy'] .navigator-header {
-  background: var(--surface-color);
-}
-
-[data-theme='fantasy'] .navigator-tab.active {
-  background: var(--background-color);
-  color: var(--text-color);
-  border-bottom-color: var(--accent-color);
-}
-
-[data-theme='fantasy'] .group-title {
-  color: var(--text-secondary);
-}
-
-[data-theme='fantasy'] .document-item.selected {
-  background: rgba(var(--color-primary-rgb), 0.15);
-  border-color: var(--accent-color);
-}
-
-[data-theme='fantasy'] .outline-item.selected .outline-item-content {
-  background: rgba(var(--color-primary-rgb), 0.15);
-  color: var(--accent-color);
-}
-
-[data-theme='fantasy'] .search-result-item.selected {
-  background: rgba(var(--color-primary-rgb), 0.1);
-  border-color: var(--accent-color);
-}
-
-[data-theme='fantasy'] .progress-fill {
-  background: var(--accent-color);
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -1017,8 +956,15 @@
     border-width: 2px;
   }
 
+  /* Keep consistent 2px borders for all themes in high contrast mode */
   .navigator-tab.active {
-    border-bottom-width: 3px;
+    border-bottom-width: 2px;
+  }
+
+  /* Force Fantasy theme to use thin borders even in high contrast */
+  [data-theme='fantasy'] .navigator-tab.active {
+    border-bottom-width: 2px !important;
+    border-bottom-style: solid !important;
   }
 
   .document-item.selected,
