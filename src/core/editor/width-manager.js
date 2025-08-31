@@ -4,7 +4,8 @@
  */
 
 export class WidthManager {
-  constructor(app = null) {
+  constructor(settingsManager, app = null) {
+    this.settingsManager = settingsManager
     this.app = app // Reference to app for theme reconfiguration
     this.widthPresets = {
       65: '65ch', // Optimal reading width
@@ -22,7 +23,25 @@ export class WidthManager {
     this.onWidthChange = null
     this.onZoomChange = null
 
+    // Listen for settings changes
+    this.settingsManager.addListener(this.handleSettingsChange.bind(this))
+
     this.initialize()
+  }
+
+  /**
+   * Handle settings changes from Settings Manager
+   */
+  handleSettingsChange(event) {
+    if (event.event === 'setting-changed') {
+      const { path, value } = event.data
+      
+      if (path === 'editor.width' && value !== this.currentWidth) {
+        this.applyWidthOnly(value)
+      } else if (path === 'editor.zoom' && value !== this.currentZoom) {
+        this.applyZoomOnly(value)
+      }
+    }
   }
 
   /**
@@ -43,19 +62,26 @@ export class WidthManager {
       )
     }
 
-    this.currentWidth = widthColumns
-    this.applyWidth(widthColumns)
+    this.applyWidthOnly(widthColumns)
     this.saveWidth(widthColumns)
-
-    // Notify callback if set
-    if (this.onWidthChange) {
-      this.onWidthChange(widthColumns)
-    }
 
     return {
       success: true,
       message: `Editor width set to ${widthColumns}ch`,
       width: this.widthPresets[widthColumns]
+    }
+  }
+
+  /**
+   * Apply width changes without saving (for Settings Manager updates)
+   */
+  applyWidthOnly(widthColumns) {
+    this.currentWidth = widthColumns
+    this.applyWidth(widthColumns)
+
+    // Notify callback if set
+    if (this.onWidthChange) {
+      this.onWidthChange(widthColumns)
     }
   }
 
@@ -66,19 +92,26 @@ export class WidthManager {
     // Clamp zoom level to valid range
     const clampedZoom = Math.max(0.85, Math.min(1.3, zoomLevel))
 
-    this.currentZoom = clampedZoom
-    this.applyZoom(clampedZoom)
+    this.applyZoomOnly(clampedZoom)
     this.saveZoom(clampedZoom)
-
-    // Notify callback if set
-    if (this.onZoomChange) {
-      this.onZoomChange(clampedZoom)
-    }
 
     return {
       success: true,
       message: `Zoom level set to ${Math.round(clampedZoom * 100)}%`,
       zoomLevel: clampedZoom
+    }
+  }
+
+  /**
+   * Apply zoom changes without saving (for Settings Manager updates)
+   */
+  applyZoomOnly(zoomLevel) {
+    this.currentZoom = zoomLevel
+    this.applyZoom(zoomLevel)
+
+    // Notify callback if set
+    if (this.onZoomChange) {
+      this.onZoomChange(zoomLevel)
     }
   }
 
@@ -194,14 +227,13 @@ export class WidthManager {
   }
 
   /**
-   * Load width preference from localStorage
+   * Load width preference from Settings Manager
    */
   loadWidth() {
     try {
-      const saved = localStorage.getItem('editor-width-preference')
-      if (saved) {
-        const width = parseInt(saved)
-        return this.widthPresets[width] ? width : null
+      const saved = this.settingsManager.get('editor.width')
+      if (saved && this.widthPresets[saved]) {
+        return saved
       }
     } catch (error) {
       console.warn('Failed to load width preference:', error)
@@ -210,25 +242,24 @@ export class WidthManager {
   }
 
   /**
-   * Save width preference to localStorage
+   * Save width preference to Settings Manager
    */
   saveWidth(widthColumns) {
     try {
-      localStorage.setItem('editor-width-preference', widthColumns.toString())
+      this.settingsManager.set('editor.width', widthColumns)
     } catch (error) {
       console.warn('Failed to save width preference:', error)
     }
   }
 
   /**
-   * Load zoom preference from localStorage
+   * Load zoom preference from Settings Manager
    */
   loadZoom() {
     try {
-      const saved = localStorage.getItem('editor-zoom-preference')
-      if (saved) {
-        const zoom = parseFloat(saved)
-        return zoom >= 0.85 && zoom <= 1.3 ? zoom : null
+      const saved = this.settingsManager.get('editor.zoom')
+      if (saved && saved >= 0.85 && saved <= 1.3) {
+        return saved
       }
     } catch (error) {
       console.warn('Failed to load zoom preference:', error)
@@ -237,11 +268,11 @@ export class WidthManager {
   }
 
   /**
-   * Save zoom preference to localStorage
+   * Save zoom preference to Settings Manager
    */
   saveZoom(zoomLevel) {
     try {
-      localStorage.setItem('editor-zoom-preference', zoomLevel.toString())
+      this.settingsManager.set('editor.zoom', zoomLevel)
     } catch (error) {
       console.warn('Failed to save zoom preference:', error)
     }
