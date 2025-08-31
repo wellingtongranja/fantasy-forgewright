@@ -899,8 +899,12 @@ export class SettingsDialog {
       
       this.updateSetting(setting, value)
       
-      // Enable/disable activate button based on name
+      // For theme name, immediately persist to localStorage for real-time feedback
       if (setting === 'editor.customTheme.name') {
+        const currentCustomTheme = this.settingsManager.get('editor.customTheme') || {}
+        this.settingsManager.set('editor.customTheme', { ...currentCustomTheme, name: value })
+        
+        // Enable/disable activate button based on name
         const activateBtn = this.element.querySelector('[data-action="activate-custom-theme"]')
         if (activateBtn) {
           activateBtn.disabled = !value.trim()
@@ -912,6 +916,20 @@ export class SettingsDialog {
     if (event.target.type === 'color') {
       const value = event.target.value
       this.updateSetting(setting, value)
+      
+      // For custom theme colors, immediately persist to localStorage for real-time feedback
+      if (setting.includes('editor.customTheme.colors')) {
+        const currentCustomTheme = this.settingsManager.get('editor.customTheme') || {}
+        const colorKey = setting.split('.').pop() // Extract color key (backgroundPrimary, etc)
+        const updatedCustomTheme = {
+          ...currentCustomTheme,
+          colors: {
+            ...(currentCustomTheme.colors || {}),
+            [colorKey]: value
+          }
+        }
+        this.settingsManager.set('editor.customTheme', updatedCustomTheme)
+      }
       
       // Update corresponding hex input
       const hexInput = event.target.nextElementSibling
@@ -1155,6 +1173,10 @@ export class SettingsDialog {
     // Set theme to custom
     this.updateSetting('editor.theme', 'custom')
     
+    // Immediately persist theme activation and customTheme data to localStorage
+    this.settingsManager.set('editor.theme', 'custom')
+    this.settingsManager.set('editor.customTheme', customTheme)
+    
     // Update UI
     this.element.querySelectorAll('.theme-preview-card').forEach(card => {
       card.classList.remove('active')
@@ -1165,8 +1187,15 @@ export class SettingsDialog {
       customPreview.classList.add('active')
     }
     
-    // Apply custom theme
-    this.applyCustomThemePreview()
+    // Apply custom theme through theme manager for proper full application
+    if (window.app?.themeManager) {
+      window.app.themeManager.applyTheme('custom')
+    } else {
+      // Fallback to direct application
+      this.applyCustomThemePreview()
+    }
+    
+    this.showNotification(`Custom theme "${customTheme.name}" activated successfully`, 'success')
   }
 
   /**
@@ -1258,19 +1287,22 @@ export class SettingsDialog {
     
     // Map custom theme color keys to actual CSS variables used by the app
     const colorMapping = {
-      backgroundPrimary: '--background-color',
-      backgroundSecondary: '--surface-color', 
-      textPrimary: '--text-color',
-      textSecondary: '--text-secondary',
-      textMuted: '--text-muted',
-      accent: '--accent-color',
-      border: '--border-color'
+      backgroundPrimary: ['--background-color', '--color-bg'],
+      backgroundSecondary: ['--surface-color', '--color-bg-secondary', '--color-bg-tertiary'], 
+      textPrimary: ['--text-color', '--color-text'],
+      textSecondary: ['--text-secondary', '--color-text-secondary'],
+      textMuted: ['--text-muted', '--color-text-muted'],
+      accent: ['--accent-color', '--color-primary'],
+      border: ['--border-color', '--color-border']
     }
 
     // Apply mapped colors to document for live preview
     Object.keys(colorMapping).forEach(key => {
       if (colors[key]) {
-        document.documentElement.style.setProperty(colorMapping[key], colors[key])
+        const variables = colorMapping[key]
+        variables.forEach(cssVar => {
+          document.documentElement.style.setProperty(cssVar, colors[key])
+        })
       }
     })
 
