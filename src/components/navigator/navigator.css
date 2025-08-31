@@ -938,42 +938,42 @@
 
 /* Fantasy Theme */
 [data-theme='fantasy'] .navigator {
-  background: rgba(61, 40, 97, 0.95);
+  background: var(--background-color);
   backdrop-filter: blur(10px);
-  border-color: rgba(255, 111, 0, 0.2);
+  border-color: var(--border-color);
 }
 
 [data-theme='fantasy'] .navigator-header {
-  background: rgba(61, 40, 97, 0.8);
+  background: var(--surface-color);
 }
 
 [data-theme='fantasy'] .navigator-tab.active {
-  background: rgba(61, 40, 97, 0.9);
-  color: var(--color-text);
-  border-bottom-color: var(--color-primary);
+  background: var(--background-color);
+  color: var(--text-color);
+  border-bottom-color: var(--accent-color);
 }
 
 [data-theme='fantasy'] .group-title {
-  color: #f0e68c !important;
+  color: var(--text-secondary);
 }
 
 [data-theme='fantasy'] .document-item.selected {
-  background: rgba(255, 111, 0, 0.15);
-  border-color: var(--color-secondary);
+  background: rgba(var(--color-primary-rgb), 0.15);
+  border-color: var(--accent-color);
 }
 
 [data-theme='fantasy'] .outline-item.selected .outline-item-content {
-  background: rgba(255, 111, 0, 0.15);
-  color: var(--color-secondary);
+  background: rgba(var(--color-primary-rgb), 0.15);
+  color: var(--accent-color);
 }
 
 [data-theme='fantasy'] .search-result-item.selected {
-  background: rgba(255, 111, 0, 0.1);
-  border-color: var(--color-secondary);
+  background: rgba(var(--color-primary-rgb), 0.1);
+  border-color: var(--accent-color);
 }
 
 [data-theme='fantasy'] .progress-fill {
-  background: var(--color-secondary);
+  background: var(--accent-color);
 }
 
 /* Responsive Design */
