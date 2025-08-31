@@ -1229,7 +1229,7 @@ export class SettingsDialog {
     const customTheme = this.localSettings?.editor?.customTheme
     if (!customTheme?.colors) return
     
-    // Apply custom colors to preview
+    // Apply custom colors to preview box
     const preview = this.element.querySelector('.custom-theme-preview-content')
     if (preview) {
       Object.keys(customTheme.colors).forEach(key => {
@@ -1238,14 +1238,67 @@ export class SettingsDialog {
       })
     }
     
-    // If custom theme is active, apply to document
+    // Always apply custom theme colors as live preview when user is editing them
+    // This allows users to see their changes immediately even before activating
+    if (this.currentTab === 'themes') {
+      this.applyCustomThemeColorsToDocument(customTheme.colors)
+    }
+    
+    // If custom theme is actually active, set the data-theme attribute
     if (this.localSettings?.editor?.theme === 'custom') {
       document.documentElement.setAttribute('data-theme', 'custom')
-      // Let ThemeManager handle custom theme application via live preview
-      if (window.app?.themeManager) {
-        window.app.themeManager.applyCustomTheme()
-      }
     }
+  }
+
+  /**
+   * Apply custom theme colors directly to document (for live preview)
+   */
+  applyCustomThemeColorsToDocument(colors) {
+    if (!colors) return
+    
+    // Map custom theme color keys to actual CSS variables used by the app
+    const colorMapping = {
+      backgroundPrimary: '--background-color',
+      backgroundSecondary: '--surface-color', 
+      textPrimary: '--text-color',
+      textSecondary: '--text-secondary',
+      textMuted: '--text-muted',
+      accent: '--accent-color',
+      border: '--border-color'
+    }
+
+    // Apply mapped colors to document for live preview
+    Object.keys(colorMapping).forEach(key => {
+      if (colors[key]) {
+        document.documentElement.style.setProperty(colorMapping[key], colors[key])
+      }
+    })
+
+    // Apply additional derived colors based on main colors
+    if (colors.backgroundSecondary) {
+      document.documentElement.style.setProperty('--surface-hover', this.adjustColor(colors.backgroundSecondary, -10))
+    }
+    if (colors.border) {
+      document.documentElement.style.setProperty('--border-light', this.adjustColor(colors.border, 10))
+      document.documentElement.style.setProperty('--border-dark', this.adjustColor(colors.border, -10))
+    }
+  }
+
+  /**
+   * Adjust color brightness (simple implementation)
+   */
+  adjustColor(hex, percent) {
+    // Simple hex color brightness adjustment
+    const num = parseInt(hex.replace('#', ''), 16)
+    const amt = Math.round(2.55 * percent)
+    const R = (num >> 16) + amt
+    const G = (num >> 8 & 0x00FF) + amt
+    const B = (num & 0x0000FF) + amt
+    
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255))
+      .toString(16).slice(1)
   }
 
 
@@ -1343,6 +1396,11 @@ export class SettingsDialog {
         if (editor.spellCheck !== undefined) this.settingsManager.set('editor.spellCheck', editor.spellCheck)
         if (editor.autoSave !== undefined) this.settingsManager.set('editor.autoSave', editor.autoSave)
         if (editor.autoSaveInterval !== undefined) this.settingsManager.set('editor.autoSaveInterval', editor.autoSaveInterval)
+        
+        // Save custom theme data - this was missing!
+        if (editor.customTheme !== undefined) {
+          this.settingsManager.set('editor.customTheme', editor.customTheme)
+        }
       }
       
       this.hasChanges = false
