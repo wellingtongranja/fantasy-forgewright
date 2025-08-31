@@ -86,7 +86,7 @@
 
 .navigator-tab.active {
   background: var(--color-bg);
-  color: var(--color-primary);
+  color: var(--color-text);
   border-bottom-color: var(--color-primary);
   border-bottom-width: 2px;
 }

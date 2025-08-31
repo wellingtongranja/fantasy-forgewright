@@ -330,6 +330,41 @@ describe('Themes Tab', () => {
       // Should be disabled when name is empty  
       expect(activateBtn.disabled).toBe(true)
     })
+
+    test('updates colors when base theme is changed', () => {
+      // Setup themes tab content first
+      settingsDialog.show('themes')
+      
+      // Set initial base theme to light with light colors
+      settingsDialog.localSettings.editor.customTheme = {
+        baseTheme: 'light',
+        colors: {
+          backgroundPrimary: '#ffffff',
+          backgroundSecondary: '#f8fafc',
+          textPrimary: '#1e293b'
+        }
+      }
+      
+      // Re-render to show the current state
+      settingsDialog.refreshTabContent()
+      
+      // Get the base theme select element
+      const baseThemeSelect = document.querySelector('[data-setting="editor.customTheme.baseTheme"]')
+      expect(baseThemeSelect).toBeTruthy()
+      
+      // Change the value and trigger the event manually
+      baseThemeSelect.value = 'dark'
+      
+      // Simulate the change event by calling the handler directly
+      settingsDialog.handleSettingChange({
+        target: baseThemeSelect
+      })
+      
+      // Colors should be updated to dark theme defaults
+      expect(settingsDialog.localSettings.editor.customTheme.colors.backgroundPrimary).toBe('#1a1a1a')
+      expect(settingsDialog.localSettings.editor.customTheme.colors.backgroundSecondary).toBe('#2d3748')
+      expect(settingsDialog.localSettings.editor.customTheme.colors.textPrimary).toBe('#f7fafc')
+    })
   })
 
   describe('Accessibility', () => {

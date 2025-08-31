@@ -7,6 +7,10 @@
   --primary-color: #2d1b69;
   --secondary-color: #8b5a5a;
   --accent-color: #007bff;
+  
+  /* Override base variables to match light theme colors */
+  --color-primary: #007bff;
+  --color-primary-rgb: 0, 123, 255;
 
   /* Background colors */
   --background-color: #ffffff;

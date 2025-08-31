@@ -7,6 +7,10 @@
   --primary-color: #6c5ce7;
   --secondary-color: #a29bfe;
   --accent-color: #63b3ed;
+  
+  /* Override base variables to match dark theme colors */
+  --color-primary: #63b3ed;
+  --color-primary-rgb: 99, 179, 237;
 
   /* Background colors */
   --background-color: #1a1a1a;
@@ -70,7 +74,7 @@
 }
 
 [data-theme='dark'] .app-title {
-  color: #ffffff !important;
+  color: var(--color-text);
 }
 
 [data-theme='dark'] .sidebar,

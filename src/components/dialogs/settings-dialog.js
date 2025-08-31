@@ -977,6 +977,11 @@ export class SettingsDialog {
       this.refreshSettingsUI(path, value)
       this.refreshFooter()
       
+      // Special handling for base theme changes
+      if (path === 'editor.customTheme.baseTheme') {
+        this.handleBaseThemeChange(value)
+      }
+      
       // Apply live preview with throttling for width changes to reduce lag
       if (path === 'editor.width') {
         this.applyLivePreviewThrottled(path, value)
@@ -1213,27 +1218,56 @@ export class SettingsDialog {
   }
 
   /**
+   * Handle base theme change - automatically update colors to match new base theme
+   */
+  handleBaseThemeChange(newBaseTheme) {
+    // Get default colors for the new base theme
+    const defaultColors = this.getDefaultThemeColors(newBaseTheme)
+    
+    // Update each color setting directly in local settings to avoid recursion
+    const currentCustomTheme = this.getLocalSetting('editor.customTheme') || {}
+    const updatedCustomTheme = {
+      ...currentCustomTheme,
+      baseTheme: newBaseTheme,
+      colors: { ...defaultColors }
+    }
+    
+    // Update local settings directly
+    this.setLocalSetting('editor.customTheme', updatedCustomTheme)
+    this.hasChanges = true
+    
+    // Refresh the themes tab to show the updated colors
+    this.refreshTabContent()
+    
+    // Apply live preview of the new colors
+    this.applyCustomThemePreview()
+    
+    // Show notification to user
+    this.showNotification(`Colors updated to match ${newBaseTheme} theme`, 'info')
+  }
+
+  /**
    * Get default colors for a base theme
    */
   getDefaultThemeColors(baseTheme) {
     const themes = {
       light: {
         backgroundPrimary: '#ffffff',
-        backgroundSecondary: '#f8fafc',
-        textPrimary: '#1e293b',
-        textSecondary: '#475569',
-        textMuted: '#94a3b8',
-        accent: '#6366f1',
-        border: '#e2e8f0'
+        backgroundSecondary: '#f8f9fa',
+        textPrimary: '#212529',
+        textSecondary: '#6c757d',
+        textMuted: '#868e96',
+        accent: '#007bff',
+        border: '#dee2e6'
       },
       dark: {
-        backgroundPrimary: '#0f172a',
-        backgroundSecondary: '#1e293b',
-        textPrimary: '#f1f5f9',
-        textSecondary: '#cbd5e1',
-        textMuted: '#64748b',
-        accent: '#818cf8',
-        border: '#334155'
+        backgroundPrimary: '#1a1a1a',
+        backgroundSecondary: '#2d3748',
+        textPrimary: '#f7fafc',
+        textSecondary: '#a0aec0',
+        textMuted: '#718096',
+        accent: '#63b3ed',
+        border: '#4a5568'
       }
     }
     
