@@ -425,17 +425,20 @@ export class SettingsDialog {
    */
   renderThemesTabContent() {
     const themeSettings = this.localSettings?.editor || {}
-    const customTheme = themeSettings.customTheme || {
-      name: '',
-      baseTheme: 'light',
+    const savedCustomTheme = themeSettings.customTheme || {}
+    
+    // Provide defaults for missing properties while preserving existing ones
+    const customTheme = {
+      name: savedCustomTheme.name || '',
+      baseTheme: savedCustomTheme.baseTheme || 'light',
       colors: {
-        backgroundPrimary: '#ffffff',
-        backgroundSecondary: '#f8fafc',
-        textPrimary: '#1e293b',
-        textSecondary: '#475569',
-        textMuted: '#94a3b8',
-        accent: '#6366f1',
-        border: '#e2e8f0'
+        backgroundPrimary: savedCustomTheme.colors?.backgroundPrimary || '#ffffff',
+        backgroundSecondary: savedCustomTheme.colors?.backgroundSecondary || '#f8fafc',
+        textPrimary: savedCustomTheme.colors?.textPrimary || '#1e293b',
+        textSecondary: savedCustomTheme.colors?.textSecondary || '#475569',
+        textMuted: savedCustomTheme.colors?.textMuted || '#94a3b8',
+        accent: savedCustomTheme.colors?.accent || '#6366f1',
+        border: savedCustomTheme.colors?.border || '#e2e8f0'
       }
     }
     
