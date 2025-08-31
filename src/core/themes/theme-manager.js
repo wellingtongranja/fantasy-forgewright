@@ -77,21 +77,34 @@ export class ThemeManager {
 
     // Map custom theme color keys to actual CSS variables used by the app
     const colorMapping = {
-      backgroundPrimary: '--background-color',
-      backgroundSecondary: '--surface-color', 
-      textPrimary: '--text-color',
-      textSecondary: '--text-secondary',
-      textMuted: '--text-muted',
-      accent: '--accent-color',
-      border: '--border-color'
+      backgroundPrimary: ['--background-color', '--color-bg'],
+      backgroundSecondary: ['--surface-color', '--color-bg-secondary', '--color-bg-tertiary'], 
+      textPrimary: ['--text-color', '--color-text'],
+      textSecondary: ['--text-secondary', '--color-text-secondary'],
+      textMuted: ['--text-muted', '--color-text-muted'],
+      accent: ['--accent-color', '--color-primary'],
+      border: ['--border-color', '--color-border']
     }
 
     // Apply mapped colors to document
     Object.keys(colorMapping).forEach(key => {
       if (customTheme.colors[key]) {
-        document.documentElement.style.setProperty(colorMapping[key], customTheme.colors[key])
+        const variables = colorMapping[key]
+        variables.forEach(cssVar => {
+          document.documentElement.style.setProperty(cssVar, customTheme.colors[key])
+        })
       }
     })
+
+    // Set RGB versions for rgba() usage
+    if (customTheme.colors.accent) {
+      const rgb = this.hexToRgb(customTheme.colors.accent)
+      document.documentElement.style.setProperty('--color-primary-rgb', rgb)
+    }
+    if (customTheme.colors.border) {
+      const rgb = this.hexToRgb(customTheme.colors.border)
+      document.documentElement.style.setProperty('--color-border-rgb', rgb)
+    }
 
     // Apply additional derived colors based on main colors
     if (customTheme.colors.backgroundSecondary) {
@@ -101,6 +114,16 @@ export class ThemeManager {
       document.documentElement.style.setProperty('--border-light', this.adjustColor(customTheme.colors.border, 10))
       document.documentElement.style.setProperty('--border-dark', this.adjustColor(customTheme.colors.border, -10))
     }
+  }
+
+  /**
+   * Convert hex color to RGB values for CSS variables
+   */
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result 
+      ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+      : '0, 0, 0'
   }
 
   /**

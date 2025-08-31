@@ -160,21 +160,21 @@
 
 /* Sync status color variants */
 .status-item.sync-status.synced {
-  background-color: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
-  color: rgb(34, 197, 94);
+  background-color: rgba(var(--color-success-rgb), 0.1);
+  border-color: rgba(var(--color-success-rgb), 0.3);
+  color: var(--color-success);
 }
 
 .status-item.sync-status.out-of-sync {
-  background-color: rgba(251, 191, 36, 0.1);
-  border-color: rgba(251, 191, 36, 0.3);
-  color: rgb(251, 191, 36);
+  background-color: rgba(var(--color-warning-rgb), 0.1);
+  border-color: rgba(var(--color-warning-rgb), 0.3);
+  color: var(--color-warning);
 }
 
 .status-item.sync-status.local-only {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: rgb(239, 68, 68);
+  background-color: rgba(var(--color-danger-rgb), 0.1);
+  border-color: rgba(var(--color-danger-rgb), 0.3);
+  color: var(--color-danger);
 }
 
 /* App version styling - less prominent */
@@ -227,7 +227,7 @@
 [data-theme='fantasy'] .status-item.clickable:hover {
   background-color: var(--color-bg);
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 /* Responsive Design */
