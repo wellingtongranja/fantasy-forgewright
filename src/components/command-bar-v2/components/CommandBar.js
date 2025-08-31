@@ -324,7 +324,6 @@ export class CommandBar extends BaseComponent {
           )
           
           if (exactColonMatch) {
-            console.log('Exact colon match found for', queryLower, ':', cmd.name)
             return true
           }
           
@@ -343,7 +342,6 @@ export class CommandBar extends BaseComponent {
             )
             
             if (prefixMatch) {
-              console.log('Prefix colon match found for', queryLower, ':', cmd.name)
               return true
             }
           }
