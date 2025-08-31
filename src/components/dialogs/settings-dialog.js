@@ -31,6 +31,10 @@ export class SettingsDialog {
     this.handleExternalSettingsChange = this.handleExternalSettingsChange.bind(this)
     this.settingsManager.addListener(this.handleExternalSettingsChange)
     
+    // Bind search handlers once to reuse them
+    this.boundHandleSearch = this.handleSearch.bind(this)
+    this.boundHandleSearchKeydown = this.handleSearchKeydown.bind(this)
+    
     // Tab configuration
     this.tabs = [
       { 
@@ -499,6 +503,8 @@ export class SettingsDialog {
     const sidebar = this.element?.querySelector('.settings-sidebar')
     if (sidebar) {
       sidebar.innerHTML = this.renderTabNavigation()
+      // Re-attach search event listeners after DOM update
+      this.attachSearchListeners()
     }
   }
 
@@ -518,12 +524,7 @@ export class SettingsDialog {
   attachEventListeners() {
     if (!this.element) return
 
-    // Search input
-    const searchInput = this.element.querySelector('.settings-search')
-    if (searchInput) {
-      searchInput.addEventListener('input', this.handleSearch.bind(this))
-      searchInput.addEventListener('keydown', this.handleSearchKeydown.bind(this))
-    }
+    this.attachSearchListeners()
 
     // Action buttons and settings controls
     this.element.addEventListener('click', this.handleClick.bind(this))
@@ -535,6 +536,22 @@ export class SettingsDialog {
     
     // Click outside to close
     this.element.addEventListener('click', this.handleOverlayClick.bind(this))
+  }
+
+  /**
+   * Attach search input event listeners (can be called separately for re-renders)
+   */
+  attachSearchListeners() {
+    const searchInput = this.element?.querySelector('.settings-search')
+    if (searchInput) {
+      // Remove existing listeners to avoid duplicates
+      searchInput.removeEventListener('input', this.boundHandleSearch)
+      searchInput.removeEventListener('keydown', this.boundHandleSearchKeydown)
+      
+      // Add fresh listeners
+      searchInput.addEventListener('input', this.boundHandleSearch)
+      searchInput.addEventListener('keydown', this.boundHandleSearchKeydown)
+    }
   }
 
   /**
