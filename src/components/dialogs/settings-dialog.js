@@ -215,30 +215,43 @@ export class SettingsDialog {
           />
         </div>
         
-        ${visibleTabs.length === 0 && this.searchQuery ? `
-          <div class="settings-no-results">
-            <p>No settings found</p>
-            <button class="settings-clear-search" data-action="clear-search">
-              Clear
-            </button>
-          </div>
-        ` : `
-          <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
-            ${visibleTabs.map(tab => `
-              <button 
-                class="settings-tab ${tab.id === this.currentTab ? 'active' : ''}"
-                data-tab="${tab.id}"
-                role="tab"
-                aria-selected="${tab.id === this.currentTab}"
-                aria-controls="settings-panel-${tab.id}"
-                tabindex="${tab.id === this.currentTab ? '0' : '-1'}"
-              >
-                ${tab.name}
-              </button>
-            `).join('')}
-          </nav>
-        `}
+        <div class="settings-tabs-container">
+          ${this.renderTabsOnly(visibleTabs)}
+        </div>
       </div>
+    `
+  }
+
+  /**
+   * Render just the tabs part (can be updated without affecting search)
+   */
+  renderTabsOnly(visibleTabs) {
+    if (visibleTabs.length === 0 && this.searchQuery) {
+      return `
+        <div class="settings-no-results">
+          <p>No settings found</p>
+          <button class="settings-clear-search" data-action="clear-search">
+            Clear
+          </button>
+        </div>
+      `
+    }
+
+    return `
+      <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
+        ${visibleTabs.map(tab => `
+          <button 
+            class="settings-tab ${tab.id === this.currentTab ? 'active' : ''}"
+            data-tab="${tab.id}"
+            role="tab"
+            aria-selected="${tab.id === this.currentTab}"
+            aria-controls="settings-panel-${tab.id}"
+            tabindex="${tab.id === this.currentTab ? '0' : '-1'}"
+          >
+            ${tab.name}
+          </button>
+        `).join('')}
+      </nav>
     `
   }
 
@@ -497,14 +510,14 @@ export class SettingsDialog {
   }
 
   /**
-   * Refresh only the tab navigation
+   * Refresh only the tab navigation (preserve search input focus)
    */
   refreshTabNavigation() {
-    const sidebar = this.element?.querySelector('.settings-sidebar')
-    if (sidebar) {
-      sidebar.innerHTML = this.renderTabNavigation()
-      // Re-attach search event listeners after DOM update
-      this.attachSearchListeners()
+    const tabsContainer = this.element?.querySelector('.settings-tabs-container')
+    if (tabsContainer) {
+      const visibleTabs = this.getVisibleTabs()
+      tabsContainer.innerHTML = this.renderTabsOnly(visibleTabs)
+      // No need to re-attach search listeners since search input is preserved
     }
   }
 
