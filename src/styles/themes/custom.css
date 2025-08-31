@@ -1,0 +1,115 @@
+/**
+ * Custom Theme - User-defined theme with customizable colors
+ * Colors are applied dynamically via JavaScript, this file provides structure
+ */
+
+[data-theme='custom'] {
+  /* Base theme structure - colors will be overridden dynamically */
+  
+  /* Primary colors - will be set dynamically */
+  --primary-color: var(--accent-color, #2d1b69);
+  --secondary-color: #8b5a5a;
+
+  /* Status colors - keep consistent across themes */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+  --info-color: #17a2b8;
+
+  /* Shadows - adjust based on theme brightness */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Typography - consistent across themes */
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  /* Editor specific - will inherit from main colors */
+  --editor-background: var(--background-color);
+  --editor-gutter: var(--surface-color);
+  --editor-selection: rgba(0, 123, 255, 0.1);
+  --editor-cursor: var(--text-color);
+  --editor-line-number: var(--text-secondary);
+
+  /* Code highlighting - derive from accent color */
+  --code-keyword: var(--accent-color, #d73a49);
+  --code-string: var(--text-color, #032f62);
+  --code-comment: var(--text-muted, #6a737d);
+  --code-number: var(--accent-color, #005cc5);
+  --code-operator: var(--accent-color, #d73a49);
+  --code-function: var(--accent-color, #6f42c1);
+  --code-variable: var(--text-secondary, #e36209);
+
+  /* Markdown highlighting */
+  --markdown-heading: var(--text-color);
+  --markdown-link: var(--accent-color);
+  --markdown-emphasis: var(--text-color);
+  --markdown-strong: var(--text-color);
+  --markdown-code: var(--accent-color);
+  --markdown-quote: var(--text-secondary);
+  --markdown-hr: var(--border-color);
+}
+
+/* Custom theme specific styles */
+[data-theme='custom'] .app-header {
+  background-color: var(--surface-color);
+  box-shadow: var(--shadow);
+}
+
+[data-theme='custom'] .sidebar,
+[data-theme='custom'] .gutenberg-panel {
+  background-color: var(--surface-color);
+}
+
+[data-theme='custom'] .editor-container {
+  background-color: var(--background-color);
+}
+
+[data-theme='custom'] button:hover {
+  background-color: var(--surface-hover);
+}
+
+[data-theme='custom'] input:focus,
+[data-theme='custom'] textarea:focus {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Scrollbar styling for custom theme */
+[data-theme='custom'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme='custom'] ::-webkit-scrollbar-track {
+  background: var(--surface-color);
+}
+
+[data-theme='custom'] ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+[data-theme='custom'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-dark);
+}
+
+/* Selection styling */
+[data-theme='custom'] ::selection {
+  background-color: rgba(0, 123, 255, 0.2);
+  color: var(--text-color);
+}
+
+/* Focus indicators */
+[data-theme='custom'] *:focus {
+  outline-color: var(--accent-color);
+}
+
+/* Print optimizations for custom theme */
+@media print {
+  [data-theme='custom'] {
+    --background-color: white;
+    --text-color: black;
+    --surface-color: white;
+    --border-color: #ccc;
+  }
+}

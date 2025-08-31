@@ -1241,13 +1241,13 @@ export class SettingsDialog {
     // If custom theme is active, apply to document
     if (this.localSettings?.editor?.theme === 'custom') {
       document.documentElement.setAttribute('data-theme', 'custom')
-      // Apply custom CSS variables
-      Object.keys(customTheme.colors).forEach(key => {
-        const cssVar = `--color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`
-        document.documentElement.style.setProperty(cssVar, customTheme.colors[key])
-      })
+      // Let ThemeManager handle custom theme application via live preview
+      if (window.app?.themeManager) {
+        window.app.themeManager.applyCustomTheme()
+      }
     }
   }
+
 
   /**
    * Show notification (helper method)
