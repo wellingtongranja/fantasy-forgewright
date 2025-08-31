@@ -1,243 +1,209 @@
 /**
- * Fantasy Theme - Immersive medieval atmosphere for fantasy writing
+ * Fantasy Theme - Royal colors, clean and simple
  */
 
 [data-theme='fantasy'] {
-  /* Royal theme colors - updated to match customization */
+  /* Royal color scheme */
   --primary-color: #2A4D2E;
-  --secondary-color: #2A4D2E;
+  --secondary-color: #40101C;
   --accent-color: #2A4D2E;
 
-  /* Background colors - Royal customization */
   --background-color: #F3E6D1;
   --surface-color: #E6D5B8;
   --surface-hover: #D4C3A6;
 
-  /* Text colors - Royal customization */
   --text-color: #8E2C42;
   --text-secondary: #40101C;
   --text-muted: #4F7A55;
 
-  /* Border colors - Royal customization */
   --border-color: #A6801D;
   --border-light: #B8922F;
   --border-dark: #947015;
 
-  /* CodeMirror specific variables */
-  --background-primary: var(--background-color);
-  --background-secondary: var(--surface-color);
-  --background-tertiary: var(--surface-hover);
-  --text-primary: var(--text-color);
-  --text-secondary: var(--text-secondary);
-  --text-muted: var(--text-muted);
-
-  /* CodeMirror syntax highlighting variables */
-  --color-primary: var(--accent-color);
-  --color-secondary: var(--text-secondary);
-  --color-accent: var(--accent-color);
-
-  /* Additional component variables */
-  --color-bg: var(--background-color);
-  --color-bg-secondary: var(--surface-color);
-  --color-bg-tertiary: var(--surface-hover);
-  --color-border: var(--border-color);
-  --color-border-light: var(--border-light);
-  --color-text: var(--text-color);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted: var(--text-muted);
-  --color-text-tertiary: var(--text-muted);
-
-  /* RGB variants for rgba usage */
-  --color-primary-rgb: 42, 77, 46; /* #2A4D2E - Accent color */
-  --color-border-rgb: 166, 128, 29; /* #A6801D */
-
-  /* Status colors - consistent with app */
   --success-color: #28a745;
   --warning-color: #ffc107;
   --error-color: #dc3545;
   --info-color: #17a2b8;
 
-  /* Shadows - subtle and warm */
   --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-  /* Typography - consistent with other themes */
   --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
-  /* Editor specific - clean and readable */
-  --editor-background: var(--background-color);
-  --editor-gutter: var(--surface-color);
-  --editor-selection: rgba(42, 77, 46, 0.2);
-  --editor-cursor: var(--text-color);
-  --editor-line-number: var(--text-secondary);
+  --editor-background: #F3E6D1;
+  --editor-gutter: #E6D5B8;
+  --editor-selection: rgba(42, 77, 46, 0.1);
+  --editor-cursor: #8E2C42;
+  --editor-line-number: #40101C;
 
-  /* Code highlighting - consistent with theme */
-  --code-keyword: var(--accent-color);
-  --code-string: var(--text-muted);
-  --code-comment: var(--text-secondary);
-  --code-number: var(--accent-color);
-  --code-operator: var(--text-color);
-  --code-function: var(--accent-color);
-  --code-variable: var(--text-secondary);
+  --code-keyword: #2A4D2E;
+  --code-string: #4F7A55;
+  --code-comment: #40101C;
+  --code-number: #2A4D2E;
+  --code-operator: #2A4D2E;
+  --code-function: #2A4D2E;
+  --code-variable: #40101C;
 
-  /* Markdown highlighting - warm tones */
-  --markdown-heading: var(--text-color);
-  --markdown-link: var(--accent-color);
-  --markdown-emphasis: var(--text-color);
-  --markdown-strong: var(--text-color);
-  --markdown-code: var(--accent-color);
-  --markdown-quote: var(--text-secondary);
-  --markdown-hr: var(--border-color);
+  --markdown-heading: #2A4D2E;
+  --markdown-link: #2A4D2E;
+  --markdown-emphasis: #8E2C42;
+  --markdown-strong: #8E2C42;
+  --markdown-code: #8E2C42;
+  --markdown-quote: #40101C;
+  --markdown-hr: #A6801D;
+
+  --color-primary: #2A4D2E;
+  --color-secondary: #40101C;
+  --color-accent: #2A4D2E;
+  --color-bg: #F3E6D1;
+  --color-bg-secondary: #E6D5B8;
+  --color-bg-tertiary: #D4C3A6;
+  --color-border: #A6801D;
+  --color-border-light: #B8922F;
+  --color-text: #8E2C42;
+  --color-text-secondary: #40101C;
+  --color-text-muted: #4F7A55;
+  --color-text-tertiary: #4F7A55;
+
+  --color-primary-rgb: 42, 77, 46;
+  --color-border-rgb: 166, 128, 29;
+
+  --background-primary: #F3E6D1;
+  --background-secondary: #E6D5B8;
+  --background-tertiary: #D4C3A6;
+  --text-primary: #8E2C42;
 }
 
-/* Fantasy theme specific styles - clean and simple */
 [data-theme='fantasy'] .app-header {
-  background-color: var(--surface-color);
-  box-shadow: var(--shadow);
-  border-bottom: 1px solid var(--border-color);
-}
-
-[data-theme='fantasy'] .app-title {
-  color: var(--text-color);
+  background-color: #E6D5B8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme='fantasy'] .sidebar,
 [data-theme='fantasy'] .gutenberg-panel {
-  background-color: var(--surface-color);
-  border-color: var(--border-color);
-  box-shadow: var(--shadow);
+  background-color: #E6D5B8;
 }
 
 [data-theme='fantasy'] .editor-container {
-  background-color: var(--background-color);
-}
-
-[data-theme='fantasy'] .editor {
-  background: transparent;
-  color: var(--text-color);
-}
-
-/* CodeMirror editor styling - enforce fantasy theme colors */
-[data-theme='fantasy'] .cm-editor,
-[data-theme='fantasy'] .cm-editor.cm-focused {
-  background-color: var(--background-color) !important;
-}
-
-[data-theme='fantasy'] .cm-content {
-  background-color: var(--background-color) !important;
-}
-
-[data-theme='fantasy'] .cm-scroller {
-  background-color: var(--background-color) !important;
-}
-
-/* Simple button styling for fantasy theme */
-[data-theme='fantasy'] button {
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
+  background-color: #F3E6D1;
 }
 
 [data-theme='fantasy'] button:hover {
-  background-color: var(--surface-hover);
-  border-color: var(--accent-color);
-}
-
-/* Simple input styling */
-[data-theme='fantasy'] input,
-[data-theme='fantasy'] textarea {
-  background-color: var(--background-color);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
+  background-color: #D4C3A6;
 }
 
 [data-theme='fantasy'] input:focus,
 [data-theme='fantasy'] textarea:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(42, 77, 46, 0.2);
+  box-shadow: 0 0 0 2px rgba(42, 77, 46, 0.25);
 }
 
-/* Simple scrollbar styling */
 [data-theme='fantasy'] ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 [data-theme='fantasy'] ::-webkit-scrollbar-track {
-  background: var(--surface-color);
+  background: #E6D5B8;
 }
 
 [data-theme='fantasy'] ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: #A6801D;
   border-radius: 4px;
 }
 
 [data-theme='fantasy'] ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
+  background: #947015;
 }
 
-/* Simple selection styling */
 [data-theme='fantasy'] ::selection {
   background-color: rgba(42, 77, 46, 0.2);
-  color: var(--text-color);
+  color: #8E2C42;
 }
 
-/* Clean headings */
+[data-theme='fantasy'] *:focus {
+  outline-color: #2A4D2E;
+}
+
+[data-theme='fantasy'] button:not(.github-signin-btn):not(.command-bar-trigger):not(.navigator-pin) {
+  background-color: #E6D5B8;
+  border: 1px solid #A6801D;
+  color: #8E2C42;
+}
+
+[data-theme='fantasy'] button:not(.github-signin-btn):not(.command-bar-trigger):not(.navigator-pin):hover {
+  background-color: #D4C3A6;
+  border-color: #2A4D2E;
+}
+
+[data-theme='fantasy'] input,
+[data-theme='fantasy'] textarea {
+  background-color: #F3E6D1;
+  border: 1px solid #A6801D;
+  color: #8E2C42;
+}
+
 [data-theme='fantasy'] h1,
 [data-theme='fantasy'] h2,
 [data-theme='fantasy'] h3 {
-  color: var(--text-color);
+  color: #8E2C42;
 }
 
-/* Simple links */
 [data-theme='fantasy'] a {
-  color: var(--accent-color);
+  color: #2A4D2E;
 }
 
 [data-theme='fantasy'] a:hover {
-  color: var(--text-color);
+  color: #8E2C42;
 }
 
-/* Simple code blocks */
 [data-theme='fantasy'] pre,
 [data-theme='fantasy'] code {
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
+  background-color: #E6D5B8;
+  border: 1px solid #A6801D;
   border-radius: 4px;
 }
 
-/* Clean focus indicators */
-[data-theme='fantasy'] *:focus {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-}
-
-/* Commands button styling */
 [data-theme='fantasy'] .command-bar-trigger {
-  background-color: var(--surface-color) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-color) !important;
+  background: transparent !important;
+  border-color: #A6801D !important;
+  color: #40101C !important;
 }
 
 [data-theme='fantasy'] .command-bar-trigger:hover {
-  background-color: var(--surface-hover) !important;
-  border-color: var(--accent-color) !important;
-  color: var(--text-color) !important;
-  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1) !important;
+  background-color: #D4C3A6 !important;
+  border-color: #2A4D2E !important;
+  color: #8E2C42 !important;
+  box-shadow: 0 0 0 2px rgba(42, 77, 46, 0.1) !important;
 }
 
-/* GitHub signin button uses default transparent background like other themes */
 [data-theme='fantasy'] .github-signin-btn {
   background: transparent !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-secondary) !important;
+  border-color: #A6801D !important;
+  color: #40101C !important;
 }
 
 [data-theme='fantasy'] .github-signin-btn:hover {
-  background-color: var(--color-bg-tertiary) !important;
-  border-color: var(--color-primary) !important;
-  color: var(--text-color) !important;
+  background-color: #D4C3A6 !important;
+  border-color: #2A4D2E !important;
+  color: #8E2C42 !important;
+}
+
+[data-theme='fantasy'] .cm-editor,
+[data-theme='fantasy'] .cm-editor.cm-focused {
+  background-color: #F3E6D1 !important;
+}
+
+[data-theme='fantasy'] .cm-content {
+  background-color: #F3E6D1 !important;
+}
+
+[data-theme='fantasy'] .cm-scroller {
+  background-color: #F3E6D1 !important;
+}
+
+[data-theme='fantasy'] button:focus,
+[data-theme='fantasy'] .navigator-tab:focus {
+  outline: 2px solid #2A4D2E;
+  outline-offset: 2px;
 }
