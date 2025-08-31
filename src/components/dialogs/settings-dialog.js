@@ -152,6 +152,7 @@ export class SettingsDialog {
       <div class="settings-dialog">
         ${this.renderHeader()}
         ${this.renderContent()}
+        ${this.renderFooter()}
       </div>
     `
     
@@ -159,36 +160,17 @@ export class SettingsDialog {
   }
 
   /**
-   * Render dialog header with search and actions
+   * Render clean header with just title and close
    */
   renderHeader() {
     return `
       <div class="settings-header">
         <div class="settings-title">
-          <h2>⚙️ Fantasy Editor Settings</h2>
+          <h2>Settings</h2>
         </div>
-        <div class="settings-search-actions">
-          <div class="settings-search-container">
-            <input 
-              type="text" 
-              class="settings-search" 
-              placeholder="🔍 Search settings..." 
-              value="${this.searchQuery}"
-              autocomplete="off"
-            />
-          </div>
-          <div class="settings-actions">
-            <button class="settings-btn settings-btn-secondary" data-action="reset">
-              Reset
-            </button>
-            <button class="settings-btn settings-btn-primary" data-action="save">
-              Save
-            </button>
-            <button class="settings-close-btn" data-action="close" aria-label="Close settings">
-              ×
-            </button>
-          </div>
-        </div>
+        <button class="settings-close-btn" data-action="close" aria-label="Close settings">
+          ×
+        </button>
       </div>
     `
   }
@@ -212,37 +194,68 @@ export class SettingsDialog {
   }
 
   /**
-   * Render tab navigation sidebar
+   * Render tab navigation sidebar with search
    */
   renderTabNavigation() {
     const visibleTabs = this.getVisibleTabs()
     
-    if (visibleTabs.length === 0 && this.searchQuery) {
-      return `
-        <div class="settings-no-results">
-          <p>No settings found for "${this.searchQuery}"</p>
-          <button class="settings-clear-search" data-action="clear-search">
-            Clear search
+    return `
+      <div class="settings-sidebar-content">
+        <div class="settings-search-container">
+          <input 
+            type="text" 
+            class="settings-search" 
+            placeholder="Search..." 
+            value="${this.searchQuery}"
+            autocomplete="off"
+          />
+        </div>
+        
+        ${visibleTabs.length === 0 && this.searchQuery ? `
+          <div class="settings-no-results">
+            <p>No settings found</p>
+            <button class="settings-clear-search" data-action="clear-search">
+              Clear
+            </button>
+          </div>
+        ` : `
+          <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
+            ${visibleTabs.map(tab => `
+              <button 
+                class="settings-tab ${tab.id === this.currentTab ? 'active' : ''}"
+                data-tab="${tab.id}"
+                role="tab"
+                aria-selected="${tab.id === this.currentTab}"
+                aria-controls="settings-panel-${tab.id}"
+                tabindex="${tab.id === this.currentTab ? '0' : '-1'}"
+              >
+                ${tab.name}
+              </button>
+            `).join('')}
+          </nav>
+        `}
+      </div>
+    `
+  }
+
+  /**
+   * Render simple footer with save button
+   */
+  renderFooter() {
+    return `
+      <div class="settings-footer">
+        ${this.hasChanges ? `
+          <div class="settings-status">
+            <span class="settings-changes-indicator">●</span>
+            Unsaved changes
+          </div>
+        ` : ''}
+        <div class="settings-actions">
+          <button class="settings-btn settings-btn-primary" data-action="save" ${!this.hasChanges ? 'disabled' : ''}>
+            Save Changes
           </button>
         </div>
-      `
-    }
-    
-    return `
-      <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
-        ${visibleTabs.map(tab => `
-          <button 
-            class="settings-tab ${tab.id === this.currentTab ? 'active' : ''}"
-            data-tab="${tab.id}"
-            role="tab"
-            aria-selected="${tab.id === this.currentTab}"
-            aria-controls="settings-panel-${tab.id}"
-            tabindex="${tab.id === this.currentTab ? '0' : '-1'}"
-          >
-            ${tab.name}
-          </button>
-        `).join('')}
-      </nav>
+      </div>
     `
   }
 
@@ -674,6 +687,7 @@ export class SettingsDialog {
       
       // Update UI immediately for visual feedback
       this.refreshSettingsUI(path, value)
+      this.refreshFooter()
       
       // Apply live preview with throttling for width changes to reduce lag
       if (path === 'editor.width') {
@@ -769,6 +783,16 @@ export class SettingsDialog {
       this.applyLivePreview(path, value)
       this.livePreviewThrottleTimer = null
     }, 100) // 100ms throttle - fast enough for live preview, slow enough to prevent lag
+  }
+
+  /**
+   * Refresh footer to show/hide save button
+   */
+  refreshFooter() {
+    const footer = this.element?.querySelector('.settings-footer')
+    if (footer) {
+      footer.innerHTML = this.renderFooter().match(/<div class="settings-footer">([\s\S]*)<\/div>/)[1]
+    }
   }
 
   /**

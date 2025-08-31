@@ -649,6 +649,36 @@
   animation: settingsToastSlideIn 0.3s ease;
 }
 
+/* Footer */
+.settings-footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.settings-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.settings-changes-indicator {
+  color: var(--color-accent);
+  font-size: 0.8rem;
+}
+
+.settings-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
 @keyframes settingsToastSlideIn {
   from {
     opacity: 0;
@@ -672,13 +702,6 @@
   
   .settings-header {
     padding: var(--spacing-md) var(--spacing-lg);
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
-  }
-  
-  .settings-search {
-    width: 200px;
   }
   
   .settings-content {
@@ -743,7 +766,6 @@
   }
   
   .settings-search {
-    width: 100%;
     font-size: 16px; /* Prevent zoom on iOS */
   }
   
