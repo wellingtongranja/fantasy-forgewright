@@ -195,7 +195,7 @@ describe('Settings Schema', () => {
       providers.forEach(provider => {
         const settings = {
           ...DEFAULT_SETTINGS,
-          sync: { ...DEFAULT_SETTINGS.sync, provider }
+          gitIntegration: { ...DEFAULT_SETTINGS.gitIntegration, provider }
         }
         
         const result = validateSettings(settings)
@@ -206,7 +206,7 @@ describe('Settings Schema', () => {
     test('rejects invalid provider', () => {
       const settings = {
         ...DEFAULT_SETTINGS,
-        sync: { ...DEFAULT_SETTINGS.sync, provider: 'invalid-provider' }
+        gitIntegration: { ...DEFAULT_SETTINGS.gitIntegration, provider: 'invalid-provider' }
       }
       
       const result = validateSettings(settings)

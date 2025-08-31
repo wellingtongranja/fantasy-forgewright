@@ -35,7 +35,6 @@ class FantasyEditorApp {
     this.fileTree = null
     this.currentDocument = null
     this.autoSaveTimeout = null
-    this.autoSaveDelay = 2000 // 2 seconds
     this.guidManager = guidManager
     this.documentChangeTracking = {
       lastContentChecksum: null,
@@ -933,6 +932,12 @@ class FantasyEditorApp {
   scheduleAutoSave() {
     if (!this.currentDocument) return
 
+    // Check if auto save is enabled in settings
+    const autoSaveEnabled = this.settingsManager.get('editor.autoSave')
+    if (!autoSaveEnabled) {
+      return
+    }
+
     // Check if document is readonly - don't schedule auto-save for readonly documents
     const isReadonly =
       this.currentDocument.readonly === true || this.currentDocument.type === 'system'
@@ -946,10 +951,13 @@ class FantasyEditorApp {
       clearTimeout(this.autoSaveTimeout)
     }
 
+    // Get auto save interval from settings (with fallback to default)
+    const autoSaveInterval = this.settingsManager.get('editor.autoSaveInterval') || 5000
+
     // Schedule new auto-save
     this.autoSaveTimeout = setTimeout(() => {
       this.performAutoSave()
-    }, this.autoSaveDelay)
+    }, autoSaveInterval)
 
     // Show pending save indicator
     this.updateSyncStatus('Pending...')
@@ -960,6 +968,12 @@ class FantasyEditorApp {
    */
   async performAutoSave() {
     if (!this.currentDocument) return
+
+    // Check if auto save is enabled in settings
+    const autoSaveEnabled = this.settingsManager.get('editor.autoSave')
+    if (!autoSaveEnabled) {
+      return
+    }
 
     // Double-check if document is readonly before attempting auto-save
     const isReadonly =

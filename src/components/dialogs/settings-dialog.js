@@ -41,7 +41,7 @@ export class SettingsDialog {
         id: 'editor', 
         name: '📝 Editor', 
         label: 'Editor Settings',
-        keywords: ['theme', 'width', 'zoom', 'spell', 'auto save']
+        keywords: ['width', 'zoom', 'spell', 'auto save', 'layout', 'display', 'behavior']
       },
       { 
         id: 'themes', 
@@ -56,10 +56,10 @@ export class SettingsDialog {
         keywords: ['line numbers', 'wrap', 'fold', 'font', 'bracket']
       },
       { 
-        id: 'sync', 
-        name: '🔄 Sync', 
-        label: 'Sync & Providers',
-        keywords: ['github', 'gitlab', 'bitbucket', 'git', 'provider']
+        id: 'git-integration', 
+        name: '🔀 Git Integration', 
+        label: 'Git Integration & Version Control',
+        keywords: ['github', 'gitlab', 'bitbucket', 'git', 'provider', 'version', 'control', 'repository', 'sync']
       },
       { 
         id: 'privacy', 
@@ -309,6 +309,8 @@ export class SettingsDialog {
     switch (tab.id) {
       case 'editor':
         return this.renderEditorTabContent()
+      case 'themes':
+        return this.renderThemesTabContent()
       default:
         return this.renderTabContentPlaceholder(tab)
     }
@@ -323,17 +325,7 @@ export class SettingsDialog {
     return `
       <div class="settings-sections">
         <div class="settings-section">
-          <h4>Appearance</h4>
-          
-          <div class="settings-field">
-            <label for="editor-theme">Theme</label>
-            <select id="editor-theme" data-setting="editor.theme">
-              <option value="light" ${editorSettings.theme === 'light' ? 'selected' : ''}>☀️ Light Theme</option>
-              <option value="dark" ${editorSettings.theme === 'dark' ? 'selected' : ''}>🌙 Dark Theme</option>
-              <option value="fantasy" ${editorSettings.theme === 'fantasy' ? 'selected' : ''}>✨ Fantasy Theme</option>
-            </select>
-            <small>Choose your preferred editor theme</small>
-          </div>
+          <h4>Layout & Display</h4>
           
           <div class="settings-field">
             <label>Editor Width</label>
@@ -429,13 +421,189 @@ export class SettingsDialog {
   }
 
   /**
+   * Render Themes Settings tab with theme selection and customization
+   */
+  renderThemesTabContent() {
+    const themeSettings = this.localSettings?.editor || {}
+    const customTheme = themeSettings.customTheme || {
+      name: '',
+      baseTheme: 'light',
+      colors: {
+        backgroundPrimary: '#ffffff',
+        backgroundSecondary: '#f8fafc',
+        textPrimary: '#1e293b',
+        textSecondary: '#475569',
+        textMuted: '#94a3b8',
+        accent: '#6366f1',
+        border: '#e2e8f0'
+      }
+    }
+    
+    return `
+      <div class="settings-sections">
+        <div class="settings-section">
+          <h4>Theme Selection</h4>
+          <p class="settings-section-description">Choose your preferred editor theme</p>
+          
+          <div class="theme-selection-group">
+            <h5>Built-in Themes</h5>
+            <div class="theme-preview-grid">
+              ${this.renderThemePreviewCard('light', '☀️ Light Theme', themeSettings.theme === 'light')}
+              ${this.renderThemePreviewCard('dark', '🌙 Dark Theme', themeSettings.theme === 'dark')}
+              ${this.renderThemePreviewCard('fantasy', '✨ Fantasy Theme', themeSettings.theme === 'fantasy')}
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h4>Custom Theme</h4>
+          
+          <div class="settings-field">
+            <label for="custom-theme-name">Theme Name</label>
+            <input 
+              type="text" 
+              id="custom-theme-name"
+              class="settings-text-input"
+              data-setting="editor.customTheme.name"
+              value="${this.escapeHtml(customTheme.name)}"
+              placeholder="My Custom Theme"
+              maxlength="50"
+            />
+            <small>Give your custom theme a unique name</small>
+          </div>
+          
+          <div class="settings-field">
+            <label for="custom-base-theme">Base Theme</label>
+            <select id="custom-base-theme" data-setting="editor.customTheme.baseTheme">
+              <option value="light" ${customTheme.baseTheme === 'light' ? 'selected' : ''}>Light</option>
+              <option value="dark" ${customTheme.baseTheme === 'dark' ? 'selected' : ''}>Dark</option>
+              <option value="fantasy" ${customTheme.baseTheme === 'fantasy' ? 'selected' : ''}>Fantasy</option>
+            </select>
+            <small>Select a base theme to start from</small>
+          </div>
+          
+          <div class="settings-subsection">
+            <h5>Color Customization</h5>
+            <div class="color-settings-grid">
+              ${this.renderColorPicker('backgroundPrimary', 'Primary Background', customTheme.colors.backgroundPrimary)}
+              ${this.renderColorPicker('backgroundSecondary', 'Secondary Background', customTheme.colors.backgroundSecondary)}
+              ${this.renderColorPicker('textPrimary', 'Primary Text', customTheme.colors.textPrimary)}
+              ${this.renderColorPicker('textSecondary', 'Secondary Text', customTheme.colors.textSecondary)}
+              ${this.renderColorPicker('textMuted', 'Muted Text', customTheme.colors.textMuted)}
+              ${this.renderColorPicker('accent', 'Accent Color', customTheme.colors.accent)}
+              ${this.renderColorPicker('border', 'Border Color', customTheme.colors.border)}
+            </div>
+          </div>
+          
+          <div class="custom-theme-preview ${themeSettings.theme === 'custom' ? 'active' : ''}">
+            <div class="preview-header">
+              <span>Custom Theme Preview</span>
+              <div class="preview-actions">
+                <button 
+                  type="button" 
+                  class="btn-secondary btn-sm"
+                  data-action="reset-custom-colors"
+                >
+                  Reset Colors
+                </button>
+                <button 
+                  type="button" 
+                  class="btn-primary btn-sm"
+                  data-action="activate-custom-theme"
+                  ${!customTheme.name ? 'disabled' : ''}
+                >
+                  Activate Custom Theme
+                </button>
+              </div>
+            </div>
+            <div class="theme-preview-content custom-theme-preview-content">
+              ${this.renderThemePreviewContent()}
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  /**
+   * Render a theme preview card
+   */
+  renderThemePreviewCard(theme, label, isActive) {
+    return `
+      <div 
+        class="theme-preview-card ${isActive ? 'active' : ''}"
+        data-theme-preview="${theme}"
+        role="button"
+        aria-label="Select ${label}"
+        tabindex="0"
+      >
+        <div class="theme-preview-header">${label}</div>
+        <div class="theme-preview-content" data-preview-theme="${theme}">
+          ${this.renderThemePreviewContent()}
+        </div>
+      </div>
+    `
+  }
+
+  /**
+   * Render theme preview content (sample text)
+   */
+  renderThemePreviewContent() {
+    return `
+      <div class="preview-sample">
+        <div class="preview-title">Sample text</div>
+        <div class="preview-text">The quick brown fox jumps over the lazy dog.</div>
+        <div class="preview-muted">// This is a comment</div>
+        <div class="preview-accent">const greeting = "Hello World";</div>
+      </div>
+    `
+  }
+
+  /**
+   * Render a color picker field
+   */
+  renderColorPicker(key, label, value) {
+    const inputId = `color-${key}`
+    return `
+      <div class="color-field">
+        <label for="${inputId}">${label}</label>
+        <div class="color-input-group">
+          <input 
+            type="color" 
+            id="${inputId}"
+            data-setting="editor.customTheme.colors.${key}"
+            value="${value}"
+          />
+          <input 
+            type="text" 
+            class="color-hex-input"
+            data-setting="editor.customTheme.colors.${key}"
+            value="${value}"
+            pattern="^#[0-9a-fA-F]{6}$"
+            maxlength="7"
+          />
+        </div>
+      </div>
+    `
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div')
+    div.textContent = text || ''
+    return div.innerHTML
+  }
+
+  /**
    * Render placeholder content for tabs (will be replaced in later steps)
    */
   renderTabContentPlaceholder(tab) {
     const examples = {
       themes: 'Custom theme creation, color picker, live preview',
       codemirror: 'Line numbers, word wrap, syntax highlighting, code folding options',
-      sync: 'Provider selection (GitHub/GitLab/Bitbucket), authentication, sync preferences',
+      'git-integration': 'Git provider selection (GitHub/GitLab/Bitbucket), repository configuration, authentication, version control settings',
       privacy: 'Analytics settings, crash reporting, about information, license details'
     }
 
@@ -469,7 +637,7 @@ export class SettingsDialog {
       editor: '4',
       codemirror: '5', 
       themes: '6',
-      sync: '7',
+      'git-integration': '7',
       privacy: '8'
     }
     return steps[tabId] || '?'
@@ -601,6 +769,13 @@ export class SettingsDialog {
     const setting = event.target.dataset.setting
     const value = event.target.dataset.value
     
+    // Check for theme preview card click
+    const themeCard = event.target.closest('[data-theme-preview]')
+    if (themeCard) {
+      this.handleThemeSelect(themeCard.dataset.themePreview)
+      return
+    }
+    
     if (action === 'close') {
       this.hide()
     } else if (action === 'save') {
@@ -611,6 +786,10 @@ export class SettingsDialog {
       this.handleZoomReset()
     } else if (action === 'clear-search') {
       this.clearSearch()
+    } else if (action === 'activate-custom-theme') {
+      this.handleActivateCustomTheme()
+    } else if (action === 'reset-custom-colors') {
+      this.handleResetCustomColors()
     } else if (tab) {
       this.switchTab(tab)
     } else if (setting && value !== undefined) {
@@ -623,6 +802,14 @@ export class SettingsDialog {
    * Handle keyboard navigation
    */
   handleKeydown(event) {
+    // Handle theme card keyboard selection
+    const themeCard = event.target.closest('[data-theme-preview]')
+    if (themeCard && (event.key === 'Enter' || event.key === ' ')) {
+      this.handleThemeSelect(themeCard.dataset.themePreview)
+      event.preventDefault()
+      return
+    }
+    
     if (event.key === 'Escape' && !this.searchQuery) {
       this.hide()
       event.preventDefault()
@@ -683,6 +870,57 @@ export class SettingsDialog {
       this.updateSetting(setting, value)
       this.updateZoomDisplay(value)
     }
+    
+    // For text inputs (including custom theme name and hex colors)
+    if (event.target.type === 'text') {
+      let value = event.target.value
+      
+      // Validate hex color inputs
+      if (setting.includes('colors') && event.target.classList.contains('color-hex-input')) {
+        if (!/^#[0-9a-fA-F]{6}$/.test(value)) {
+          // Keep previous valid value
+          return
+        }
+        // Update corresponding color picker
+        const colorPicker = event.target.previousElementSibling
+        if (colorPicker && colorPicker.type === 'color') {
+          colorPicker.value = value
+        }
+      }
+      
+      // Validate custom theme name length
+      if (setting === 'editor.customTheme.name' && value.length > 50) {
+        value = value.substring(0, 50)
+        event.target.value = value
+      }
+      
+      this.updateSetting(setting, value)
+      
+      // Enable/disable activate button based on name
+      if (setting === 'editor.customTheme.name') {
+        const activateBtn = this.element.querySelector('[data-action="activate-custom-theme"]')
+        if (activateBtn) {
+          activateBtn.disabled = !value.trim()
+        }
+      }
+    }
+    
+    // For color inputs
+    if (event.target.type === 'color') {
+      const value = event.target.value
+      this.updateSetting(setting, value)
+      
+      // Update corresponding hex input
+      const hexInput = event.target.nextElementSibling
+      if (hexInput && hexInput.classList.contains('color-hex-input')) {
+        hexInput.value = value
+      }
+      
+      // Update custom theme preview if on themes tab
+      if (this.currentTab === 'themes') {
+        this.applyCustomThemePreview()
+      }
+    }
   }
 
   /**
@@ -693,8 +931,9 @@ export class SettingsDialog {
       return checked
     }
     
-    if (setting.includes('width') || setting.includes('zoom') || setting.includes('interval')) {
-      return parseFloat(value) || parseInt(value)
+    if (setting.includes('width') || setting.includes('zoom') || setting.includes('Interval')) {
+      const parsed = parseFloat(value)
+      return isNaN(parsed) ? value : parsed
     }
     
     return value
@@ -880,6 +1119,139 @@ export class SettingsDialog {
       zoomSlider.value = 1.0
       this.updateSetting('editor.zoom', 1.0)
     }
+  }
+
+  /**
+   * Handle theme selection from preview cards
+   */
+  handleThemeSelect(theme) {
+    if (!theme || theme === this.localSettings?.editor?.theme) return
+    
+    // Update local settings
+    this.updateSetting('editor.theme', theme)
+    
+    // Update UI to show active theme
+    this.element.querySelectorAll('.theme-preview-card').forEach(card => {
+      card.classList.toggle('active', card.dataset.themePreview === theme)
+    })
+    
+    // Apply live preview
+    this.applyLivePreview()
+  }
+
+  /**
+   * Handle activating custom theme
+   */
+  handleActivateCustomTheme() {
+    const customTheme = this.localSettings?.editor?.customTheme
+    if (!customTheme?.name) {
+      this.showNotification('Please enter a name for your custom theme', 'warning')
+      return
+    }
+    
+    // Set theme to custom
+    this.updateSetting('editor.theme', 'custom')
+    
+    // Update UI
+    this.element.querySelectorAll('.theme-preview-card').forEach(card => {
+      card.classList.remove('active')
+    })
+    
+    const customPreview = this.element.querySelector('.custom-theme-preview')
+    if (customPreview) {
+      customPreview.classList.add('active')
+    }
+    
+    // Apply custom theme
+    this.applyCustomThemePreview()
+  }
+
+  /**
+   * Handle resetting custom theme colors to base theme defaults
+   */
+  handleResetCustomColors() {
+    const baseTheme = this.localSettings?.editor?.customTheme?.baseTheme || 'light'
+    const defaultColors = this.getDefaultThemeColors(baseTheme)
+    
+    // Update each color
+    Object.keys(defaultColors).forEach(key => {
+      this.updateSetting(`editor.customTheme.colors.${key}`, defaultColors[key])
+    })
+    
+    // Refresh the tab to show updated colors
+    this.refreshTabContent()
+  }
+
+  /**
+   * Get default colors for a base theme
+   */
+  getDefaultThemeColors(baseTheme) {
+    const themes = {
+      light: {
+        backgroundPrimary: '#ffffff',
+        backgroundSecondary: '#f8fafc',
+        textPrimary: '#1e293b',
+        textSecondary: '#475569',
+        textMuted: '#94a3b8',
+        accent: '#6366f1',
+        border: '#e2e8f0'
+      },
+      dark: {
+        backgroundPrimary: '#0f172a',
+        backgroundSecondary: '#1e293b',
+        textPrimary: '#f1f5f9',
+        textSecondary: '#cbd5e1',
+        textMuted: '#64748b',
+        accent: '#818cf8',
+        border: '#334155'
+      },
+      fantasy: {
+        backgroundPrimary: '#1a0f2e',
+        backgroundSecondary: '#2d1b4e',
+        textPrimary: '#e0d5ff',
+        textSecondary: '#b4a7d6',
+        textMuted: '#8b7aa8',
+        accent: '#9333ea',
+        border: '#4c3575'
+      }
+    }
+    
+    return themes[baseTheme] || themes.light
+  }
+
+  /**
+   * Apply custom theme preview
+   */
+  applyCustomThemePreview() {
+    const customTheme = this.localSettings?.editor?.customTheme
+    if (!customTheme?.colors) return
+    
+    // Apply custom colors to preview
+    const preview = this.element.querySelector('.custom-theme-preview-content')
+    if (preview) {
+      Object.keys(customTheme.colors).forEach(key => {
+        const cssVar = `--preview-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`
+        preview.style.setProperty(cssVar, customTheme.colors[key])
+      })
+    }
+    
+    // If custom theme is active, apply to document
+    if (this.localSettings?.editor?.theme === 'custom') {
+      document.documentElement.setAttribute('data-theme', 'custom')
+      // Apply custom CSS variables
+      Object.keys(customTheme.colors).forEach(key => {
+        const cssVar = `--color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`
+        document.documentElement.style.setProperty(cssVar, customTheme.colors[key])
+      })
+    }
+  }
+
+  /**
+   * Show notification (helper method)
+   */
+  showNotification(message, type = 'info') {
+    // This would integrate with your app's notification system
+    console.log(`[${type.toUpperCase()}] ${message}`)
   }
 
   /**

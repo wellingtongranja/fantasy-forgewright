@@ -67,7 +67,7 @@ describe('Settings Dialog Integration', () => {
   })
 
   test('dialog can be opened with different tabs', () => {
-    const tabs = ['editor', 'themes', 'codemirror', 'sync', 'privacy']
+    const tabs = ['editor', 'themes', 'codemirror', 'git-integration', 'privacy']
     
     tabs.forEach(tab => {
       settingsDialog.show(tab)
@@ -166,14 +166,14 @@ describe('Settings Dialog Integration', () => {
     expect(settingsDialog.getStepForTab('editor')).toBe('4')
     expect(settingsDialog.getStepForTab('codemirror')).toBe('5')
     expect(settingsDialog.getStepForTab('themes')).toBe('6')
-    expect(settingsDialog.getStepForTab('sync')).toBe('7')
+    expect(settingsDialog.getStepForTab('git-integration')).toBe('7')
     expect(settingsDialog.getStepForTab('privacy')).toBe('8')
   })
 
   test('all required tabs are present', () => {
     expect(settingsDialog.tabs).toHaveLength(5)
     
-    const expectedTabs = ['editor', 'themes', 'codemirror', 'sync', 'privacy']
+    const expectedTabs = ['editor', 'themes', 'codemirror', 'git-integration', 'privacy']
     const actualTabs = settingsDialog.tabs.map(t => t.id)
     
     expectedTabs.forEach(tabId => {
