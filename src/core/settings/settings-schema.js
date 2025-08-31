@@ -54,7 +54,7 @@ export const DEFAULT_SETTINGS = {
     showLineNumbers: false
   },
   
-  sync: {
+  gitIntegration: {
     provider: 'github',
     enabled: false,
     autoSync: false,
@@ -149,7 +149,7 @@ export const SETTINGS_SCHEMA = {
     }
   },
   
-  sync: {
+  gitIntegration: {
     type: 'object',
     properties: {
       provider: { 
@@ -298,8 +298,8 @@ export function getSearchableSettings() {
     { path: 'codemirror.highlightActiveLine', label: 'Highlight Active Line', keywords: ['highlight', 'active', 'current'] },
     { path: 'ui.navigatorPinned', label: 'Pin Navigator', keywords: ['navigator', 'sidebar', 'pin'] },
     { path: 'ui.showWordCount', label: 'Word Count', keywords: ['word', 'count', 'statistics'] },
-    { path: 'sync.provider', label: 'Sync Provider', keywords: ['sync', 'git', 'github', 'gitlab'] },
-    { path: 'sync.autoSync', label: 'Auto Sync', keywords: ['auto', 'sync', 'automatic', 'backup'] },
+    { path: 'gitIntegration.provider', label: 'Git Provider', keywords: ['git', 'github', 'gitlab', 'bitbucket', 'version', 'control'] },
+    { path: 'gitIntegration.autoSync', label: 'Auto Sync', keywords: ['auto', 'sync', 'automatic', 'backup', 'git'] },
     { path: 'privacy.analyticsEnabled', label: 'Analytics', keywords: ['analytics', 'tracking', 'privacy'] }
   ]
 }
