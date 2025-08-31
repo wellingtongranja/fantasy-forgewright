@@ -961,11 +961,6 @@
     border-bottom-width: 2px;
   }
 
-  /* Force Fantasy theme to use thin borders even in high contrast */
-  [data-theme='fantasy'] .navigator-tab.active {
-    border-bottom-width: 2px !important;
-    border-bottom-style: solid !important;
-  }
 
   .document-item.selected,
   .outline-item.selected .outline-item-content,

@@ -89,7 +89,6 @@ describe('Themes Tab', () => {
       expect(content).toContain('Built-in Themes')
       expect(content).toContain('Light Theme')
       expect(content).toContain('Dark Theme')
-      expect(content).toContain('Fantasy Theme')
     })
 
     test('renderThemesTabContent() shows theme preview cards', () => {
@@ -104,21 +103,20 @@ describe('Themes Tab', () => {
       expect(content).toContain('theme-preview-card')
       expect(content).toContain('data-theme-preview="light"')
       expect(content).toContain('data-theme-preview="dark"')
-      expect(content).toContain('data-theme-preview="fantasy"')
     })
 
     test('renderThemesTabContent() marks current theme as active', () => {
       settingsDialog.localSettings = {
         editor: {
-          theme: 'fantasy'
+          theme: 'dark'
         }
       }
       
       const content = settingsDialog.renderThemesTabContent()
       
-      // Fantasy theme card should have active class
+      // Dark theme card should have active class
       expect(content).toContain('class="theme-preview-card active"')
-      expect(content).toContain('data-theme-preview="fantasy"')
+      expect(content).toContain('data-theme-preview="dark"')
     })
 
     test('renderThemesTabContent() includes custom theme section', () => {
@@ -183,13 +181,13 @@ describe('Themes Tab', () => {
       // Mock applyLivePreview method
       settingsDialog.applyLivePreview = jest.fn()
       
-      const themeCard = document.querySelector('[data-theme-preview="fantasy"]')
+      const themeCard = document.querySelector('[data-theme-preview="dark"]')
       
       themeCard.click()
       
       // Check that live preview was applied
       expect(settingsDialog.applyLivePreview).toHaveBeenCalled()
-      expect(settingsDialog.localSettings.editor.theme).toBe('fantasy')
+      expect(settingsDialog.localSettings.editor.theme).toBe('dark')
     })
 
     test('theme selection marks card as active', () => {

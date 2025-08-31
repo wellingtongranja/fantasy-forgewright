@@ -90,7 +90,7 @@ describe('SettingsManager', () => {
     test('loads backup settings when main settings fail', () => {
       const backupSettings = {
         ...DEFAULT_SETTINGS,
-        editor: { ...DEFAULT_SETTINGS.editor, theme: 'fantasy' }
+        editor: { ...DEFAULT_SETTINGS.editor, theme: 'dark' }
       }
       
       localStorageMock.store['fantasy-editor-settings'] = 'invalid-json'
@@ -99,7 +99,7 @@ describe('SettingsManager', () => {
       const newManager = new SettingsManager()
       const settings = newManager.getAllSettings()
       
-      expect(settings.editor.theme).toBe('fantasy')
+      expect(settings.editor.theme).toBe('dark')
     })
   })
 
@@ -254,7 +254,7 @@ describe('SettingsManager', () => {
       const importData = {
         settings: {
           ...DEFAULT_SETTINGS,
-          editor: { ...DEFAULT_SETTINGS.editor, theme: 'fantasy' }
+          editor: { ...DEFAULT_SETTINGS.editor, theme: 'dark' }
         },
         version: SETTINGS_VERSION,
         exportDate: new Date().toISOString()
@@ -263,7 +263,7 @@ describe('SettingsManager', () => {
       const result = settingsManager.importSettings(importData)
       
       expect(result).toBe(true)
-      expect(settingsManager.get('editor.theme')).toBe('fantasy')
+      expect(settingsManager.get('editor.theme')).toBe('dark')
     })
 
     test('validates imported settings', () => {

@@ -68,9 +68,6 @@ describe('ThemeManager', () => {
       expect(manager.currentTheme).toBe('dark')
 
       manager.toggleTheme()
-      expect(manager.currentTheme).toBe('fantasy')
-
-      manager.toggleTheme()
       expect(manager.currentTheme).toBe('light')
     })
   })
@@ -82,9 +79,6 @@ describe('ThemeManager', () => {
       expect(manager.getNextTheme()).toBe('dark')
 
       manager.currentTheme = 'dark'
-      expect(manager.getNextTheme()).toBe('fantasy')
-
-      manager.currentTheme = 'fantasy'
       expect(manager.getNextTheme()).toBe('light')
     })
 

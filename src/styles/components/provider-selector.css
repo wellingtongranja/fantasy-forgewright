@@ -274,17 +274,6 @@ body.provider-selector-open {
   color: #ff6b6b;
 }
 
-/* Fantasy theme adjustments */
-[data-theme="fantasy"] .provider-selector-modal {
-  background: var(--bg-primary);
-  border-color: var(--accent-color);
-  box-shadow: 0 20px 40px rgba(139, 69, 19, 0.3);
-}
-
-[data-theme="fantasy"] .provider-button:hover {
-  border-color: var(--accent-color);
-  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
-}
 
 /* Mobile responsiveness */
 @media (max-width: 600px) {

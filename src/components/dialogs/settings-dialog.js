@@ -453,7 +453,6 @@ export class SettingsDialog {
             <div class="theme-preview-grid">
               ${this.renderThemePreviewCard('light', '☀️ Light Theme', themeSettings.theme === 'light')}
               ${this.renderThemePreviewCard('dark', '🌙 Dark Theme', themeSettings.theme === 'dark')}
-              ${this.renderThemePreviewCard('fantasy', '✨ Fantasy Theme', themeSettings.theme === 'fantasy')}
             </div>
           </div>
         </div>
@@ -480,7 +479,6 @@ export class SettingsDialog {
             <select id="custom-base-theme" data-setting="editor.customTheme.baseTheme">
               <option value="light" ${customTheme.baseTheme === 'light' ? 'selected' : ''}>Light</option>
               <option value="dark" ${customTheme.baseTheme === 'dark' ? 'selected' : ''}>Dark</option>
-              <option value="fantasy" ${customTheme.baseTheme === 'fantasy' ? 'selected' : ''}>Fantasy</option>
             </select>
             <small>Select a base theme to start from</small>
           </div>
@@ -1236,15 +1234,6 @@ export class SettingsDialog {
         textMuted: '#64748b',
         accent: '#818cf8',
         border: '#334155'
-      },
-      fantasy: {
-        backgroundPrimary: '#1a0f2e',
-        backgroundSecondary: '#2d1b4e',
-        textPrimary: '#e0d5ff',
-        textSecondary: '#b4a7d6',
-        textMuted: '#8b7aa8',
-        accent: '#9333ea',
-        border: '#4c3575'
       }
     }
     

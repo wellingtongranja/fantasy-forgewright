@@ -895,13 +895,6 @@ class FantasyEditorApp {
           background: var(--color-bg-secondary);
           border-color: var(--color-border);
         }
-        
-        /* Fantasy theme adjustments */
-        [data-theme="fantasy"] .notification {
-          background: rgba(61, 40, 97, 0.95);
-          border-color: var(--color-primary);
-          color: var(--color-text);
-        }
       `
       document.head.appendChild(styleSheet)
     }

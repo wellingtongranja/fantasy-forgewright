@@ -109,7 +109,7 @@ describe('SettingsManager Core Functionality', () => {
     
     const themeResult = results.find(r => r.path === 'editor.theme')
     expect(themeResult).toBeTruthy()
-    expect(['light', 'dark', 'fantasy']).toContain(themeResult.currentValue)
+    expect(['light', 'dark']).toContain(themeResult.currentValue)
   })
 
   test('handles listeners', () => {
@@ -175,7 +175,7 @@ describe('SettingsManager Core Functionality', () => {
     
     const manager = new SettingsManager()
     // Should fall back to defaults, but may use backup if available
-    expect(['light', 'dark', 'fantasy']).toContain(manager.get('editor.theme'))
+    expect(['light', 'dark']).toContain(manager.get('editor.theme'))
   })
 
   test('creates backups before major operations', () => {
