@@ -705,7 +705,7 @@
   }
   
   .settings-main {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
   }
   
   .width-presets {
@@ -716,6 +716,80 @@
   .width-preset {
     flex-direction: row;
     justify-content: space-between;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: var(--spacing-md);
+    font-size: 0.9rem;
+  }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+  .settings-dialog-overlay {
+    padding: 0;
+  }
+  
+  .settings-dialog {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+  
+  .settings-header {
+    padding: var(--spacing-md);
+  }
+  
+  .settings-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .settings-search {
+    width: 100%;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .settings-main {
+    padding: var(--spacing-md);
+  }
+  
+  .settings-section {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .settings-section h4 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .settings-field {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .settings-field small {
+    font-size: 0.8rem;
+  }
+  
+  .width-preset {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.85rem;
+  }
+  
+  .width-label {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  
+  .width-description {
+    font-size: 0.75rem;
+  }
+  
+  .settings-footer {
+    padding: var(--spacing-md);
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .settings-footer button {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 }
