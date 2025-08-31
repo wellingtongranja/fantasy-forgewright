@@ -244,12 +244,12 @@ export class SettingsDialog {
   renderFooter() {
     return `
       <div class="settings-footer">
-        ${this.hasChanges ? `
-          <div class="settings-status">
+        <div class="settings-status">
+          ${this.hasChanges ? `
             <span class="settings-changes-indicator">●</span>
             Unsaved changes
-          </div>
-        ` : ''}
+          ` : ''}
+        </div>
         <div class="settings-actions">
           <button class="settings-btn settings-btn-primary" data-action="save" ${!this.hasChanges ? 'disabled' : ''}>
             Save Changes
