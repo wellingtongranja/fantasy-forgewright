@@ -19,6 +19,10 @@ export class SettingsDialog {
     this.localSettings = null
     this.originalSettings = null
     
+    // Debouncing for UI updates
+    this.updateDebounceTimer = null
+    this.isUpdating = false
+    
     // Listen for theme changes to update dialog appearance
     this.handleThemeChange = this.handleThemeChange.bind(this)
     document.addEventListener('themechange', this.handleThemeChange)
@@ -101,6 +105,13 @@ export class SettingsDialog {
    */
   hide() {
     if (!this.isOpen) return
+
+    // Clear any pending debounced updates
+    if (this.updateDebounceTimer) {
+      clearTimeout(this.updateDebounceTimer)
+      this.updateDebounceTimer = null
+    }
+    this.isUpdating = false
 
     // If there are unsaved changes, ask user what to do
     if (this.hasChanges) {
@@ -561,8 +572,12 @@ export class SettingsDialog {
     } else if (tab) {
       this.switchTab(tab)
     } else if (setting && value !== undefined) {
-      // Handle button-based settings (like width presets)
-      this.updateSetting(setting, this.parseSettingValue(setting, value))
+      // Handle button-based settings with debouncing for width presets
+      if (setting === 'editor.width') {
+        this.updateSettingDebounced(setting, this.parseSettingValue(setting, value))
+      } else {
+        this.updateSetting(setting, this.parseSettingValue(setting, value))
+      }
     }
   }
 
@@ -669,6 +684,36 @@ export class SettingsDialog {
   }
 
   /**
+   * Debounced version of updateSetting for rapid clicks (width presets)
+   */
+  updateSettingDebounced(path, value) {
+    // Prevent rapid clicks from causing issues
+    if (this.isUpdating) return
+    
+    // Immediately update UI to show visual feedback
+    this.setLocalSetting(path, value)
+    this.refreshSettingsUI(path, value)
+    this.hasChanges = true
+    
+    // Debounce the live preview application
+    if (this.updateDebounceTimer) {
+      clearTimeout(this.updateDebounceTimer)
+    }
+    
+    this.isUpdating = true
+    this.updateDebounceTimer = setTimeout(() => {
+      try {
+        this.applyLivePreview(path, value)
+        this.isUpdating = false
+      } catch (error) {
+        console.warn('Failed to apply live preview:', error)
+        this.showToast('Failed to update setting', 'error')
+        this.isUpdating = false
+      }
+    }, 150) // 150ms debounce delay
+  }
+
+  /**
    * Set a value in local settings (helper method)
    */
   setLocalSetting(path, value) {
@@ -770,7 +815,7 @@ export class SettingsDialog {
   /**
    * Handle theme change events to update dialog appearance
    */
-  handleThemeChange(event) {
+  handleThemeChange(_event) {
     if (this.isOpen && this.element) {
       // Update theme-related UI elements if needed
       // The CSS will automatically update based on data-theme attribute
