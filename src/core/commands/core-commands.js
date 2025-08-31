@@ -182,12 +182,12 @@ export function registerCoreCommands(registry, app) {
           name: 'theme',
           required: false,
           type: 'string',
-          description: 'Theme name (light, dark, fantasy)'
+          description: 'Theme name (light, dark)'
         }
       ],
       handler: async (args) => {
         const themeName = args[0]
-        const availableThemes = ['light', 'dark', 'fantasy']
+        const availableThemes = ['light', 'dark']
 
         if (!themeName) {
           return {
@@ -218,7 +218,7 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         // Get current theme and cycle to next
         const currentTheme = app.settingsManager.get('editor.theme') || 'light'
-        const themes = ['light', 'dark', 'fantasy']
+        const themes = ['light', 'dark']
         const currentIndex = themes.indexOf(currentTheme)
         const nextTheme = themes[(currentIndex + 1) % themes.length]
         

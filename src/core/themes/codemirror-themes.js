@@ -199,20 +199,19 @@ function createUnifiedTheme(themeName, options = {}) {
  */
 function createSyntaxHighlighting(themeName) {
   const isDark = themeName === 'dark'
-  const isFantasy = themeName === 'fantasy'
 
   return syntaxHighlighting(
     HighlightStyle.define([
       // Markdown-specific highlighting
       {
         tag: t.heading,
-        color: isFantasy ? 'var(--color-primary)' : isDark ? '#ffffff' : '#1a1a1a',
+        color: isDark ? '#ffffff' : '#1a1a1a',
         fontWeight: 'bold'
       },
       {
         tag: t.heading1,
         fontSize: '1.4em',
-        borderBottom: `2px solid ${isFantasy ? 'var(--color-primary)' : 'var(--border-color)'}`
+        borderBottom: `2px solid var(--border-color)`
       },
       {
         tag: t.heading2,
@@ -225,12 +224,12 @@ function createSyntaxHighlighting(themeName) {
       {
         tag: t.strong,
         fontWeight: 'bold',
-        color: isFantasy ? 'var(--color-secondary)' : 'inherit'
+        color: 'inherit'
       },
       {
         tag: t.emphasis,
         fontStyle: 'italic',
-        color: isFantasy ? 'var(--color-accent)' : 'inherit'
+        color: 'inherit'
       },
       {
         tag: t.strikethrough,
@@ -275,8 +274,7 @@ function createSyntaxHighlighting(themeName) {
 function getThemeHighlight(themeName) {
   const highlights = {
     light: 'rgba(0, 0, 0, 0.05)',
-    dark: 'rgba(255, 255, 255, 0.05)',
-    fantasy: 'rgba(139, 69, 19, 0.1)'
+    dark: 'rgba(255, 255, 255, 0.05)'
   }
   return highlights[themeName] || highlights.light
 }
@@ -287,8 +285,7 @@ function getThemeHighlight(themeName) {
 function getThemeSearchMatch(themeName) {
   const matches = {
     light: 'rgba(0, 100, 200, 0.2)',
-    dark: 'rgba(100, 150, 255, 0.2)',
-    fantasy: 'rgba(184, 134, 11, 0.3)'
+    dark: 'rgba(100, 150, 255, 0.2)'
   }
   return matches[themeName] || matches.light
 }
@@ -300,7 +297,6 @@ export const fantasyLightTheme = [createUnifiedTheme('light'), createSyntaxHighl
 
 export const fantasyDarkTheme = [createUnifiedTheme('dark'), createSyntaxHighlighting('dark')]
 
-export const fantasyTheme = [createUnifiedTheme('fantasy'), createSyntaxHighlighting('fantasy')]
 
 /**
  * Get theme extension by name with optional font size
@@ -314,8 +310,7 @@ export function getThemeExtension(themeName, options = {}) {
   // Use default themes
   const themes = {
     light: fantasyLightTheme,
-    dark: fantasyDarkTheme,
-    fantasy: fantasyTheme
+    dark: fantasyDarkTheme
   }
   return themes[themeName] || fantasyLightTheme
 }

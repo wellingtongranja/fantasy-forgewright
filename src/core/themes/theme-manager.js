@@ -164,7 +164,7 @@ export class ThemeManager {
   }
 
   toggleTheme() {
-    const themes = ['light', 'dark', 'fantasy']
+    const themes = ['light', 'dark']
     const currentIndex = themes.indexOf(this.currentTheme)
     const nextIndex = (currentIndex + 1) % themes.length
     this.applyTheme(themes[nextIndex])
@@ -177,7 +177,6 @@ export class ThemeManager {
     const icons = {
       light: '🌙',
       dark: '☀️',
-      fantasy: '✨',
       custom: '🎨'
     }
 
@@ -186,7 +185,7 @@ export class ThemeManager {
   }
 
   getNextTheme() {
-    const themes = ['light', 'dark', 'fantasy']
+    const themes = ['light', 'dark']
     const currentIndex = themes.indexOf(this.currentTheme)
     const nextIndex = (currentIndex + 1) % themes.length
     return themes[nextIndex]
@@ -210,7 +209,7 @@ export class ThemeManager {
    * Get available themes
    */
   getAvailableThemes() {
-    return ['light', 'dark', 'fantasy', 'custom']
+    return ['light', 'dark', 'custom']
   }
 
   /**
@@ -236,11 +235,6 @@ export class ThemeManager {
         activeLineHighlight: 'rgba(255, 255, 255, 0.05)',
         foldIcon: '▶'
       },
-      fantasy: {
-        searchHighlight: 'rgba(184, 134, 11, 0.3)',
-        activeLineHighlight: 'rgba(139, 69, 19, 0.1)',
-        foldIcon: '▶'
-      }
     }
 
     return themeValues[theme]?.[property] || themeValues.light[property]
