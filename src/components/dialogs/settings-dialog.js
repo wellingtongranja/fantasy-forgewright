@@ -269,7 +269,7 @@ export class SettingsDialog {
         </div>
         <div class="settings-actions">
           <button class="settings-btn settings-btn-primary" data-action="save" ${!this.hasChanges ? 'disabled' : ''}>
-            Save Changes
+            Save
           </button>
         </div>
       </div>
@@ -728,7 +728,6 @@ export class SettingsDialog {
       
     } catch (error) {
       console.warn('Failed to update setting:', error)
-      this.showToast('Failed to update setting', 'error')
     }
   }
 
@@ -977,11 +976,12 @@ export class SettingsDialog {
         this.onSave()
       }
       
-      // Show success feedback
-      this.showToast('Settings saved successfully')
+      // Close dialog after successful save
+      this.hide()
+      
     } catch (error) {
       console.error('Failed to save settings:', error)
-      this.showToast('Failed to save settings', 'error')
+      // On error, don't close the dialog so user can try again
     }
   }
 
@@ -1016,24 +1016,10 @@ export class SettingsDialog {
     if (confirm('Reset all settings to defaults? This cannot be undone.')) {
       this.settingsManager.resetToDefaults()
       this.hasChanges = true
-      this.showToast('Settings reset to defaults')
       this.refreshTabContent()
     }
   }
 
-  /**
-   * Show toast notification (simple implementation)
-   */
-  showToast(message) {
-    const toast = document.createElement('div')
-    toast.className = 'settings-toast'
-    toast.textContent = message
-    document.body.appendChild(toast)
-    
-    setTimeout(() => {
-      toast.remove()
-    }, 3000)
-  }
 
   /**
    * Check if dialog is currently open
