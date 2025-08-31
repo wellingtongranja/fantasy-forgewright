@@ -19,9 +19,6 @@ export class SettingsDialog {
     this.localSettings = null
     this.originalSettings = null
     
-    // Debouncing for UI updates
-    this.updateDebounceTimer = null
-    this.isUpdating = false
     
     // Listen for theme changes to update dialog appearance
     this.handleThemeChange = this.handleThemeChange.bind(this)
@@ -106,12 +103,6 @@ export class SettingsDialog {
   hide() {
     if (!this.isOpen) return
 
-    // Clear any pending debounced updates
-    if (this.updateDebounceTimer) {
-      clearTimeout(this.updateDebounceTimer)
-      this.updateDebounceTimer = null
-    }
-    this.isUpdating = false
 
     // If there are unsaved changes, ask user what to do
     if (this.hasChanges) {
@@ -572,12 +563,8 @@ export class SettingsDialog {
     } else if (tab) {
       this.switchTab(tab)
     } else if (setting && value !== undefined) {
-      // Handle button-based settings with debouncing for width presets
-      if (setting === 'editor.width') {
-        this.updateSettingDebounced(setting, this.parseSettingValue(setting, value))
-      } else {
-        this.updateSetting(setting, this.parseSettingValue(setting, value))
-      }
+      // Handle button-based settings (like width presets)
+      this.updateSetting(setting, this.parseSettingValue(setting, value))
     }
   }
 
@@ -667,6 +654,12 @@ export class SettingsDialog {
    */
   updateSetting(path, value) {
     try {
+      // Check if value actually changed to avoid unnecessary updates
+      const currentValue = this.getLocalSetting(path)
+      if (currentValue === value) {
+        return // No change, skip update
+      }
+      
       // Update local settings (for UI state)
       this.setLocalSetting(path, value)
       this.hasChanges = true
@@ -683,34 +676,24 @@ export class SettingsDialog {
     }
   }
 
+
   /**
-   * Debounced version of updateSetting for rapid clicks (width presets)
+   * Get a value from local settings (helper method)
    */
-  updateSettingDebounced(path, value) {
-    // Prevent rapid clicks from causing issues
-    if (this.isUpdating) return
+  getLocalSetting(path) {
+    if (!this.localSettings) return undefined
     
-    // Immediately update UI to show visual feedback
-    this.setLocalSetting(path, value)
-    this.refreshSettingsUI(path, value)
-    this.hasChanges = true
-    
-    // Debounce the live preview application
-    if (this.updateDebounceTimer) {
-      clearTimeout(this.updateDebounceTimer)
-    }
-    
-    this.isUpdating = true
-    this.updateDebounceTimer = setTimeout(() => {
-      try {
-        this.applyLivePreview(path, value)
-        this.isUpdating = false
-      } catch (error) {
-        console.warn('Failed to apply live preview:', error)
-        this.showToast('Failed to update setting', 'error')
-        this.isUpdating = false
+    const keys = path.split('.')
+    let current = this.localSettings
+
+    for (const key of keys) {
+      if (!current || typeof current !== 'object') {
+        return undefined
       }
-    }, 150) // 150ms debounce delay
+      current = current[key]
+    }
+
+    return current
   }
 
   /**
@@ -766,12 +749,18 @@ export class SettingsDialog {
   refreshSettingsUI(path, value) {
     if (this.currentTab !== 'editor') return
     
-    // Update width preset buttons
+    // Update width preset buttons - avoid unnecessary DOM manipulation
     if (path === 'editor.width') {
       const presets = this.element.querySelectorAll('.width-preset')
       presets.forEach(preset => {
         const presetValue = parseInt(preset.dataset.value)
-        preset.classList.toggle('active', presetValue === value)
+        const shouldBeActive = presetValue === value
+        const isCurrentlyActive = preset.classList.contains('active')
+        
+        // Only update if state actually changed
+        if (shouldBeActive !== isCurrentlyActive) {
+          preset.classList.toggle('active', shouldBeActive)
+        }
       })
     }
     
