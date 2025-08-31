@@ -39,6 +39,26 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.app-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .app-logo {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 .app-title {
   font-family: var(--font-family-base);
   font-size: var(--font-size-xl);
@@ -46,6 +66,7 @@ body {
   letter-spacing: 0.15em;
   color: var(--color-text);
   white-space: nowrap;
+  margin: 0;
 }
 
 /* Navigation buttons removed - all functionality through command palette */
