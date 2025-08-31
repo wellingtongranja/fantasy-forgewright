@@ -14,11 +14,18 @@ export class SettingsDialog {
     this.hasChanges = false
     this.onClose = null
     this.onSave = null
-    this.settings = null
+    
+    // Local state for UI (not persisted until Save)
+    this.localSettings = null
+    this.originalSettings = null
     
     // Listen for theme changes to update dialog appearance
     this.handleThemeChange = this.handleThemeChange.bind(this)
     document.addEventListener('themechange', this.handleThemeChange)
+
+    // Listen for settings changes from external sources
+    this.handleExternalSettingsChange = this.handleExternalSettingsChange.bind(this)
+    this.settingsManager.addListener(this.handleExternalSettingsChange)
     
     // Tab configuration
     this.tabs = [
@@ -76,8 +83,9 @@ export class SettingsDialog {
     this.onSave = onSave
     this.hasChanges = false
     
-    // Store original settings for change detection
-    this.originalSettings = JSON.stringify(this.settingsManager.getAllSettings())
+    // Initialize local settings from saved settings (deep copy)
+    this.originalSettings = this.settingsManager.getAllSettings()
+    this.localSettings = JSON.parse(JSON.stringify(this.originalSettings))
     
     this.render()
     this.attachEventListeners()
@@ -94,9 +102,22 @@ export class SettingsDialog {
   hide() {
     if (!this.isOpen) return
 
+    // If there are unsaved changes, ask user what to do
+    if (this.hasChanges) {
+      const shouldSave = confirm('You have unsaved changes. Would you like to save them?')
+      if (shouldSave) {
+        this.saveSettings()
+      } else {
+        // Revert UI to original settings
+        this.revertToOriginalSettings()
+      }
+    }
+
     this.isOpen = false
     this.searchQuery = ''
     this.filteredTabs = []
+    this.localSettings = null
+    this.originalSettings = null
     
     if (this.element) {
       this.element.remove()
@@ -257,7 +278,7 @@ export class SettingsDialog {
    * Render Editor Settings tab with functional controls
    */
   renderEditorTabContent() {
-    const editorSettings = this.settings?.editor || {}
+    const editorSettings = this.localSettings?.editor || {}
     
     return `
       <div class="settings-sections">
@@ -627,16 +648,16 @@ export class SettingsDialog {
   }
 
   /**
-   * Update a setting and apply changes
+   * Update a setting with live preview (not persisted until Save)
    */
   updateSetting(path, value) {
     try {
-      // Update the local settings copy
-      this.settingsManager.set(path, value)
+      // Update local settings (for UI state)
+      this.setLocalSetting(path, value)
       this.hasChanges = true
       
-      // Apply the setting immediately for live preview
-      this.applySetting(path, value)
+      // Apply immediately for live preview (managers will apply to UI)
+      this.applyLivePreview(path, value)
       
       // Update UI to reflect the change
       this.refreshSettingsUI(path, value)
@@ -648,27 +669,47 @@ export class SettingsDialog {
   }
 
   /**
-   * Apply setting changes immediately (live preview)
+   * Set a value in local settings (helper method)
    */
-  applySetting(path, value) {
+  setLocalSetting(path, value) {
+    const keys = path.split('.')
+    let current = this.localSettings
+
+    // Navigate to the parent object
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i]
+      if (!current[key] || typeof current[key] !== 'object') {
+        current[key] = {}
+      }
+      current = current[key]
+    }
+
+    // Set the final value
+    current[keys[keys.length - 1]] = value
+  }
+
+  /**
+   * Apply settings for live preview (without saving to localStorage)
+   */
+  applyLivePreview(path, value) {
     if (!window.app) return // No app context available
     
     switch (path) {
       case 'editor.theme':
         if (window.app.themeManager) {
-          window.app.themeManager.applyTheme(value)
+          window.app.themeManager.applyThemeOnly(value)
         }
         break
         
       case 'editor.width':
         if (window.app.widthManager) {
-          window.app.widthManager.setWidth(value)
+          window.app.widthManager.applyWidthOnly(value)
         }
         break
         
       case 'editor.zoom':
         if (window.app.widthManager) {
-          window.app.widthManager.setZoom(value)
+          window.app.widthManager.applyZoomOnly(value)
         }
         break
     }
@@ -738,6 +779,23 @@ export class SettingsDialog {
   }
 
   /**
+   * Handle settings changes from external sources (commands, etc.)
+   */
+  handleExternalSettingsChange(event) {
+    if (!this.isOpen || event.event !== 'setting-changed') return
+
+    const { path, value } = event.data
+    
+    // Update local settings to reflect external change
+    this.setLocalSetting(path, value)
+    
+    // Update the dialog UI to show the new value
+    if (this.currentTab === 'editor') {
+      this.refreshTabContent()
+    }
+  }
+
+  /**
    * Switch to a different tab
    */
   switchTab(tabId) {
@@ -782,17 +840,57 @@ export class SettingsDialog {
   }
 
   /**
-   * Save settings (placeholder for now)
+   * Save local settings to Settings Manager (will persist and notify managers)
    */
   saveSettings() {
-    this.hasChanges = false
-    
-    if (this.onSave) {
-      this.onSave()
+    try {
+      // Save local settings to Settings Manager
+      if (this.localSettings?.editor) {
+        const editor = this.localSettings.editor
+        if (editor.theme) this.settingsManager.set('editor.theme', editor.theme)
+        if (editor.width !== undefined) this.settingsManager.set('editor.width', editor.width)  
+        if (editor.zoom !== undefined) this.settingsManager.set('editor.zoom', editor.zoom)
+        if (editor.spellCheck !== undefined) this.settingsManager.set('editor.spellCheck', editor.spellCheck)
+        if (editor.autoSave !== undefined) this.settingsManager.set('editor.autoSave', editor.autoSave)
+        if (editor.autoSaveInterval !== undefined) this.settingsManager.set('editor.autoSaveInterval', editor.autoSaveInterval)
+      }
+      
+      this.hasChanges = false
+      
+      if (this.onSave) {
+        this.onSave()
+      }
+      
+      // Show success feedback
+      this.showToast('Settings saved successfully')
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+      this.showToast('Failed to save settings', 'error')
     }
-    
-    // Show success feedback
-    this.showToast('Settings saved successfully')
+  }
+
+  /**
+   * Revert UI to original settings
+   */
+  revertToOriginalSettings() {
+    if (!window.app || !this.originalSettings?.editor) return
+
+    const editor = this.originalSettings.editor
+
+    // Revert theme
+    if (window.app.themeManager && editor.theme) {
+      window.app.themeManager.applyTheme(editor.theme)
+    }
+
+    // Revert width
+    if (window.app.widthManager && editor.width) {
+      window.app.widthManager.setWidth(editor.width)
+    }
+
+    // Revert zoom
+    if (window.app.widthManager && editor.zoom !== undefined) {
+      window.app.widthManager.setZoom(editor.zoom)
+    }
   }
 
   /**

@@ -216,9 +216,16 @@ export function registerCoreCommands(registry, app) {
       icon: '🌙',
       aliases: [':tt'],
       handler: async () => {
-        app.themeManager.toggleTheme()
-        const currentTheme = app.themeManager.getCurrentTheme()
-        return { success: true, message: `Switched to ${currentTheme} theme` }
+        // Get current theme and cycle to next
+        const currentTheme = app.settingsManager.get('editor.theme') || 'light'
+        const themes = ['light', 'dark', 'fantasy']
+        const currentIndex = themes.indexOf(currentTheme)
+        const nextTheme = themes[(currentIndex + 1) % themes.length]
+        
+        // Update via Settings Manager (will notify Theme Manager automatically)
+        app.settingsManager.set('editor.theme', nextTheme)
+        
+        return { success: true, message: `Switched to ${nextTheme} theme` }
       }
     },
 
@@ -847,13 +854,12 @@ export function registerCoreCommands(registry, app) {
       icon: '📏',
       aliases: [':65'],
       handler: async () => {
-        if (!app.widthManager) {
-          return { success: false, message: 'Width control not available' }
-        }
-
         try {
-          const result = app.widthManager.setWidth(65)
-          return result
+          app.settingsManager.set('editor.width', 65)
+          return {
+            success: true,
+            message: 'Editor width set to 65ch (optimal reading)'
+          }
         } catch (error) {
           return { success: false, message: `Failed to set width: ${error.message}` }
         }
@@ -867,13 +873,12 @@ export function registerCoreCommands(registry, app) {
       icon: '📏',
       aliases: [':80'],
       handler: async () => {
-        if (!app.widthManager) {
-          return { success: false, message: 'Width control not available' }
-        }
-
         try {
-          const result = app.widthManager.setWidth(80)
-          return result
+          app.settingsManager.set('editor.width', 80)
+          return {
+            success: true,
+            message: 'Editor width set to 80ch (standard coding)'
+          }
         } catch (error) {
           return { success: false, message: `Failed to set width: ${error.message}` }
         }
@@ -887,13 +892,12 @@ export function registerCoreCommands(registry, app) {
       icon: '📏',
       aliases: [':90'],
       handler: async () => {
-        if (!app.widthManager) {
-          return { success: false, message: 'Width control not available' }
-        }
-
         try {
-          const result = app.widthManager.setWidth(90)
-          return result
+          app.settingsManager.set('editor.width', 90)
+          return {
+            success: true,
+            message: 'Editor width set to 90ch (wide editing)'
+          }
         } catch (error) {
           return { success: false, message: `Failed to set width: ${error.message}` }
         }
@@ -907,13 +911,19 @@ export function registerCoreCommands(registry, app) {
       icon: '🔍',
       aliases: [':zi'],
       handler: async () => {
-        if (!app.widthManager) {
-          return { success: false, message: 'Zoom control not available' }
-        }
-
         try {
-          const result = app.widthManager.zoomIn()
-          return result
+          const currentZoom = app.settingsManager.get('editor.zoom') || 1.0
+          const zoomLevels = [0.85, 1.0, 1.15, 1.3]
+          const currentIndex = zoomLevels.findIndex(level => level >= currentZoom)
+          const nextIndex = Math.min(currentIndex + 1, zoomLevels.length - 1)
+          const newZoom = zoomLevels[nextIndex]
+          
+          app.settingsManager.set('editor.zoom', newZoom)
+          
+          return {
+            success: true,
+            message: `Zoom level set to ${Math.round(newZoom * 100)}%`
+          }
         } catch (error) {
           return { success: false, message: `Failed to zoom in: ${error.message}` }
         }
@@ -927,13 +937,19 @@ export function registerCoreCommands(registry, app) {
       icon: '🔍',
       aliases: [':zo'],
       handler: async () => {
-        if (!app.widthManager) {
-          return { success: false, message: 'Zoom control not available' }
-        }
-
         try {
-          const result = app.widthManager.zoomOut()
-          return result
+          const currentZoom = app.settingsManager.get('editor.zoom') || 1.0
+          const zoomLevels = [0.85, 1.0, 1.15, 1.3]
+          const currentIndex = zoomLevels.findIndex(level => level >= currentZoom)
+          const prevIndex = Math.max(currentIndex - 1, 0)
+          const newZoom = zoomLevels[prevIndex]
+          
+          app.settingsManager.set('editor.zoom', newZoom)
+          
+          return {
+            success: true,
+            message: `Zoom level set to ${Math.round(newZoom * 100)}%`
+          }
         } catch (error) {
           return { success: false, message: `Failed to zoom out: ${error.message}` }
         }
@@ -947,13 +963,13 @@ export function registerCoreCommands(registry, app) {
       icon: '🔍',
       aliases: [':zr'],
       handler: async () => {
-        if (!app.widthManager) {
-          return { success: false, message: 'Zoom control not available' }
-        }
-
         try {
-          const result = app.widthManager.resetZoom()
-          return result
+          app.settingsManager.set('editor.zoom', 1.0)
+          
+          return {
+            success: true,
+            message: 'Zoom level reset to 100%'
+          }
         } catch (error) {
           return { success: false, message: `Failed to reset zoom: ${error.message}` }
         }

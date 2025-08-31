@@ -1,9 +1,14 @@
 import { getThemeExtension } from './codemirror-themes.js'
 
 export class ThemeManager {
-  constructor() {
+  constructor(settingsManager) {
+    this.settingsManager = settingsManager
     this.currentTheme = this.loadTheme() || 'light'
     this.editorView = null // Will be set by EditorManager
+    
+    // Listen for theme changes from Settings Manager
+    this.settingsManager.addListener(this.handleSettingsChange.bind(this))
+    
     this.applyTheme(this.currentTheme)
   }
 
@@ -15,14 +20,34 @@ export class ThemeManager {
   }
 
   loadTheme() {
-    return localStorage.getItem('theme-preference')
+    return this.settingsManager.get('editor.theme')
   }
 
   saveTheme(theme) {
-    localStorage.setItem('theme-preference', theme)
+    this.settingsManager.set('editor.theme', theme)
+  }
+
+  /**
+   * Handle settings changes from Settings Manager
+   */
+  handleSettingsChange(event) {
+    if (event.event === 'setting-changed' && event.data.path === 'editor.theme') {
+      const newTheme = event.data.value
+      if (newTheme !== this.currentTheme) {
+        this.applyThemeOnly(newTheme) // Apply without saving (already saved by Settings Manager)
+      }
+    }
   }
 
   applyTheme(theme) {
+    this.applyThemeOnly(theme)
+    this.saveTheme(theme)
+  }
+
+  /**
+   * Apply theme to UI without saving (for Settings Manager updates)
+   */
+  applyThemeOnly(theme) {
     // Apply CSS theme
     document.documentElement.setAttribute('data-theme', theme)
 
@@ -32,7 +57,6 @@ export class ThemeManager {
     }
 
     this.currentTheme = theme
-    this.saveTheme(theme)
     this.updateThemeToggle()
 
     // Emit theme change event for other components

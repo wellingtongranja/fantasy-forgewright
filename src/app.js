@@ -1,6 +1,7 @@
 import { EditorManager } from './core/editor/editor.js'
 import { ThemeManager } from './core/themes/theme-manager.js'
 import { StorageManager } from './core/storage/storage-manager.js'
+import { SettingsManager } from './core/settings/settings-manager.js'
 import { SearchEngine } from './core/search/search-engine.js'
 import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar-v2/components/CommandBar.js'
@@ -24,6 +25,7 @@ import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
 class FantasyEditorApp {
   constructor() {
     this.editor = null
+    this.settingsManager = null
     this.themeManager = null
     this.storageManager = null
     this.searchEngine = null
@@ -88,8 +90,11 @@ class FantasyEditorApp {
 
 
   async initializeManagers() {
-    // Initialize theme manager first (needed by other components)
-    this.themeManager = new ThemeManager()
+    // Initialize settings manager first
+    this.settingsManager = new SettingsManager()
+    
+    // Initialize theme manager (pass settings manager)
+    this.themeManager = new ThemeManager(this.settingsManager)
 
     // Initialize storage
     this.storageManager = new StorageManager()
@@ -101,7 +106,7 @@ class FantasyEditorApp {
 
     // Initialize writer enhancements
     this.exportManager = new ExportManager(this)
-    this.widthManager = new WidthManager(this)
+    this.widthManager = new WidthManager(this.settingsManager, this)
     this.statusBarManager = new StatusBarManager(this)
     
     // Set up width manager callbacks to update status bar
