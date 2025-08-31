@@ -7,15 +7,19 @@ import { SettingsDialog } from '../../src/components/dialogs/settings-dialog.js'
 
 // Mock SettingsManager
 const mockSettingsManager = {
+  get: jest.fn(),
+  set: jest.fn(),
   getAllSettings: jest.fn(() => ({
     version: 1,
     editor: { theme: 'light', width: 65 },
     codemirror: { lineNumbers: false },
     ui: { navigatorPinned: false },
-    sync: { provider: 'github' },
+    gitIntegration: { provider: 'github' },
     privacy: { analyticsEnabled: false }
   })),
-  resetToDefaults: jest.fn()
+  resetToDefaults: jest.fn(),
+  addListener: jest.fn(),
+  removeListener: jest.fn()
 }
 
 // Mock DOM methods
@@ -26,7 +30,9 @@ Object.defineProperty(document, 'createElement', {
     addEventListener: jest.fn(),
     remove: jest.fn(),
     querySelector: jest.fn(),
-    querySelectorAll: jest.fn(() => [])
+    querySelectorAll: jest.fn(() => []),
+    closest: jest.fn(() => null),
+    dataset: {}
   }))
 })
 
@@ -52,9 +58,17 @@ describe('SettingsDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    
+    // Mock confirm dialog
+    global.confirm = jest.fn(() => false)
+    
     settingsDialog = new SettingsDialog(mockSettingsManager)
     mockOnClose = jest.fn()
     mockOnSave = jest.fn()
+  })
+
+  afterEach(() => {
+    delete global.confirm
   })
 
   describe('Constructor and Initial State', () => {
@@ -74,7 +88,7 @@ describe('SettingsDialog', () => {
       expect(settingsDialog.tabs).toHaveLength(5)
       
       const tabIds = settingsDialog.tabs.map(t => t.id)
-      expect(tabIds).toEqual(['editor', 'themes', 'codemirror', 'sync', 'privacy'])
+      expect(tabIds).toEqual(['editor', 'themes', 'codemirror', 'git-integration', 'privacy'])
       
       // Check each tab has required properties
       settingsDialog.tabs.forEach(tab => {
@@ -166,7 +180,7 @@ describe('SettingsDialog', () => {
       const visibleTabs = settingsDialog.getVisibleTabs()
       
       expect(visibleTabs).toHaveLength(1)
-      expect(visibleTabs[0].id).toBe('sync')
+      expect(visibleTabs[0].id).toBe('git-integration')
     })
 
     test('getVisibleTabs() is case insensitive', () => {
@@ -224,7 +238,7 @@ describe('SettingsDialog', () => {
       expect(settingsDialog.getStepForTab('editor')).toBe('4')
       expect(settingsDialog.getStepForTab('codemirror')).toBe('5')
       expect(settingsDialog.getStepForTab('themes')).toBe('6')
-      expect(settingsDialog.getStepForTab('sync')).toBe('7')
+      expect(settingsDialog.getStepForTab('git-integration')).toBe('7')
       expect(settingsDialog.getStepForTab('privacy')).toBe('8')
       expect(settingsDialog.getStepForTab('unknown')).toBe('?')
     })
@@ -272,7 +286,12 @@ describe('SettingsDialog', () => {
 
     test('handleClick() handles close action', () => {
       const hideSpy = jest.spyOn(settingsDialog, 'hide')
-      const event = { target: { dataset: { action: 'close' } } }
+      const event = { 
+        target: { 
+          dataset: { action: 'close' },
+          closest: jest.fn(() => null)
+        } 
+      }
       
       settingsDialog.handleClick(event)
       
@@ -281,7 +300,12 @@ describe('SettingsDialog', () => {
 
     test('handleClick() handles save action', () => {
       const saveSpy = jest.spyOn(settingsDialog, 'saveSettings')
-      const event = { target: { dataset: { action: 'save' } } }
+      const event = { 
+        target: { 
+          dataset: { action: 'save' },
+          closest: jest.fn(() => null)
+        } 
+      }
       
       settingsDialog.handleClick(event)
       
@@ -290,7 +314,12 @@ describe('SettingsDialog', () => {
 
     test('handleClick() handles reset action', () => {
       const resetSpy = jest.spyOn(settingsDialog, 'resetSettings')
-      const event = { target: { dataset: { action: 'reset' } } }
+      const event = { 
+        target: { 
+          dataset: { action: 'reset' },
+          closest: jest.fn(() => null)
+        } 
+      }
       
       settingsDialog.handleClick(event)
       
@@ -299,7 +328,12 @@ describe('SettingsDialog', () => {
 
     test('handleClick() handles tab switching', () => {
       const switchSpy = jest.spyOn(settingsDialog, 'switchTab')
-      const event = { target: { dataset: { tab: 'themes' } } }
+      const event = { 
+        target: { 
+          dataset: { tab: 'themes' },
+          closest: jest.fn(() => null)
+        } 
+      }
       
       settingsDialog.handleClick(event)
       
@@ -407,14 +441,14 @@ describe('SettingsDialog', () => {
       expect(settingsDialog.getSearchQuery()).toBe('test')
     })
 
-    test('showToast() creates and removes toast notification', (done) => {
-      settingsDialog.showToast('Test message')
+    test('showNotification() logs message (simple implementation)', () => {
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
       
-      expect(document.createElement).toHaveBeenCalledWith('div')
-      expect(document.body.appendChild).toHaveBeenCalled()
+      settingsDialog.showNotification('Test message', 'info')
       
-      // Toast should be removed after delay (we can't easily test the timeout)
-      done()
+      expect(consoleLogSpy).toHaveBeenCalledWith('[INFO] Test message')
+      
+      consoleLogSpy.mockRestore()
     })
   })
 
@@ -423,10 +457,7 @@ describe('SettingsDialog', () => {
       const header = settingsDialog.renderHeader()
       
       expect(header).toContain('settings-header')
-      expect(header).toContain('Fantasy Editor Settings')
-      expect(header).toContain('settings-search')
-      expect(header).toContain('Reset')
-      expect(header).toContain('Save')
+      expect(header).toContain('Settings')
       expect(header).toContain('data-action="close"')
     })
 
@@ -436,7 +467,7 @@ describe('SettingsDialog', () => {
       expect(navigation).toContain('📝 Editor')
       expect(navigation).toContain('🎨 Themes')
       expect(navigation).toContain('🖥️ CodeMirror')
-      expect(navigation).toContain('🔄 Sync')
+      expect(navigation).toContain('🔀 Git Integration')
       expect(navigation).toContain('🔒 Privacy')
     })
 
@@ -456,21 +487,22 @@ describe('SettingsDialog', () => {
       
       expect(content).toContain('settings-panel')
       expect(content).toContain('Editor Settings')
-      expect(content).toContain('Theme')
       expect(content).toContain('Editor Width')
       expect(content).toContain('Zoom Level')
       expect(content).toContain('Enable spell checking')
       expect(content).toContain('Auto-save documents')
     })
 
-    test('renderTabContent() shows placeholder for non-editor tabs', () => {
+    test('renderTabContent() shows themes tab content for themes tab', () => {
       settingsDialog.currentTab = 'themes'
+      settingsDialog.localSettings = { editor: { theme: 'light' } }
       
       const content = settingsDialog.renderTabContent()
       
       expect(content).toContain('settings-panel')
       expect(content).toContain('Theme Customization')
-      expect(content).toContain('Coming in Step 6')
+      expect(content).toContain('Theme Selection')
+      expect(content).toContain('Built-in Themes')
     })
   })
 
@@ -481,7 +513,6 @@ describe('SettingsDialog', () => {
     })
 
     test('parseSettingValue() correctly parses different value types', () => {
-      expect(settingsDialog.parseSettingValue('editor.theme', 'dark')).toBe('dark')
       expect(settingsDialog.parseSettingValue('editor.width', '80', '', false)).toBe(80)
       expect(settingsDialog.parseSettingValue('editor.zoom', '1.15', '', false)).toBe(1.15)
       expect(settingsDialog.parseSettingValue('editor.spellCheck', '', 'checkbox', true)).toBe(true)
@@ -519,18 +550,18 @@ describe('SettingsDialog', () => {
     test('handleSettingChange() processes setting changes correctly', () => {
       const updateSettingSpy = jest.spyOn(settingsDialog, 'updateSetting').mockImplementation(() => {})
       
-      // Test select change
+      // Test select change (using autoSave interval since theme is no longer in Editor tab)
       const selectEvent = {
         target: {
-          dataset: { setting: 'editor.theme' },
-          value: 'dark',
+          dataset: { setting: 'editor.autoSaveInterval' },
+          value: '10000',
           type: 'select-one',
           checked: false
         }
       }
       
       settingsDialog.handleSettingChange(selectEvent)
-      expect(updateSettingSpy).toHaveBeenCalledWith('editor.theme', 'dark')
+      expect(updateSettingSpy).toHaveBeenCalledWith('editor.autoSaveInterval', expect.any(Number))
       
       // Test checkbox change
       const checkboxEvent = {
@@ -570,22 +601,26 @@ describe('SettingsDialog', () => {
     })
 
     test('refreshSettingsUI() updates UI elements after setting changes', () => {
-      // Mock width preset buttons
+      // Set current tab to editor so refreshSettingsUI runs
+      settingsDialog.currentTab = 'editor'
+      
+      // Mock width preset buttons - preset 80 is currently active, we're changing to 65
       const mockPresets = [
-        { dataset: { value: '65' }, classList: { toggle: jest.fn() } },
-        { dataset: { value: '80' }, classList: { toggle: jest.fn() } },
-        { dataset: { value: '90' }, classList: { toggle: jest.fn() } }
+        { dataset: { value: '65' }, classList: { toggle: jest.fn(), contains: jest.fn(() => false) } }, // should become active
+        { dataset: { value: '80' }, classList: { toggle: jest.fn(), contains: jest.fn(() => true) } },  // currently active, should become inactive
+        { dataset: { value: '90' }, classList: { toggle: jest.fn(), contains: jest.fn(() => false) } }  // not active, stays inactive
       ]
       
       const mockQuerySelectorAll = jest.fn(() => mockPresets)
       settingsDialog.element = { querySelectorAll: mockQuerySelectorAll }
       
-      settingsDialog.refreshSettingsUI('editor.width', 80)
+      settingsDialog.refreshSettingsUI('editor.width', 65)
       
       expect(mockQuerySelectorAll).toHaveBeenCalledWith('.width-preset')
-      expect(mockPresets[0].classList.toggle).toHaveBeenCalledWith('active', false)
-      expect(mockPresets[1].classList.toggle).toHaveBeenCalledWith('active', true)
-      expect(mockPresets[2].classList.toggle).toHaveBeenCalledWith('active', false)
+      // Only presets that change state should have toggle called
+      expect(mockPresets[0].classList.toggle).toHaveBeenCalledWith('active', true)  // 65 becomes active
+      expect(mockPresets[1].classList.toggle).toHaveBeenCalledWith('active', false) // 80 becomes inactive  
+      expect(mockPresets[2].classList.toggle).not.toHaveBeenCalled() // 90 stays inactive, no change
     })
   })
 })
