@@ -369,4 +369,203 @@ describe('Themes Tab', () => {
       expect(settingsDialog.localSettings.editor.theme).toBe('dark')
     })
   })
+
+  describe('Custom Theme Persistence Bug', () => {
+    test('custom theme name persists when dialog is reopened', () => {
+      // Set up settings manager with saved custom theme
+      const mockSettingsManagerWithCustomTheme = {
+        get: jest.fn((path) => {
+          const settings = {
+            'editor.theme': 'custom',
+            'editor.customTheme': {
+              name: 'Royal',
+              baseTheme: 'dark',
+              colors: {
+                backgroundPrimary: '#1a1a2e',
+                backgroundSecondary: '#16213e',
+                textPrimary: '#f39c12',
+                textSecondary: '#e67e22',
+                textMuted: '#d35400',
+                accent: '#e74c3c',
+                border: '#c0392b'
+              }
+            }
+          }
+          return settings[path]
+        }),
+        set: jest.fn(),
+        getAllSettings: jest.fn(() => ({
+          version: 1,
+          editor: { 
+            theme: 'custom',
+            customTheme: {
+              name: 'Royal',
+              baseTheme: 'dark',
+              colors: {
+                backgroundPrimary: '#1a1a2e',
+                backgroundSecondary: '#16213e',
+                textPrimary: '#f39c12',
+                textSecondary: '#e67e22',
+                textMuted: '#d35400',
+                accent: '#e74c3c',
+                border: '#c0392b'
+              }
+            }
+          }
+        })),
+        addListener: jest.fn(),
+        removeListener: jest.fn()
+      }
+
+      // Create new dialog with custom theme data
+      const dialogWithCustomTheme = new SettingsDialog(mockSettingsManagerWithCustomTheme)
+      
+      // Show dialog and render themes tab
+      dialogWithCustomTheme.show('themes')
+      
+      // Find the theme name input
+      const nameInput = document.querySelector('[data-setting="editor.customTheme.name"]')
+      
+      // The theme name should be preserved
+      expect(nameInput.value).toBe('Royal')
+      
+      // Clean up
+      dialogWithCustomTheme.hasChanges = false
+      dialogWithCustomTheme.hide()
+    })
+
+    test('reproduces bug with partial customTheme object', () => {
+      // This might be the real scenario - customTheme exists but is incomplete
+      const mockSettingsManagerPartial = {
+        get: jest.fn((path) => {
+          const settings = {
+            'editor.theme': 'light',
+            'editor.customTheme': {
+              // Missing name property, which might cause the || fallback
+              baseTheme: 'dark'
+            }
+          }
+          return settings[path]
+        }),
+        set: jest.fn(),
+        getAllSettings: jest.fn(() => ({
+          version: 1,
+          editor: { 
+            theme: 'light',
+            customTheme: {
+              baseTheme: 'dark'
+              // Missing name and colors
+            }
+          }
+        })),
+        addListener: jest.fn(),
+        removeListener: jest.fn()
+      }
+
+      const dialogWithPartial = new SettingsDialog(mockSettingsManagerPartial)
+      dialogWithPartial.show('themes')
+      
+      const nameInput = document.querySelector('[data-setting="editor.customTheme.name"]')
+      
+      // This might show the bug - input might show empty or default
+      expect(nameInput.value).toBe('') // Expected for missing name
+      
+      dialogWithPartial.hasChanges = false
+      dialogWithPartial.hide()
+    })
+
+    test('reproduces bug when customTheme is empty object', () => {
+      // Another scenario - empty customTheme object
+      const mockSettingsManagerEmpty = {
+        get: jest.fn((path) => {
+          const settings = {
+            'editor.theme': 'light',
+            'editor.customTheme': {} // Empty object - this might trigger the bug
+          }
+          return settings[path]
+        }),
+        set: jest.fn(),
+        getAllSettings: jest.fn(() => ({
+          version: 1,
+          editor: { 
+            theme: 'light',
+            customTheme: {} // Empty object
+          }
+        })),
+        addListener: jest.fn(),
+        removeListener: jest.fn()
+      }
+
+      const dialogWithEmpty = new SettingsDialog(mockSettingsManagerEmpty)
+      dialogWithEmpty.show('themes')
+      
+      const nameInput = document.querySelector('[data-setting="editor.customTheme.name"]')
+      
+      // This is where the bug might be - empty object is truthy, so || doesn't work
+      expect(nameInput.value).toBe('') // Should be empty, not placeholder
+      
+      dialogWithEmpty.hasChanges = false
+      dialogWithEmpty.hide()
+    })
+
+    test('verifies the original bug scenario is fixed', () => {
+      // This reproduces the exact user scenario: saved theme with name "Royal"
+      const mockSettingsWithRoyalTheme = {
+        get: jest.fn((path) => {
+          const settings = {
+            'editor.theme': 'custom',
+            'editor.customTheme': {
+              name: 'Royal',
+              baseTheme: 'dark',
+              colors: {
+                backgroundPrimary: '#1a1a2e',
+                accent: '#e74c3c'
+                // Some colors might be missing - this should still work
+              }
+            }
+          }
+          return settings[path]
+        }),
+        set: jest.fn(),
+        getAllSettings: jest.fn(() => ({
+          version: 1,
+          editor: { 
+            theme: 'custom',
+            customTheme: {
+              name: 'Royal',
+              baseTheme: 'dark', 
+              colors: {
+                backgroundPrimary: '#1a1a2e',
+                accent: '#e74c3c'
+              }
+            }
+          }
+        })),
+        addListener: jest.fn(),
+        removeListener: jest.fn()
+      }
+
+      const dialog = new SettingsDialog(mockSettingsWithRoyalTheme)
+      dialog.show('themes')
+      
+      const nameInput = document.querySelector('[data-setting="editor.customTheme.name"]')
+      
+      // BUG FIX: This should now show "Royal" instead of empty or "My Custom Theme"
+      expect(nameInput.value).toBe('Royal')
+      
+      // Also verify other properties are preserved
+      const baseSelect = document.querySelector('[data-setting="editor.customTheme.baseTheme"]')
+      expect(baseSelect.value).toBe('dark')
+      
+      // Colors should have saved values where available, defaults where missing
+      const accentPicker = document.querySelector('[data-setting="editor.customTheme.colors.accent"]')
+      expect(accentPicker.value).toBe('#e74c3c') // Preserved
+      
+      const borderPicker = document.querySelector('[data-setting="editor.customTheme.colors.border"]')
+      expect(borderPicker.value).toBe('#e2e8f0') // Default value
+      
+      dialog.hasChanges = false
+      dialog.hide()
+    })
+  })
 })
