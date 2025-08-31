@@ -19,6 +19,9 @@ export class SettingsDialog {
     this.localSettings = null
     this.originalSettings = null
     
+    // Throttling for live preview to reduce lag
+    this.livePreviewThrottleTimer = null
+    
     
     // Listen for theme changes to update dialog appearance
     this.handleThemeChange = this.handleThemeChange.bind(this)
@@ -103,6 +106,11 @@ export class SettingsDialog {
   hide() {
     if (!this.isOpen) return
 
+    // Clear any pending live preview throttle
+    if (this.livePreviewThrottleTimer) {
+      clearTimeout(this.livePreviewThrottleTimer)
+      this.livePreviewThrottleTimer = null
+    }
 
     // If there are unsaved changes, ask user what to do
     if (this.hasChanges) {
@@ -664,11 +672,15 @@ export class SettingsDialog {
       this.setLocalSetting(path, value)
       this.hasChanges = true
       
-      // Apply immediately for live preview (managers will apply to UI)
-      this.applyLivePreview(path, value)
-      
-      // Update UI to reflect the change
+      // Update UI immediately for visual feedback
       this.refreshSettingsUI(path, value)
+      
+      // Apply live preview with throttling for width changes to reduce lag
+      if (path === 'editor.width') {
+        this.applyLivePreviewThrottled(path, value)
+      } else {
+        this.applyLivePreview(path, value)
+      }
       
     } catch (error) {
       console.warn('Failed to update setting:', error)
@@ -741,6 +753,22 @@ export class SettingsDialog {
         }
         break
     }
+  }
+
+  /**
+   * Throttled version of applyLivePreview for width changes to reduce lag
+   */
+  applyLivePreviewThrottled(path, value) {
+    // Clear existing timer
+    if (this.livePreviewThrottleTimer) {
+      clearTimeout(this.livePreviewThrottleTimer)
+    }
+    
+    // Apply with delay to allow rapid clicking without lag
+    this.livePreviewThrottleTimer = setTimeout(() => {
+      this.applyLivePreview(path, value)
+      this.livePreviewThrottleTimer = null
+    }, 100) // 100ms throttle - fast enough for live preview, slow enough to prevent lag
   }
 
   /**
