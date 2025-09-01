@@ -19,6 +19,14 @@ class CloudflareWAFDeployer {
     this.baseUrl = 'https://api.cloudflare.com/client/v4';
     
     if (!this.apiToken || !this.zoneId) {
+      console.error('❌ Missing required environment variables:');
+      console.error('   - CLOUDFLARE_API_TOKEN: Required for API authentication');
+      console.error('   - CLOUDFLARE_ZONE_ID: Zone ID for forgewright.io domain');
+      console.error('');
+      console.error('💡 To fix this:');
+      console.error('   1. Create API token in Cloudflare Dashboard with Zone:Edit permissions');
+      console.error('   2. Get Zone ID from domain overview page');
+      console.error('   3. Add both secrets to GitHub environment: fantasy.forgewright.io');
       throw new Error('Missing required environment variables: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID');
     }
   }
@@ -115,6 +123,27 @@ class CloudflareWAFDeployer {
       const rulesConfig = JSON.parse(fs.readFileSync(rulesPath, 'utf8'));
       
       console.log(`📋 Found ${rulesConfig.rules.length} rules to deploy`);
+
+      // Test API authentication first
+      console.log('🔑 Testing API authentication...');
+      try {
+        await this.makeRequest('GET', `/zones/${this.zoneId}`);
+        console.log('✅ API authentication successful');
+      } catch (error) {
+        if (error.message.includes('Authentication error')) {
+          console.error('❌ API Authentication failed:');
+          console.error('   • Token may be invalid or expired');
+          console.error('   • Token may lack Zone:Edit permissions');
+          console.error('   • Zone ID may be incorrect');
+          console.error('');
+          console.error('💡 To fix this:');
+          console.error('   1. Verify API token has Zone:Edit permissions');
+          console.error('   2. Check Zone ID matches forgewright.io domain');
+          console.error('   3. Regenerate token if needed');
+          throw new Error('WAF deployment failed due to authentication error');
+        }
+        throw error;
+      }
 
       // Get existing rules
       const existingRules = await this.getExistingRules();
