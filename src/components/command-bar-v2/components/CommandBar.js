@@ -303,66 +303,25 @@ export class CommandBar extends BaseComponent {
   search(query) {
     this.setState({ isSearching: true })
 
-    // Filter commands with improved command + parameter parsing
+    // Use CommandRegistry's searchCommands for proper fuzzy matching and relevance scoring
     if (!query || query.length < this.options.minInputLength) {
       this.filteredCommands = [...this.commands]
     } else {
-      const trimmedQuery = query.trim()
+      // Use the registry's search which has proper scoring and sorting
+      const registryResults = this.commandRegistry ? 
+        this.commandRegistry.searchCommands(query) : 
+        []
       
-      this.filteredCommands = this.commands.filter(cmd => {
-        const name = cmd.name?.toLowerCase() || ''
-        const description = cmd.description?.toLowerCase() || ''
-        const aliases = cmd.aliases || []
-        const queryLower = trimmedQuery.toLowerCase()
-        
-        // Special handling for colon shortcuts - prioritize exact matches
-        if (queryLower.startsWith(':')) {
-          // First check for exact colon alias match
-          const exactColonMatch = aliases.find(alias => 
-            alias.startsWith(':') && 
-            alias.toLowerCase() === queryLower
-          )
-          
-          if (exactColonMatch) {
-            return true
-          }
-          
-          // If no exact match exists, check for prefix matches (for partial typing like ":s" when typing ":sp")
-          const hasExactMatch = this.commands.some(otherCmd => 
-            otherCmd.aliases?.some(alias => 
-              alias.startsWith(':') && alias.toLowerCase() === queryLower
-            )
-          )
-          
-          if (!hasExactMatch) {
-            // Only show prefix matches if no exact match exists
-            const prefixMatch = aliases.find(alias => 
-              alias.startsWith(':') && 
-              alias.toLowerCase().startsWith(queryLower)
-            )
-            
-            if (prefixMatch) {
-              return true
-            }
-          }
-          
-          // No colon matches, skip this command for colon queries
-          return false
-        }
-        
-        // Check for command name match at start of query (non-colon queries)
-        if (queryLower.startsWith(name)) {
-          return true
-        }
-        
-        // For regular fuzzy search, use the first word only
-        const firstWord = queryLower.split(/\s+/)[0]
-        
-        // Check if first word matches command name, aliases, or description
-        return name.includes(firstWord) || 
-               description.toLowerCase().includes(firstWord) ||
-               aliases.some(alias => alias.toLowerCase().includes(firstWord))
-      })
+      // Transform registry results back to our format
+      this.filteredCommands = registryResults.map(cmd => ({
+        name: cmd.name,
+        description: cmd.description,
+        category: this.normalizeCategory(cmd.category),
+        aliases: cmd.aliases || [],
+        parameters: cmd.parameters || [],
+        handler: cmd.handler,
+        condition: cmd.condition
+      }))
     }
 
     this.setState({ 
@@ -621,8 +580,24 @@ export class CommandBar extends BaseComponent {
     // Execute through command registry
     if (this.commandRegistry && this.commandRegistry.executeCommand) {
       try {
-        // CommandRegistry expects the full input string, not separate name and args
-        this.commandRegistry.executeCommand(query)
+        // Build the actual command to execute
+        // If user typed "op dragon", we want to execute "open dragon"
+        // Extract any arguments from the original query
+        const queryParts = query.split(/\s+/)
+        const args = queryParts.slice(1).join(' ')
+        
+        // Use the selected command's name or its first alias if it starts with colon
+        let commandToExecute = command.name
+        if (command.aliases && command.aliases.length > 0 && command.aliases[0].startsWith(':')) {
+          // Prefer colon aliases if available
+          commandToExecute = command.aliases[0]
+        }
+        
+        // Combine command with any arguments
+        const fullCommand = args ? `${commandToExecute} ${args}` : commandToExecute
+        
+        // Execute the properly formed command
+        this.commandRegistry.executeCommand(fullCommand)
       } catch (error) {
         console.error('Command execution failed:', error)
         this.emit('command:error', { command, error })
