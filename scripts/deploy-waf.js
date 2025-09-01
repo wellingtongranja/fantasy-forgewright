@@ -5,9 +5,12 @@
  * This script deploys Web Application Firewall rules to protect Fantasy Editor
  */
 
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 class CloudflareWAFDeployer {
   constructor() {
@@ -213,8 +216,8 @@ async function main() {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-module.exports = CloudflareWAFDeployer;
+export default CloudflareWAFDeployer;
