@@ -48,6 +48,9 @@ export class ThemeManager {
    * Apply theme to UI without saving (for Settings Manager updates)
    */
   applyThemeOnly(theme) {
+    // Clear any existing custom theme styles first
+    this.clearCustomTheme()
+    
     // Apply CSS theme
     document.documentElement.setAttribute('data-theme', theme)
 
@@ -141,6 +144,32 @@ export class ThemeManager {
       (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
       (B < 255 ? B < 1 ? 0 : B : 255))
       .toString(16).slice(1)
+  }
+
+  /**
+   * Clear custom theme colors from document element
+   */
+  clearCustomTheme() {
+    // Get all CSS variables that might be set by custom theme
+    const customThemeVariables = [
+      '--background-color', '--color-bg',
+      '--surface-color', '--color-bg-secondary', '--color-bg-tertiary',
+      '--text-color', '--color-text',
+      '--text-secondary', '--color-text-secondary',
+      '--text-muted', '--color-text-muted',
+      '--accent-color', '--color-primary',
+      '--border-color', '--color-border',
+      '--color-primary-rgb',
+      '--color-border-rgb',
+      '--surface-hover',
+      '--border-light',
+      '--border-dark'
+    ]
+
+    // Remove all custom theme variables from document element
+    customThemeVariables.forEach(variable => {
+      document.documentElement.style.removeProperty(variable)
+    })
   }
 
   /**
