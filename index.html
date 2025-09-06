@@ -22,11 +22,7 @@
   <link rel="stylesheet" href="/src/styles/base.css">
   <link rel="stylesheet" href="/src/styles/variables.css">
   
-  <!-- Theme files -->
-  <link rel="stylesheet" href="/src/styles/themes/light.css">
-  <link rel="stylesheet" href="/src/styles/themes/dark.css">
-  <link rel="stylesheet" href="/src/styles/themes/custom.css">
-  
+  <!-- Component files loaded first -->
   <link rel="stylesheet" href="/src/components/navigator/navigator.css">
   <link rel="stylesheet" href="/src/components/sidebar/file-tree.css">
   <link rel="stylesheet" href="/src/components/search/search-results.css">
@@ -36,6 +32,12 @@
   <link rel="stylesheet" href="/src/styles/components/provider-selector.css">
   <link rel="stylesheet" href="/src/styles/components/command-bar-trigger.css">
   <link rel="stylesheet" href="/src/components/status-bar/status-bar.css">
+  
+  <!-- Theme files loaded LAST to override component defaults -->
+  <link rel="stylesheet" href="/src/styles/themes/light.css">
+  <link rel="stylesheet" href="/src/styles/themes/dark.css">
+  <link rel="stylesheet" href="/src/styles/themes/fantasy.css">
+  <link rel="stylesheet" href="/src/styles/themes/custom.css">
   
   <script type="module" src="/src/app.js"></script>
 </head>

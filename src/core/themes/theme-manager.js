@@ -193,9 +193,9 @@ export class ThemeManager {
   }
 
   toggleTheme() {
-    const themes = ['light', 'dark']
+    const themes = ['light', 'dark', 'fantasy', 'custom']
     const currentIndex = themes.indexOf(this.currentTheme)
-    const nextIndex = (currentIndex + 1) % themes.length
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % themes.length
     this.applyTheme(themes[nextIndex])
   }
 
@@ -206,6 +206,7 @@ export class ThemeManager {
     const icons = {
       light: '🌙',
       dark: '☀️',
+      fantasy: '⚔️',
       custom: '🎨'
     }
 
@@ -214,9 +215,9 @@ export class ThemeManager {
   }
 
   getNextTheme() {
-    const themes = ['light', 'dark']
+    const themes = ['light', 'dark', 'fantasy', 'custom']
     const currentIndex = themes.indexOf(this.currentTheme)
-    const nextIndex = (currentIndex + 1) % themes.length
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % themes.length
     return themes[nextIndex]
   }
 
@@ -238,14 +239,14 @@ export class ThemeManager {
    * Get available themes
    */
   getAvailableThemes() {
-    return ['light', 'dark', 'custom']
+    return ['light', 'dark', 'fantasy', 'custom']
   }
 
   /**
    * Check if theme is dark
    */
   isDarkTheme(theme = this.currentTheme) {
-    return theme === 'dark'
+    return theme === 'dark' || theme === 'fantasy'
   }
 
   /**
@@ -264,8 +265,80 @@ export class ThemeManager {
         activeLineHighlight: 'rgba(255, 255, 255, 0.05)',
         foldIcon: '▶'
       },
+      fantasy: {
+        searchHighlight: 'rgba(212, 175, 55, 0.25)',
+        activeLineHighlight: 'rgba(23, 48, 26, 0.05)',
+        foldIcon: '▶'
+      },
+      custom: {
+        searchHighlight: 'rgba(0, 100, 200, 0.2)',
+        activeLineHighlight: 'rgba(0, 0, 0, 0.05)',
+        foldIcon: '▶'
+      }
     }
 
     return themeValues[theme]?.[property] || themeValues.light[property]
+  }
+
+  /**
+   * Set header colors independently of theme
+   */
+  setHeaderColors(colors) {
+    if (!colors || typeof colors !== 'object') return
+
+    const headerColorMapping = {
+      background: '--header-background',
+      text: '--header-text-color', 
+      border: '--header-border-color'
+    }
+
+    Object.keys(headerColorMapping).forEach(key => {
+      if (colors[key] != null) {
+        document.documentElement.style.setProperty(headerColorMapping[key], colors[key])
+      }
+    })
+
+    // Save to settings
+    this.settingsManager.set('editor.headerColors', colors)
+  }
+
+  /**
+   * Load header colors from settings
+   */
+  loadHeaderColors() {
+    const savedColors = this.settingsManager.get('editor.headerColors')
+    if (savedColors) {
+      this.setHeaderColors(savedColors)
+    }
+  }
+
+  /**
+   * Get default header colors for a specific theme
+   */
+  getDefaultHeaderColors(theme) {
+    const defaults = {
+      light: {
+        background: '#f8f9fa',
+        text: '#212529',
+        border: '#dee2e6'
+      },
+      dark: {
+        background: '#2d3748',
+        text: '#f7fafc',
+        border: '#4a5568'
+      },
+      fantasy: {
+        background: '#2A4D2E', // King's Green Base
+        text: '#D4AF37',       // Imperial Gold Base - Better contrast
+        border: '#17301A'      // King's Green Dark
+      },
+      custom: {
+        background: '#f8f9fa', // Defaults to light theme
+        text: '#212529',
+        border: '#dee2e6'
+      }
+    }
+
+    return defaults[theme] || defaults.light
   }
 }

@@ -27,6 +27,12 @@
   --border-light: #f1f3f4;
   --border-dark: #adb5bd;
 
+  /* Header-specific variables for independent control */
+  --header-background: #f8f9fa;
+  --header-text-color: #212529;
+  --header-border-color: #dee2e6;
+  --header-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
   /* Status colors */
   --success-color: #28a745;
   --warning-color: #ffc107;

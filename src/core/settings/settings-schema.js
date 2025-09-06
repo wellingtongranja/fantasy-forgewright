@@ -87,7 +87,7 @@ export const SETTINGS_SCHEMA = {
     properties: {
       theme: { 
         type: 'string', 
-        enum: ['light', 'dark', 'custom'] 
+        enum: ['light', 'dark', 'fantasy', 'custom'] 
       },
       customTheme: {
         type: 'object',
@@ -95,7 +95,7 @@ export const SETTINGS_SCHEMA = {
           name: { type: 'string', maxLength: 50 },
           baseTheme: { 
             type: 'string', 
-            enum: ['light', 'dark'] 
+            enum: ['light', 'dark', 'fantasy'] 
           },
           colors: {
             type: 'object',

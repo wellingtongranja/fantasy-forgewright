@@ -182,12 +182,12 @@ export function registerCoreCommands(registry, app) {
           name: 'theme',
           required: false,
           type: 'string',
-          description: 'Theme name (light, dark)'
+          description: 'Theme name (light, dark, fantasy, custom)'
         }
       ],
       handler: async (args) => {
         const themeName = args[0]
-        const availableThemes = ['light', 'dark']
+        const availableThemes = ['light', 'dark', 'fantasy', 'custom']
 
         if (!themeName) {
           return {
@@ -218,14 +218,28 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         // Get current theme and cycle to next
         const currentTheme = app.settingsManager.get('editor.theme') || 'light'
-        const themes = ['light', 'dark']
+        const themes = ['light', 'dark', 'fantasy', 'custom']
         const currentIndex = themes.indexOf(currentTheme)
-        const nextTheme = themes[(currentIndex + 1) % themes.length]
+        
+        // Handle unknown theme (fallback to light)
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % themes.length
+        const nextTheme = themes[nextIndex]
         
         // Update via Settings Manager (will notify Theme Manager automatically)
         app.settingsManager.set('editor.theme', nextTheme)
         
-        return { success: true, message: `Switched to ${nextTheme} theme` }
+        // Return appropriate icon and message
+        const themeIcons = {
+          light: '☀️',
+          dark: '🌙',
+          fantasy: '⚔️',
+          custom: '🎨'
+        }
+        
+        return { 
+          success: true, 
+          message: `${themeIcons[nextTheme]} Switched to ${nextTheme} theme` 
+        }
       }
     },
 

@@ -453,6 +453,7 @@ export class SettingsDialog {
             <div class="theme-preview-grid">
               ${this.renderThemePreviewCard('light', '☀️ Light Theme', themeSettings.theme === 'light')}
               ${this.renderThemePreviewCard('dark', '🌙 Dark Theme', themeSettings.theme === 'dark')}
+              ${this.renderThemePreviewCard('fantasy', '⚔️ Fantasy Theme', themeSettings.theme === 'fantasy')}
             </div>
           </div>
         </div>
@@ -493,6 +494,25 @@ export class SettingsDialog {
               ${this.renderColorPicker('textMuted', 'Muted Text', customTheme.colors.textMuted)}
               ${this.renderColorPicker('accent', 'Accent Color', customTheme.colors.accent)}
               ${this.renderColorPicker('border', 'Border Color', customTheme.colors.border)}
+            </div>
+          </div>
+          
+          <div class="settings-subsection">
+            <h5>Header Colors (Independent)</h5>
+            <p class="settings-subsection-description">Customize header colors independently of theme</p>
+            <div class="color-settings-grid">
+              ${this.renderHeaderColorPicker('background', 'Header Background')}
+              ${this.renderHeaderColorPicker('text', 'Header Text')}
+              ${this.renderHeaderColorPicker('border', 'Header Border')}
+            </div>
+            <div class="header-color-actions">
+              <button 
+                type="button" 
+                class="btn-secondary btn-sm"
+                data-action="reset-header-colors"
+              >
+                Reset to Theme Default
+              </button>
             </div>
           </div>
           
@@ -583,6 +603,48 @@ export class SettingsDialog {
             pattern="^#[0-9a-fA-F]{6}$"
             maxlength="7"
           />
+        </div>
+      </div>
+    `
+  }
+
+  /**
+   * Render a header color picker field
+   */
+  renderHeaderColorPicker(key, label) {
+    const headerColors = this.localSettings?.editor?.headerColors || {}
+    const value = headerColors[key] || ''
+    const inputId = `header-color-${key}`
+    
+    return `
+      <div class="color-field">
+        <label for="${inputId}">${label}</label>
+        <div class="color-input-group">
+          <input 
+            type="color" 
+            id="${inputId}"
+            data-setting="editor.headerColors.${key}"
+            value="${value}"
+            ${!value ? 'disabled' : ''}
+          />
+          <input 
+            type="text" 
+            class="color-hex-input"
+            data-setting="editor.headerColors.${key}"
+            value="${value}"
+            pattern="^#[0-9a-fA-F]{6}$"
+            maxlength="7"
+            placeholder="Theme default"
+          />
+          <button 
+            type="button" 
+            class="btn-icon btn-sm clear-header-color"
+            data-header-color-key="${key}"
+            title="Clear to use theme default"
+            ${!value ? 'style="display: none"' : ''}
+          >
+            ×
+          </button>
         </div>
       </div>
     `
@@ -791,6 +853,10 @@ export class SettingsDialog {
       this.handleActivateCustomTheme()
     } else if (action === 'reset-custom-colors') {
       this.handleResetCustomColors()
+    } else if (action === 'reset-header-colors') {
+      this.handleResetHeaderColors()
+    } else if (event.target.classList.contains('clear-header-color')) {
+      this.handleClearHeaderColor(event.target.dataset.headerColorKey)
     } else if (tab) {
       this.switchTab(tab)
     } else if (setting && value !== undefined) {
@@ -1244,6 +1310,42 @@ export class SettingsDialog {
     
     // Show notification to user
     this.showNotification(`Colors updated to match ${newBaseTheme} theme`, 'info')
+  }
+
+  /**
+   * Handle resetting header colors to theme defaults
+   */
+  handleResetHeaderColors() {
+    const currentTheme = this.getLocalSetting('editor.theme') || 'light'
+    
+    // Get theme manager for defaults (assuming it's available globally)
+    if (window.app?.themeManager) {
+      const defaults = window.app.themeManager.getDefaultHeaderColors(currentTheme)
+      this.updateSetting('editor.headerColors', defaults)
+    } else {
+      // Fallback defaults
+      const defaults = {
+        light: { background: '#f8f9fa', text: '#212529', border: '#dee2e6' },
+        dark: { background: '#2d3748', text: '#f7fafc', border: '#4a5568' },
+        fantasy: { background: '#2A4D2E', text: '#F3E6D1', border: '#17301A' },
+        custom: { background: '#f8f9fa', text: '#212529', border: '#dee2e6' }
+      }
+      this.updateSetting('editor.headerColors', defaults[currentTheme] || defaults.light)
+    }
+    
+    // Refresh the tab to show updated colors
+    this.refreshTabContent()
+  }
+
+  /**
+   * Handle clearing individual header color (revert to theme default)
+   */
+  handleClearHeaderColor(colorKey) {
+    const headerColors = { ...(this.getLocalSetting('editor.headerColors') || {}) }
+    delete headerColors[colorKey]
+    
+    this.updateSetting('editor.headerColors', headerColors)
+    this.refreshTabContent()
   }
 
   /**

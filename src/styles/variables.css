@@ -83,6 +83,12 @@
   --header-height: 60px;
   --footer-height: 40px;
 
+  /* Header-specific variables for independent control */
+  --header-background: var(--color-bg-secondary);
+  --header-text-color: var(--color-text);
+  --header-border-color: var(--color-border);
+  --header-shadow: var(--shadow-sm);
+
   /* Editor width and zoom controls */
   --editor-max-width: 65ch;
   --editor-zoom-level: 1;

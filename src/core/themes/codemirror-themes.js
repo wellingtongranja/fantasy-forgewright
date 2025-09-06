@@ -190,7 +190,7 @@ function createUnifiedTheme(themeName, options = {}) {
         borderTopColor: 'var(--background-secondary)'
       }
     },
-    { dark: themeName === 'dark' }
+    { dark: themeName === 'dark' || themeName === 'fantasy' }
   )
 }
 
@@ -198,14 +198,15 @@ function createUnifiedTheme(themeName, options = {}) {
  * Creates syntax highlighting that respects theme colors
  */
 function createSyntaxHighlighting(themeName) {
-  const isDark = themeName === 'dark'
+  const isDark = themeName === 'dark' || themeName === 'fantasy'
+  const isFantasy = themeName === 'fantasy'
 
   return syntaxHighlighting(
     HighlightStyle.define([
       // Markdown-specific highlighting
       {
         tag: t.heading,
-        color: isDark ? '#ffffff' : '#1a1a1a',
+        color: isFantasy ? '#6A1B2D' : (isDark ? '#ffffff' : '#1a1a1a'), // Royal Burgundy for fantasy
         fontWeight: 'bold'
       },
       {
@@ -237,12 +238,12 @@ function createSyntaxHighlighting(themeName) {
       },
       {
         tag: t.link,
-        color: isDark ? '#4fc3f7' : '#1976d2',
+        color: isFantasy ? '#A6801D' : (isDark ? '#4fc3f7' : '#1976d2'), // Imperial Gold Dark for fantasy
         textDecoration: 'underline'
       },
       {
         tag: t.url,
-        color: isDark ? '#4fc3f7' : '#1976d2'
+        color: isFantasy ? '#A6801D' : (isDark ? '#4fc3f7' : '#1976d2') // Imperial Gold Dark for fantasy
       },
       {
         tag: [t.list, t.quote],
@@ -251,14 +252,15 @@ function createSyntaxHighlighting(themeName) {
       {
         tag: t.monospace,
         fontFamily: 'var(--font-family-mono)',
-        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        backgroundColor: isFantasy ? 'rgba(106, 27, 45, 0.1)' : (isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'), // Royal Burgundy background for fantasy
+        color: isFantasy ? '#8E2C42' : 'inherit', // Royal Burgundy Light for fantasy
         padding: '2px 4px',
         borderRadius: '3px'
       },
       {
         tag: t.processingInstruction, // Code blocks
-        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-        color: isDark ? '#e0e0e0' : '#424242'
+        backgroundColor: isFantasy ? 'rgba(42, 77, 46, 0.05)' : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'), // King's Green background for fantasy
+        color: isFantasy ? '#2A4D2E' : (isDark ? '#e0e0e0' : '#424242') // King's Green Base for fantasy
       },
       {
         tag: t.invalid,
@@ -274,7 +276,8 @@ function createSyntaxHighlighting(themeName) {
 function getThemeHighlight(themeName) {
   const highlights = {
     light: 'rgba(0, 0, 0, 0.05)',
-    dark: 'rgba(255, 255, 255, 0.05)'
+    dark: 'rgba(255, 255, 255, 0.05)',
+    fantasy: 'rgba(23, 48, 26, 0.05)' // King's Green Dark for fantasy
   }
   return highlights[themeName] || highlights.light
 }
@@ -285,7 +288,8 @@ function getThemeHighlight(themeName) {
 function getThemeSearchMatch(themeName) {
   const matches = {
     light: 'rgba(0, 100, 200, 0.2)',
-    dark: 'rgba(100, 150, 255, 0.2)'
+    dark: 'rgba(100, 150, 255, 0.2)',
+    fantasy: 'rgba(212, 175, 55, 0.25)' // Imperial Gold Base for fantasy
   }
   return matches[themeName] || matches.light
 }
@@ -296,6 +300,8 @@ function getThemeSearchMatch(themeName) {
 export const fantasyLightTheme = [createUnifiedTheme('light'), createSyntaxHighlighting('light')]
 
 export const fantasyDarkTheme = [createUnifiedTheme('dark'), createSyntaxHighlighting('dark')]
+
+export const fantasyFantasyTheme = [createUnifiedTheme('fantasy'), createSyntaxHighlighting('fantasy')]
 
 
 /**
@@ -310,7 +316,9 @@ export function getThemeExtension(themeName, options = {}) {
   // Use default themes
   const themes = {
     light: fantasyLightTheme,
-    dark: fantasyDarkTheme
+    dark: fantasyDarkTheme,
+    fantasy: fantasyFantasyTheme,
+    custom: fantasyLightTheme // Custom theme falls back to light base
   }
   return themes[themeName] || fantasyLightTheme
 }
