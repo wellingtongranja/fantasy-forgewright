@@ -1,6 +1,6 @@
 {
   "name": "fantasy-forgewright",
-  "version": "0.0.1",
+  "version": "0.0.2-alpha",
   "description": "A distraction-free, keyboard-first markdown editor for fantasy writers",
   "main": "src/app.js",
   "type": "module",
