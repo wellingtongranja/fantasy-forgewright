@@ -10,24 +10,38 @@
 
 ## 🎯 Core Requirements
 
-### Current Status
+### Current Status (Updated: January 2025)
 
+#### ✅ Completed Features
 - [x] Markdown editing with CodeMirror 6
 - [x] VS Code-style command palette (Ctrl+Space only)
-- [x] Multi-theme support (Light, Dark, Fantasy)
+- [x] Theme support (Light, Dark modes)
+- [x] Custom theme configuration via Settings Dialog
 - [x] Offline-first PWA functionality
 - [x] Full-text search and document tagging
 - [x] Writer-focused UI with optimal 65ch layout
-- [x] **Multi-Provider OAuth System** - GitHub, GitLab, Bitbucket, and generic Git support via secure Cloudflare Worker proxy
 - [x] GitHub OAuth integration with automatic repository setup
-- [x] **Navigator Component** - Tabbed sidebar with Documents, Outline, Search
-- [x] **Auto-unhide functionality** - Mouse-triggered Navigator appearance
-- [x] **RECENT/PREVIOUS document organization** - Simplified grouping system
-- [x] **Editor Width & Zoom Controls** - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
-- [x] **Document Export System** - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
-- [x] **Status Bar Enhancement** - Unified sync status indicators with color-coded states
+- [x] Editor Width & Zoom Controls - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
+- [x] Document Export System - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
+
+#### 🚧 In Progress / Needs Improvement
+- [ ] **Fantasy Theme** - Not yet implemented (only Light/Dark + custom theme exist)
+- [ ] **Navigator Component** - Basic implementation exists, needs refinement
+- [ ] **Settings Dialog** - Functional but requires UX enhancements
+- [ ] **Sync Status Indicators** - Implemented but needs review and fixes
+- [ ] **Conflict Resolution** - Basic system exists, needs robust testing and improvements
+- [ ] **Local File Handling** - Requires review and optimization
+- [ ] **Merge Functionality** - Needs comprehensive review
+
+#### 📋 Planned Features
+- [ ] Multi-Provider OAuth System (GitLab, Bitbucket, generic Git)
 - [ ] Project Gutenberg integration
 - [ ] Internationalization support
+
+#### ⚠️ Technical Debt
+- **Bundle Size**: Currently >1MB (target relaxed to <3MB, needs optimization)
+- **Test Coverage**: Need to increase coverage to >90%
+- **Mobile Experience**: Functional but not optimized
 
 ## 🏗️ Architecture Highlights
 
@@ -673,22 +687,136 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 
 **Reference:** See `docs/deployment.md` for comprehensive troubleshooting guide.
 
+## 🚀 Development Roadmap (Q1 2025)
+
+### Phase 1: Core Stabilization (Weeks 1-2)
+
+#### 1.1 Fantasy Theme Implementation
+**Approach**: TDD with visual regression testing
+- [ ] Design color palette (parchment, aged paper, medieval tones)
+- [ ] Write theme tests first (contrast ratios, WCAG compliance)
+- [ ] Implement CSS variables for Fantasy theme
+- [ ] Test with all UI components
+- [ ] Add theme preview in Settings Dialog
+
+#### 1.2 Bundle Size Optimization
+**Target**: <3MB gzipped (currently >1MB)
+- [ ] Analyze bundle with `npm run bundle-analyzer`
+- [ ] Implement code splitting for non-critical features
+- [ ] Lazy load heavy dependencies (jspdf, html2canvas)
+- [ ] Tree-shake unused CodeMirror extensions
+- [ ] Optimize image assets and fonts
+
+### Phase 2: Component Enhancement (Weeks 3-4)
+
+#### 2.1 Navigator Component Improvements
+**Principles**: KISS, defensive programming
+- [ ] Write unit tests for current Navigator behavior
+- [ ] Fix keyboard navigation issues
+- [ ] Improve document filtering performance
+- [ ] Add document sorting options
+- [ ] Enhance outline parser for better markdown support
+- [ ] Implement virtual scrolling for large document lists
+
+#### 2.2 Settings Dialog Enhancement
+**Focus**: UX and accessibility
+- [ ] Add theme preview panel
+- [ ] Implement settings validation
+- [ ] Add import/export settings functionality
+- [ ] Improve mobile responsiveness
+- [ ] Add keyboard shortcuts configuration
+
+### Phase 3: Sync System Robustness (Weeks 5-6)
+
+#### 3.1 Conflict Resolution Review
+**Approach**: Defensive programming with comprehensive testing
+- [ ] Write extensive conflict scenario tests
+- [ ] Implement three-way merge algorithm
+- [ ] Add visual diff interface
+- [ ] Create conflict resolution strategies (auto/manual)
+- [ ] Add conflict prevention mechanisms
+
+#### 3.2 Status Indicators Fix
+**Requirements**: Real-time, accurate status
+- [ ] Review current status detection logic
+- [ ] Fix race conditions in status updates
+- [ ] Add debouncing for status changes
+- [ ] Implement retry logic with exponential backoff
+- [ ] Add detailed sync logs for debugging
+
+#### 3.3 Local File Handling Optimization
+**Goals**: Performance and reliability
+- [ ] Optimize IndexedDB queries
+- [ ] Implement file chunking for large documents
+- [ ] Add compression for stored documents
+- [ ] Create backup/restore functionality
+- [ ] Add data migration system
+
+### Development Standards for Each Phase
+
+#### Test-Driven Development (TDD)
+1. **RED**: Write failing test for new feature/fix
+2. **GREEN**: Implement minimal code to pass test
+3. **REFACTOR**: Clean up while keeping tests green
+4. **Coverage**: Maintain >90% test coverage
+
+#### Code Quality Standards
+- **Functions**: Max 20 lines, single responsibility
+- **Files**: Max 200 lines, focused purpose
+- **Complexity**: Cyclomatic complexity <10
+- **Documentation**: JSDoc for all public APIs
+
+#### Progressive Web App (PWA) Principles
+- **Offline-first**: All features work without network
+- **Performance**: <3s Time to Interactive
+- **Responsive**: Mobile-first design approach
+- **Installable**: Full PWA manifest compliance
+
+#### Security & Defensive Programming
+- **Input Validation**: Sanitize all user inputs
+- **Error Boundaries**: Graceful error handling
+- **Rate Limiting**: Prevent API abuse
+- **CSP Headers**: Strict content security policy
+
+### Success Metrics
+
+#### Performance
+- [ ] Bundle size <3MB gzipped
+- [ ] First Contentful Paint <1.5s
+- [ ] Time to Interactive <3s
+- [ ] Lighthouse score >90
+
+#### Quality
+- [ ] Test coverage >90%
+- [ ] 0 critical/high security vulnerabilities
+- [ ] WCAG 2.1 AA compliance
+- [ ] No memory leaks
+
+#### User Experience
+- [ ] Sync conflicts reduced by 50%
+- [ ] Settings changes apply instantly
+- [ ] Navigator responds in <100ms
+- [ ] Fantasy theme user satisfaction >80%
+
 ## 📄 License Information
 
 **Fantasy Editor** is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
 
 ### Key License Points
+
 - **Source Code**: Must be made available to users of the network service
 - **Copyleft**: Derivative works must also be licensed under AGPL-3.0
 - **Network Use**: Users accessing Fantasy Editor over a network have the right to receive the complete source code
 - **Commercial Use**: Separate commercial license available (see `docs/license-commercial.md`)
 
 ### License Files
+
 - **Primary License**: `docs/license-agpl.md` - Full AGPL-3.0 text
 - **Commercial Option**: `docs/license-commercial.md` - Commercial licensing terms
 - **EULA**: `docs/eula.md` - End User License Agreement
 
 ### Important Notes
+
 - Fantasy Editor is NOT under MIT license
 - Network deployment requires AGPL compliance
 - Users have the right to request source code

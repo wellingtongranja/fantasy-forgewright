@@ -14,9 +14,10 @@ Welcome to the first alpha release of Fantasy Editor! This release establishes t
 #### Editor
 - Full markdown support with CodeMirror 6
 - Live markdown syntax highlighting
-- Multiple themes (Light, Dark, Fantasy)
-- Adjustable editor width (65ch, 80ch, 90ch, full)
-- Zoom controls for comfortable reading
+- Multiple themes (Light, Dark, Custom theme configuration)
+- Fantasy theme (planned, not yet implemented)
+- Adjustable editor width (65ch, 80ch, 90ch)
+- Zoom controls for comfortable reading (85%-130%)
 - Spell check support
 - Find and replace functionality
 
@@ -58,14 +59,25 @@ Welcome to the first alpha release of Fantasy Editor! This release establishes t
 - **Build**: Vite
 - **PWA**: Service Worker enabled
 
-### 📝 Known Issues
+### 📝 Known Issues & Current Limitations
 
-As this is an alpha release, you may encounter some issues:
+As this is an alpha release, you may encounter these issues:
 
-- GitHub sync may occasionally require re-authentication
+**Performance & Technical**:
+- Bundle size exceeds 1MB (working to optimize to <3MB)
 - Large documents (>1MB) may impact performance
-- Some export formats are still in development
 - Mobile experience is functional but not yet optimized
+
+**Features in Development**:
+- Fantasy theme not yet implemented (only Light/Dark available)
+- Navigator component needs refinement
+- Settings Dialog requires UX improvements
+
+**Sync System**:
+- GitHub sync may occasionally require re-authentication
+- Conflict resolution needs improvement
+- Status indicators may not update correctly in all cases
+- Local file handling requires optimization
 
 ### 🚀 Coming Soon
 
