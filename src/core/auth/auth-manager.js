@@ -150,7 +150,7 @@ export class AuthManager {
         state: this.state,
         codeVerifier: this.codeVerifier
       }
-      sessionStorage.setItem('oauth_session', JSON.stringify(oauthSession))
+      localStorage.setItem('oauth_session', JSON.stringify(oauthSession))
 
       // Build authorization URL
       const authUrl = this.buildAuthorizationUrl(providerConfig, codeChallenge)
@@ -183,9 +183,10 @@ export class AuthManager {
       }
 
       // Retrieve OAuth session
-      const sessionData = sessionStorage.getItem('oauth_session')
+      const sessionData = localStorage.getItem('oauth_session')
       if (!sessionData) {
-        throw new Error('Missing OAuth session data')
+        console.error('OAuth session data missing from localStorage. Available keys:', Object.keys(localStorage))
+        throw new Error('Missing OAuth session data - OAuth session may have expired or been cleared')
       }
 
       const oauthSession = JSON.parse(sessionData)
@@ -455,7 +456,7 @@ export class AuthManager {
       user: this.user,
       timestamp: Date.now()
     }
-    sessionStorage.setItem('auth_data', JSON.stringify(authData))
+    localStorage.setItem('auth_data', JSON.stringify(authData))
   }
 
   /**
@@ -463,7 +464,7 @@ export class AuthManager {
    * @returns {Promise<boolean>} True if auth was loaded and validated
    */
   async loadStoredAuth() {
-    const authData = sessionStorage.getItem('auth_data')
+    const authData = localStorage.getItem('auth_data')
     if (!authData) {
       return false
     }
@@ -504,14 +505,14 @@ export class AuthManager {
    * Clear stored authentication data
    */
   clearStoredAuth() {
-    sessionStorage.removeItem('auth_data')
+    localStorage.removeItem('auth_data')
   }
 
   /**
    * Clean up OAuth session data
    */
   cleanupOAuthSession() {
-    sessionStorage.removeItem('oauth_session')
+    localStorage.removeItem('oauth_session')
   }
 
   /**

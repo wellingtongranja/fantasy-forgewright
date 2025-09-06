@@ -11,6 +11,25 @@
   /* Override base variables to match dark theme colors */
   --color-primary: #63b3ed;
   --color-primary-rgb: 99, 179, 237;
+  --color-secondary: #a29bfe;
+  --color-secondary-rgb: 162, 155, 254;
+  
+  /* Background color overrides */
+  --color-bg: #1a1a1a;
+  --color-bg-secondary: #2d3748;
+  --color-bg-tertiary: #4a5568;
+  --color-bg-tertiary-rgb: 74, 85, 104;
+  
+  /* Text color overrides */
+  --color-text: #f7fafc;
+  --color-text-secondary: #a0aec0;
+  --color-text-tertiary: #718096;
+  --color-text-inverse: #1a1a1a;
+  
+  /* Border color overrides */
+  --color-border: #4a5568;
+  --color-border-rgb: 74, 85, 104;
+  --color-border-light: #2d3748;
 
   /* Background colors */
   --background-color: #1a1a1a;
@@ -170,4 +189,37 @@
 
 [data-theme='dark'] .text-muted {
   color: #a0aec0;
+}
+
+/* Dark theme specific styles */
+[data-theme='dark'] .app-header {
+  background-color: var(--header-background);
+  color: var(--header-text-color);
+  border-bottom: 1px solid var(--header-border-color);
+  box-shadow: var(--header-shadow);
+}
+
+[data-theme='dark'] .app-title {
+  color: var(--header-text-color);
+}
+
+/* Header component overrides - components in header use header colors */
+[data-theme='dark'] .app-header .command-bar-trigger,
+[data-theme='dark'] .app-header .github-signin-btn,
+[data-theme='dark'] .github-signin-btn,
+[data-theme='dark'] .app-header .auth-signin-btn,
+[data-theme='dark'] .auth-signin-btn {
+  color: var(--header-text-color);
+  border-color: var(--header-border-color);
+  background: transparent;
+}
+
+[data-theme='dark'] .app-header .command-bar-trigger:hover,
+[data-theme='dark'] .app-header .github-signin-btn:hover,
+[data-theme='dark'] .github-signin-btn:hover,
+[data-theme='dark'] .app-header .auth-signin-btn:hover,
+[data-theme='dark'] .auth-signin-btn:hover {
+  color: var(--header-text-color);
+  border-color: var(--accent-color);
+  background-color: rgba(99, 179, 237, 0.1);
 }

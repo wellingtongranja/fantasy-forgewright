@@ -11,6 +11,25 @@
   /* Override base variables to match light theme colors */
   --color-primary: #007bff;
   --color-primary-rgb: 0, 123, 255;
+  --color-secondary: #8b5a5a;
+  --color-secondary-rgb: 139, 90, 90;
+  
+  /* Background color overrides */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #e9ecef;
+  --color-bg-tertiary-rgb: 233, 236, 239;
+  
+  /* Text color overrides */
+  --color-text: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-tertiary: #868e96;
+  --color-text-inverse: #ffffff;
+  
+  /* Border color overrides */
+  --color-border: #dee2e6;
+  --color-border-rgb: 222, 226, 230;
+  --color-border-light: #f1f3f4;
 
   /* Background colors */
   --background-color: #ffffff;
@@ -125,6 +144,39 @@
 /* Focus indicators */
 [data-theme='light'] *:focus {
   outline-color: var(--accent-color);
+}
+
+/* Light theme specific styles */
+[data-theme='light'] .app-header {
+  background-color: var(--header-background);
+  color: var(--header-text-color);
+  border-bottom: 1px solid var(--header-border-color);
+  box-shadow: var(--header-shadow);
+}
+
+[data-theme='light'] .app-title {
+  color: var(--header-text-color);
+}
+
+/* Header component overrides - components in header use header colors */
+[data-theme='light'] .app-header .command-bar-trigger,
+[data-theme='light'] .app-header .github-signin-btn,
+[data-theme='light'] .github-signin-btn,
+[data-theme='light'] .app-header .auth-signin-btn,
+[data-theme='light'] .auth-signin-btn {
+  color: var(--header-text-color);
+  border-color: var(--header-border-color);
+  background: transparent;
+}
+
+[data-theme='light'] .app-header .command-bar-trigger:hover,
+[data-theme='light'] .app-header .github-signin-btn:hover,
+[data-theme='light'] .github-signin-btn:hover,
+[data-theme='light'] .app-header .auth-signin-btn:hover,
+[data-theme='light'] .auth-signin-btn:hover {
+  color: var(--header-text-color);
+  border-color: var(--accent-color);
+  background-color: rgba(0, 123, 255, 0.1);
 }
 
 /* Print optimizations for light theme */
