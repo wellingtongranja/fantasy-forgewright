@@ -170,7 +170,9 @@
 [data-theme='fantasy'] .app-header .github-signin-btn,
 [data-theme='fantasy'] .github-signin-btn,
 [data-theme='fantasy'] .app-header .auth-signin-btn,
-[data-theme='fantasy'] .auth-signin-btn {
+[data-theme='fantasy'] .auth-signin-btn,
+[data-theme='fantasy'] .app-header .auth-user-btn,
+[data-theme='fantasy'] .auth-user-btn {
   color: var(--header-text-color);
   border-color: var(--header-border-color);
   background: transparent;
@@ -180,7 +182,9 @@
 [data-theme='fantasy'] .app-header .github-signin-btn:hover,
 [data-theme='fantasy'] .github-signin-btn:hover,
 [data-theme='fantasy'] .app-header .auth-signin-btn:hover,
-[data-theme='fantasy'] .auth-signin-btn:hover {
+[data-theme='fantasy'] .auth-signin-btn:hover,
+[data-theme='fantasy'] .app-header .auth-user-btn:hover,
+[data-theme='fantasy'] .auth-user-btn:hover {
   color: var(--header-text-color);
   border-color: var(--accent-color);
   background-color: rgba(212, 175, 55, 0.1);
