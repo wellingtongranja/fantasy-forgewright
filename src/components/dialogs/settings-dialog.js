@@ -8,6 +8,7 @@ import { ThemesTab } from './settings-dialog/tabs/themes-tab.js'
 import { EditorTab } from './settings-dialog/tabs/editor-tab.js'
 import { CodeMirrorTab } from './settings-dialog/tabs/codemirror-tab.js'
 import { GitIntegrationTab } from './settings-dialog/tabs/git-integration-tab.js'
+import { PrivacyTab } from './settings-dialog/tabs/privacy-tab.js'
 
 export class SettingsDialog {
   constructor(settingsManager) {
@@ -88,6 +89,7 @@ export class SettingsDialog {
     this.themesTab = new ThemesTab(settingsManager)
     this.codeMirrorTab = new CodeMirrorTab(settingsManager)
     this.gitIntegrationTab = new GitIntegrationTab(settingsManager)
+    this.privacyTab = new PrivacyTab(settingsManager)
   }
 
   /**
@@ -157,6 +159,9 @@ export class SettingsDialog {
     }
     if (this.gitIntegrationTab && typeof this.gitIntegrationTab.destroy === 'function') {
       this.gitIntegrationTab.destroy()
+    }
+    if (this.privacyTab && typeof this.privacyTab.destroy === 'function') {
+      this.privacyTab.destroy()
     }
     
     if (this.element) {
@@ -341,6 +346,8 @@ export class SettingsDialog {
         return this.codeMirrorTab.render(this.localSettings, this.updateSetting.bind(this))
       case 'git-integration':
         return this.gitIntegrationTab.render(this.localSettings, this.updateSetting.bind(this))
+      case 'privacy':
+        return this.privacyTab.render(this.localSettings, this.updateSetting.bind(this))
       default:
         return this.renderTabContentPlaceholder(tab)
     }
@@ -511,6 +518,9 @@ export class SettingsDialog {
         break
       case 'git-integration':
         this.gitIntegrationTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+        break
+      case 'privacy':
+        this.privacyTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
         break
       // Add other tabs here as they are implemented
     }

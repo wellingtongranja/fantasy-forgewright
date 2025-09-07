@@ -1282,3 +1282,211 @@ input[type="color"]::-webkit-color-swatch {
     justify-content: center;
   }
 }
+
+/* Privacy & About Styles */
+.data-management-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0;
+}
+
+.data-management-actions button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.data-management-actions button:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-focus);
+}
+
+.about-info {
+  background: var(--color-bg-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+}
+
+.app-info {
+  margin-bottom: var(--spacing-lg);
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.app-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.app-details h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-text);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.app-tagline {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  font-style: italic;
+}
+
+.version-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.version-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.version-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.version-value {
+  color: var(--color-text);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.app-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  align-items: center;
+}
+
+.app-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.app-link:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.app-link span {
+  font-size: 14px;
+}
+
+.legal-info {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-lg);
+}
+
+.legal-info h5 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legal-info p {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.legal-info p small {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.legal-info p strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.license-info {
+  margin-bottom: var(--spacing-md);
+}
+
+.attribution {
+  margin-bottom: 0;
+}
+
+/* Mobile responsiveness for Privacy & About */
+@media (max-width: 768px) {
+  .data-management-actions {
+    flex-direction: column;
+  }
+  
+  .data-management-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .app-logo {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .app-icon {
+    font-size: 36px;
+  }
+  
+  .app-details h3 {
+    font-size: 20px;
+  }
+  
+  .version-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .version-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .app-links {
+    flex-direction: column;
+  }
+  
+  .app-links > * {
+    width: 100%;
+    justify-content: center;
+  }
+}
