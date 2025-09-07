@@ -183,8 +183,8 @@ export class StatusBarManager {
    * Get app version
    */
   getAppVersion() {
-    // This could be injected during build or read from a config
-    return '0.0.1'
+    // Get version from Vite environment variable or fallback to package.json version
+    return import.meta.env.VITE_APP_VERSION || '0.0.2-alpha'
   }
 
   /**
