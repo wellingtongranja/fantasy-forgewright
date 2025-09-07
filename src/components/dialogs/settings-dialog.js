@@ -4,6 +4,8 @@
  */
 
 import { THEME_COLORS, getThemeColors, getHeaderColors, getCustomThemeBaseColors } from '../../core/themes/theme-constants.js'
+import { ThemesTab } from './settings-dialog/tabs/themes-tab.js'
+import { EditorTab } from './settings-dialog/tabs/editor-tab.js'
 
 export class SettingsDialog {
   constructor(settingsManager) {
@@ -78,6 +80,10 @@ export class SettingsDialog {
     // Settings change tracking
     this.hasChanges = false
     this.originalSettings = null
+    
+    // Initialize tab components
+    this.editorTab = new EditorTab(settingsManager)
+    this.themesTab = new ThemesTab(settingsManager)
   }
 
   /**
@@ -134,6 +140,14 @@ export class SettingsDialog {
     this.filteredTabs = []
     this.localSettings = null
     this.originalSettings = null
+    
+    // Cleanup tab components
+    if (this.editorTab && typeof this.editorTab.destroy === 'function') {
+      this.editorTab.destroy()
+    }
+    if (this.themesTab) {
+      this.themesTab.destroy()
+    }
     
     if (this.element) {
       this.element.remove()
@@ -310,366 +324,16 @@ export class SettingsDialog {
   renderTabContentBody(tab) {
     switch (tab.id) {
       case 'editor':
-        return this.renderEditorTabContent()
+        return this.editorTab.render(this.localSettings, this.updateSetting.bind(this))
       case 'themes':
-        return this.renderThemesTabContent()
+        return this.themesTab.render(this.localSettings, this.updateSetting.bind(this))
       default:
         return this.renderTabContentPlaceholder(tab)
     }
   }
 
-  /**
-   * Render Editor Settings tab with functional controls
-   */
-  renderEditorTabContent() {
-    const editorSettings = this.localSettings?.editor || {}
-    
-    return `
-      <div class="settings-sections">
-        <div class="settings-section">
-          <h4>Layout & Display</h4>
-          
-          <div class="settings-field">
-            <label>Editor Width</label>
-            <div class="settings-width-controls">
-              <div class="width-presets">
-                <button type="button" class="width-preset ${editorSettings.width === 65 ? 'active' : ''}" data-setting="editor.width" data-value="65">
-                  <span class="width-label">65ch</span>
-                  <span class="width-description">Optimal reading</span>
-                </button>
-                <button type="button" class="width-preset ${editorSettings.width === 80 ? 'active' : ''}" data-setting="editor.width" data-value="80">
-                  <span class="width-label">80ch</span>
-                  <span class="width-description">Standard coding</span>
-                </button>
-                <button type="button" class="width-preset ${editorSettings.width === 90 ? 'active' : ''}" data-setting="editor.width" data-value="90">
-                  <span class="width-label">90ch</span>
-                  <span class="width-description">Wide editing</span>
-                </button>
-              </div>
-            </div>
-            <small>Select the maximum width for editor content</small>
-          </div>
-          
-          <div class="settings-field">
-            <label for="editor-zoom">Zoom Level</label>
-            <div class="settings-zoom-controls">
-              <div class="zoom-slider-container">
-                <input 
-                  type="range" 
-                  id="editor-zoom" 
-                  class="zoom-slider"
-                  data-setting="editor.zoom"
-                  min="0.85" 
-                  max="1.30" 
-                  step="0.05"
-                  value="${editorSettings.zoom || 1.0}"
-                >
-                <div class="zoom-labels">
-                  <span>85%</span>
-                  <span>100%</span>
-                  <span>115%</span>
-                  <span>130%</span>
-                </div>
-              </div>
-              <div class="zoom-display">
-                <span class="zoom-value">${Math.round((editorSettings.zoom || 1.0) * 100)}%</span>
-                <button type="button" class="zoom-reset" data-action="reset-zoom">Reset</button>
-              </div>
-            </div>
-            <small>Adjust the font size and scaling</small>
-          </div>
-        </div>
-        
-        <div class="settings-section">
-          <h4>Behavior</h4>
-          
-          <div class="settings-field">
-            <label class="settings-checkbox-label">
-              <input 
-                type="checkbox" 
-                data-setting="editor.spellCheck" 
-                ${editorSettings.spellCheck ? 'checked' : ''}
-              >
-              <span class="settings-checkbox-text">Enable spell checking</span>
-            </label>
-            <small>Check spelling while you type</small>
-          </div>
-          
-          <div class="settings-field">
-            <label class="settings-checkbox-label">
-              <input 
-                type="checkbox" 
-                data-setting="editor.autoSave" 
-                ${editorSettings.autoSave !== false ? 'checked' : ''}
-              >
-              <span class="settings-checkbox-text">Auto-save documents</span>
-            </label>
-            <small>Automatically save changes every few seconds</small>
-          </div>
-          
-          <div class="settings-field ${editorSettings.autoSave === false ? 'disabled' : ''}">
-            <label for="auto-save-interval">Auto-save interval</label>
-            <select id="auto-save-interval" data-setting="editor.autoSaveInterval" ${editorSettings.autoSave === false ? 'disabled' : ''}>
-              <option value="3000" ${editorSettings.autoSaveInterval === 3000 ? 'selected' : ''}>3 seconds</option>
-              <option value="5000" ${editorSettings.autoSaveInterval === 5000 ? 'selected' : ''}>5 seconds</option>
-              <option value="10000" ${editorSettings.autoSaveInterval === 10000 ? 'selected' : ''}>10 seconds</option>
-              <option value="30000" ${editorSettings.autoSaveInterval === 30000 ? 'selected' : ''}>30 seconds</option>
-            </select>
-            <small>How often to automatically save changes</small>
-          </div>
-        </div>
-      </div>
-    `
-  }
 
-  /**
-   * Render Themes Settings tab with theme selection and customization
-   */
-  renderThemesTabContent() {
-    const themeSettings = this.localSettings?.editor || {}
-    const savedCustomTheme = themeSettings.customTheme || {}
-    
-    // Provide defaults for missing properties while preserving existing ones
-    const customTheme = {
-      name: savedCustomTheme.name || '',
-      baseTheme: savedCustomTheme.baseTheme || 'light',
-      colors: {
-        backgroundPrimary: savedCustomTheme.colors?.backgroundPrimary || '#ffffff',
-        backgroundSecondary: savedCustomTheme.colors?.backgroundSecondary || '#f8fafc',
-        textPrimary: savedCustomTheme.colors?.textPrimary || '#1e293b',
-        textSecondary: savedCustomTheme.colors?.textSecondary || '#475569',
-        textMuted: savedCustomTheme.colors?.textMuted || '#94a3b8',
-        accent: savedCustomTheme.colors?.accent || '#6366f1',
-        border: savedCustomTheme.colors?.border || '#e2e8f0'
-      }
-    }
-    
-    return `
-      <div class="settings-sections">
-        <div class="settings-section">
-          <h4>Theme Selection</h4>
-          <p class="settings-section-description">Choose your preferred editor theme</p>
-          
-          <div class="theme-selection-group">
-            <h5>Built-in Themes</h5>
-            <div class="theme-preview-grid">
-              ${this.renderThemePreviewCard('light', '☀️ Light Theme', themeSettings.theme === 'light')}
-              ${this.renderThemePreviewCard('dark', '🌙 Dark Theme', themeSettings.theme === 'dark')}
-              ${this.renderThemePreviewCard('fantasy', '⚔️ Fantasy Theme', themeSettings.theme === 'fantasy')}
-            </div>
-          </div>
-        </div>
 
-        <div class="settings-section">
-          <h4>Custom Theme</h4>
-          
-          <div class="settings-field">
-            <label for="custom-theme-name">Theme Name</label>
-            <input 
-              type="text" 
-              id="custom-theme-name"
-              class="settings-text-input"
-              data-setting="editor.customTheme.name"
-              value="${this.escapeHtml(customTheme.name)}"
-              placeholder="My Custom Theme"
-              maxlength="50"
-            />
-            <small>Give your custom theme a unique name</small>
-          </div>
-          
-          <div class="settings-field">
-            <label for="custom-base-theme">Base Theme</label>
-            <select id="custom-base-theme" data-setting="editor.customTheme.baseTheme">
-              <option value="light" ${customTheme.baseTheme === 'light' ? 'selected' : ''}>Light</option>
-              <option value="dark" ${customTheme.baseTheme === 'dark' ? 'selected' : ''}>Dark</option>
-              <option value="fantasy" ${customTheme.baseTheme === 'fantasy' ? 'selected' : ''}>Fantasy</option>
-              <option value="custom" ${customTheme.baseTheme === 'custom' ? 'selected' : ''}>Custom</option>
-            </select>
-            <small>Select a base theme to start from</small>
-          </div>
-          
-          <div class="settings-subsection">
-            <h5>Color Customization</h5>
-            <div class="color-settings-grid">
-              ${this.renderColorPicker('backgroundPrimary', 'Primary Background', customTheme.colors.backgroundPrimary)}
-              ${this.renderColorPicker('backgroundSecondary', 'Secondary Background', customTheme.colors.backgroundSecondary)}
-              ${this.renderColorPicker('textPrimary', 'Primary Text', customTheme.colors.textPrimary)}
-              ${this.renderColorPicker('textSecondary', 'Secondary Text', customTheme.colors.textSecondary)}
-              ${this.renderColorPicker('textMuted', 'Muted Text', customTheme.colors.textMuted)}
-              ${this.renderColorPicker('accent', 'Accent Color', customTheme.colors.accent)}
-              ${this.renderColorPicker('border', 'Border Color', customTheme.colors.border)}
-            </div>
-          </div>
-          
-          <div class="settings-subsection">
-            <h5>Header Colors (Independent)</h5>
-            <p class="settings-subsection-description">Customize header colors independently of theme</p>
-            <div class="color-settings-grid">
-              ${this.renderHeaderColorPicker('background', 'Header Background')}
-              ${this.renderHeaderColorPicker('text', 'Header Text')}
-              ${this.renderHeaderColorPicker('border', 'Header Border')}
-            </div>
-            <div class="header-color-actions">
-              <button 
-                type="button" 
-                class="btn-secondary btn-sm"
-                data-action="reset-header-colors"
-              >
-                Reset to Theme Default
-              </button>
-            </div>
-          </div>
-          
-          <div class="custom-theme-preview ${themeSettings.theme === 'custom' ? 'active' : ''}">
-            <div class="preview-header">
-              <span>Custom Theme Preview</span>
-              <div class="preview-actions">
-                <button 
-                  type="button" 
-                  class="btn-secondary btn-sm"
-                  data-action="reset-custom-colors"
-                >
-                  Reset Colors
-                </button>
-                <button 
-                  type="button" 
-                  class="btn-primary btn-sm"
-                  data-action="activate-custom-theme"
-                  ${!customTheme.name ? 'disabled' : ''}
-                >
-                  Activate Custom Theme
-                </button>
-              </div>
-            </div>
-            <div class="theme-preview-content custom-theme-preview-content">
-              ${this.renderThemePreviewContent()}
-            </div>
-          </div>
-        </div>
-      </div>
-    `
-  }
-
-  /**
-   * Render a theme preview card
-   */
-  renderThemePreviewCard(theme, label, isActive) {
-    return `
-      <div 
-        class="theme-preview-card ${isActive ? 'active' : ''}"
-        data-theme-preview="${theme}"
-        role="button"
-        aria-label="Select ${label}"
-        tabindex="0"
-      >
-        <div class="theme-preview-header">${label}</div>
-        <div class="theme-preview-content" data-preview-theme="${theme}">
-          ${this.renderThemePreviewContent()}
-        </div>
-      </div>
-    `
-  }
-
-  /**
-   * Render theme preview content (sample text)
-   */
-  renderThemePreviewContent() {
-    return `
-      <div class="preview-sample">
-        <div class="preview-title">Sample text</div>
-        <div class="preview-text">The quick brown fox jumps over the lazy dog.</div>
-        <div class="preview-muted">// This is a comment</div>
-        <div class="preview-accent">const greeting = "Hello World";</div>
-      </div>
-    `
-  }
-
-  /**
-   * Render a color picker field
-   */
-  renderColorPicker(key, label, value) {
-    const inputId = `color-${key}`
-    return `
-      <div class="color-field">
-        <label for="${inputId}">${label}</label>
-        <div class="color-input-group">
-          <input 
-            type="color" 
-            id="${inputId}"
-            data-setting="editor.customTheme.colors.${key}"
-            value="${value}"
-          />
-          <input 
-            type="text" 
-            class="color-hex-input"
-            data-setting="editor.customTheme.colors.${key}"
-            value="${value}"
-            pattern="^#[0-9a-fA-F]{6}$"
-            maxlength="7"
-          />
-        </div>
-      </div>
-    `
-  }
-
-  /**
-   * Render a header color picker field
-   */
-  renderHeaderColorPicker(key, label) {
-    const headerColors = this.localSettings?.editor?.headerColors || {}
-    const hasCustomValue = headerColors[key] ? true : false
-    
-    // Always get the theme default color to display
-    const currentTheme = this.localSettings?.editor?.theme || 'light'
-    const themeDefaults = this.getThemeHeaderDefaults(currentTheme)
-    const defaultValue = themeDefaults[key] || ''
-    
-    // Use custom value if set, otherwise use theme default
-    const value = headerColors[key] || defaultValue
-    
-    const inputId = `header-color-${key}`
-    
-    return `
-      <div class="color-field">
-        <label for="${inputId}">${label}</label>
-        <div class="color-input-group">
-          <input 
-            type="color" 
-            id="${inputId}"
-            data-setting="editor.headerColors.${key}"
-            value="${value}"
-          />
-          <input 
-            type="text" 
-            class="color-hex-input"
-            data-setting="editor.headerColors.${key}"
-            value="${hasCustomValue ? value : ''}"
-            pattern="^#[0-9a-fA-F]{6}$"
-            maxlength="7"
-            placeholder="${defaultValue}"
-          />
-          <button 
-            type="button" 
-            class="btn-icon btn-sm clear-header-color"
-            data-header-color-key="${key}"
-            title="Clear to use theme default"
-            ${!hasCustomValue ? 'style="display: none"' : ''}
-          >
-            ×
-          </button>
-        </div>
-      </div>
-    `
-  }
-
-  /**
-   * Escape HTML to prevent XSS
-   */
-  escapeHtml(text) {
-    const div = document.createElement('div')
-    div.textContent = text || ''
-    return div.innerHTML
-  }
 
   /**
    * Render placeholder content for tabs (will be replaced in later steps)
@@ -792,6 +456,9 @@ export class SettingsDialog {
     
     // Click outside to close
     this.element.addEventListener('click', this.handleOverlayClick.bind(this))
+    
+    // Attach tab-specific event listeners
+    this.attachTabEventListeners()
   }
 
   /**
@@ -807,6 +474,25 @@ export class SettingsDialog {
       // Add fresh listeners
       searchInput.addEventListener('input', this.boundHandleSearch)
       searchInput.addEventListener('keydown', this.boundHandleSearchKeydown)
+    }
+  }
+
+  /**
+   * Attach tab-specific event listeners
+   */
+  attachTabEventListeners() {
+    const tabContent = this.element?.querySelector('.settings-tab-content')
+    if (!tabContent) return
+
+    // Attach listeners based on current tab
+    switch (this.currentTab) {
+      case 'editor':
+        this.editorTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+        break
+      case 'themes':
+        this.themesTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+        break
+      // Add other tabs here as they are implemented
     }
   }
 
@@ -1491,6 +1177,8 @@ export class SettingsDialog {
     this.currentTab = tabId
     this.refreshTabNavigation()
     this.refreshTabContent()
+    // Re-attach tab-specific event listeners after content refresh
+    this.attachTabEventListeners()
   }
 
   /**
