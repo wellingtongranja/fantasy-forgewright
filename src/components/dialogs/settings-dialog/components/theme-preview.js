@@ -91,25 +91,29 @@ export class ThemePreview {
         background-color: ${colors.background};
         color: ${colors.text};
         border: 1px solid ${colors.surface};
-        padding: 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        line-height: 1.4;
+        padding: 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       ">
         <div class="preview-title" style="
           color: ${colors.text};
           font-weight: 600;
-          margin-bottom: 6px;
-        ">Sample Document</div>
+          font-size: 14px;
+          margin-bottom: 2px;
+        ">Chapter One</div>
         <div class="preview-text" style="
           color: ${colors.secondary};
-          margin-bottom: 4px;
-        ">The quick brown fox jumps over the lazy dog.</div>
-        <div class="preview-accent" style="
+          font-style: italic;
+        ">The ancient castle loomed against the stormy sky, its towers reaching toward the heavens like fingers grasping for forgotten dreams.</div>
+        <div class="preview-dialogue" style="
           color: ${colors.accent};
-          font-family: monospace;
-          font-size: 11px;
-        ">const greeting = "Hello World";</div>
+          font-weight: 500;
+        ">"We must find the lost manuscript," she whispered.</div>
       </div>
     `
   }
@@ -137,7 +141,15 @@ export class ThemePreview {
           ${this.getPreviewContent()}
         </div>
         ${this.config.description ? `
-          <div class="theme-preview-description">
+          <div class="theme-preview-description" style="
+            font-size: 11px;
+            color: var(--text-muted, #6b7280);
+            text-align: center;
+            padding: 8px 12px 4px;
+            margin-top: 4px;
+            border-top: 1px solid var(--border-light, #e5e7eb);
+            line-height: 1.3;
+          ">
             ${sanitizeHtml(this.config.description)}
           </div>
         ` : ''}

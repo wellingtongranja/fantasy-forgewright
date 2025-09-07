@@ -283,10 +283,9 @@ export class ThemesTab {
   renderThemePreviewContent() {
     return `
       <div class="preview-sample">
-        <div class="preview-title">Sample text</div>
-        <div class="preview-text">The quick brown fox jumps over the lazy dog.</div>
-        <div class="preview-muted">// This is a comment</div>
-        <div class="preview-accent">const greeting = "Hello World";</div>
+        <div class="preview-title">Chapter One</div>
+        <div class="preview-text">The ancient castle loomed against the stormy sky, its towers reaching toward the heavens like fingers grasping for forgotten dreams.</div>
+        <div class="preview-accent">"We must find the lost manuscript," she whispered.</div>
       </div>
     `
   }

@@ -86,7 +86,7 @@ export class SettingField {
       type: this.config.type,
       'data-setting': this.config.setting,
       value: sanitizeHtml(this.config.value?.toString() || ''),
-      class: `settings-input ${!this.isValid ? 'error' : ''}`,
+      class: `settings-text-input ${!this.isValid ? 'error' : ''}`,
       'aria-describedby': this.config.description ? `${this.id}-desc` : '',
       'aria-invalid': !this.isValid,
       ...this.config.attributes
