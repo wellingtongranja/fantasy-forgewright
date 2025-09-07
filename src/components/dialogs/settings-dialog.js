@@ -6,6 +6,7 @@
 import { THEME_COLORS, getThemeColors, getHeaderColors, getCustomThemeBaseColors } from '../../core/themes/theme-constants.js'
 import { ThemesTab } from './settings-dialog/tabs/themes-tab.js'
 import { EditorTab } from './settings-dialog/tabs/editor-tab.js'
+import { CodeMirrorTab } from './settings-dialog/tabs/codemirror-tab.js'
 
 export class SettingsDialog {
   constructor(settingsManager) {
@@ -84,6 +85,7 @@ export class SettingsDialog {
     // Initialize tab components
     this.editorTab = new EditorTab(settingsManager)
     this.themesTab = new ThemesTab(settingsManager)
+    this.codeMirrorTab = new CodeMirrorTab(settingsManager)
   }
 
   /**
@@ -147,6 +149,9 @@ export class SettingsDialog {
     }
     if (this.themesTab) {
       this.themesTab.destroy()
+    }
+    if (this.codeMirrorTab && typeof this.codeMirrorTab.destroy === 'function') {
+      this.codeMirrorTab.destroy()
     }
     
     if (this.element) {
@@ -327,6 +332,8 @@ export class SettingsDialog {
         return this.editorTab.render(this.localSettings, this.updateSetting.bind(this))
       case 'themes':
         return this.themesTab.render(this.localSettings, this.updateSetting.bind(this))
+      case 'codemirror':
+        return this.codeMirrorTab.render(this.localSettings, this.updateSetting.bind(this))
       default:
         return this.renderTabContentPlaceholder(tab)
     }
@@ -491,6 +498,9 @@ export class SettingsDialog {
         break
       case 'themes':
         this.themesTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+        break
+      case 'codemirror':
+        this.codeMirrorTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
         break
       // Add other tabs here as they are implemented
     }

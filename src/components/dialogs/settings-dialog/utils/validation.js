@@ -119,6 +119,29 @@ export function validateAutoSaveInterval(value) {
 }
 
 /**
+ * Validate font size
+ * @param {number} value - Font size in pixels
+ * @returns {Object} Validation result
+ */
+export function validateFontSize(value) {
+  if (value === null || value === undefined) {
+    return { isValid: false, error: 'Font size is required' }
+  }
+  
+  const num = parseInt(value, 10)
+  
+  if (isNaN(num)) {
+    return { isValid: false, error: 'Font size must be a number' }
+  }
+  
+  if (num < 8 || num > 48) {
+    return { isValid: false, error: 'Font size must be between 8 and 48 pixels' }
+  }
+  
+  return { isValid: true, error: null }
+}
+
+/**
  * Sanitize HTML to prevent XSS
  * @param {string} text - Text to sanitize
  * @returns {string} Sanitized text
