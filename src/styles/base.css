@@ -50,6 +50,7 @@ body {
   height: 24px;
   border-radius: var(--border-radius-sm);
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 @media (max-width: 640px) {

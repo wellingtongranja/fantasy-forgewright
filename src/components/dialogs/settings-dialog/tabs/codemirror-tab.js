@@ -117,6 +117,48 @@ export class CodeMirrorTab {
             ${autocompletionField.render()}
             ${searchTopField.render()}
           </div>
+
+          <div class="settings-section credits-section">
+            <h4>About CodeMirror</h4>
+            <div class="credits-content">
+              <p class="credits-description">
+                Fantasy Editor's text editing is powered by <strong>CodeMirror 6</strong>, 
+                a versatile text editor implemented in JavaScript for the browser.
+              </p>
+              
+              <div class="credits-links">
+                <div class="credits-item">
+                  <strong>Website:</strong> 
+                  <a href="https://codemirror.net/" target="_blank" rel="noopener noreferrer">
+                    codemirror.net
+                  </a>
+                </div>
+                <div class="credits-item">
+                  <strong>License:</strong> 
+                  <a href="https://github.com/codemirror/dev/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">
+                    MIT License
+                  </a>
+                </div>
+                <div class="credits-item">
+                  <strong>Source Code:</strong> 
+                  <a href="https://github.com/codemirror/dev" target="_blank" rel="noopener noreferrer">
+                    GitHub Repository
+                  </a>
+                </div>
+                <div class="credits-item">
+                  <strong>Documentation:</strong> 
+                  <a href="https://codemirror.net/docs/" target="_blank" rel="noopener noreferrer">
+                    User Manual & API Reference
+                  </a>
+                </div>
+              </div>
+              
+              <p class="credits-thanks">
+                <em>Thank you to Marijn Haverbeke and the CodeMirror contributors 
+                for creating this excellent editor foundation.</em>
+              </p>
+            </div>
+          </div>
         </div>
       `
     } catch (error) {
