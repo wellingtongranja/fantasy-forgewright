@@ -7,6 +7,7 @@ import { THEME_COLORS, getThemeColors, getHeaderColors, getCustomThemeBaseColors
 import { ThemesTab } from './settings-dialog/tabs/themes-tab.js'
 import { EditorTab } from './settings-dialog/tabs/editor-tab.js'
 import { CodeMirrorTab } from './settings-dialog/tabs/codemirror-tab.js'
+import { GitIntegrationTab } from './settings-dialog/tabs/git-integration-tab.js'
 
 export class SettingsDialog {
   constructor(settingsManager) {
@@ -86,6 +87,7 @@ export class SettingsDialog {
     this.editorTab = new EditorTab(settingsManager)
     this.themesTab = new ThemesTab(settingsManager)
     this.codeMirrorTab = new CodeMirrorTab(settingsManager)
+    this.gitIntegrationTab = new GitIntegrationTab(settingsManager)
   }
 
   /**
@@ -152,6 +154,9 @@ export class SettingsDialog {
     }
     if (this.codeMirrorTab && typeof this.codeMirrorTab.destroy === 'function') {
       this.codeMirrorTab.destroy()
+    }
+    if (this.gitIntegrationTab && typeof this.gitIntegrationTab.destroy === 'function') {
+      this.gitIntegrationTab.destroy()
     }
     
     if (this.element) {
@@ -334,6 +339,8 @@ export class SettingsDialog {
         return this.themesTab.render(this.localSettings, this.updateSetting.bind(this))
       case 'codemirror':
         return this.codeMirrorTab.render(this.localSettings, this.updateSetting.bind(this))
+      case 'git-integration':
+        return this.gitIntegrationTab.render(this.localSettings, this.updateSetting.bind(this))
       default:
         return this.renderTabContentPlaceholder(tab)
     }
@@ -501,6 +508,9 @@ export class SettingsDialog {
         break
       case 'codemirror':
         this.codeMirrorTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+        break
+      case 'git-integration':
+        this.gitIntegrationTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
         break
       // Add other tabs here as they are implemented
     }

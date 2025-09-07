@@ -1137,3 +1137,148 @@ input[type="color"]::-webkit-color-swatch {
     width: 100%;
   }
 }
+
+/* Git Integration Styles */
+.git-auth-status {
+  margin: var(--spacing-md) 0;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.git-auth-status.authenticated {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  border-color: var(--color-success);
+}
+
+.git-auth-status.unauthenticated {
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg));
+  border-color: var(--color-warning);
+}
+
+.auth-status-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+}
+
+.auth-status-indicator {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.auth-status-indicator.success {
+  color: var(--color-success);
+}
+
+.auth-status-indicator.warning {
+  color: var(--color-warning);
+}
+
+.auth-details {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.auth-details p {
+  margin: var(--spacing-xs) 0;
+}
+
+.auth-details strong {
+  color: var(--color-text);
+}
+
+.auth-details code {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.status-warning {
+  color: var(--color-warning);
+  font-weight: 500;
+}
+
+.git-actions {
+  margin: var(--spacing-md) 0;
+}
+
+.git-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.git-action-buttons button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.git-action-buttons button:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-focus);
+}
+
+.git-action-buttons button.primary {
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border-color: var(--color-primary);
+}
+
+.git-action-buttons button.primary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.git-action-buttons button.secondary {
+  background: var(--color-bg-secondary);
+}
+
+.git-action-buttons button.secondary:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.git-action-buttons button.danger {
+  background: var(--color-bg);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.git-action-buttons button.danger:hover {
+  background: color-mix(in srgb, var(--color-error) 10%, var(--color-bg));
+  border-color: var(--color-error);
+}
+
+.git-action-buttons button span {
+  font-size: 14px;
+}
+
+/* Mobile responsiveness for Git Integration */
+@media (max-width: 768px) {
+  .git-action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .git-action-buttons button {
+    width: 100%;
+    justify-content: center;
+  }
+}

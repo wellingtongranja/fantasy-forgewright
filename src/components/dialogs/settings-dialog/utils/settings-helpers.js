@@ -160,9 +160,10 @@ export function getDefaultSettings(component) {
     },
     gitIntegration: {
       provider: 'github',
-      autoSync: true,
-      syncInterval: 30000,
-      backupEnabled: true
+      autoSync: false,
+      syncFrequency: 300000,
+      syncOnSave: false,
+      conflictResolution: 'prompt'
     },
     privacy: {
       analytics: false,
