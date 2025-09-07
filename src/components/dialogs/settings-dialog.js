@@ -103,7 +103,12 @@ export class SettingsDialog {
     this.currentTab = initialTab
     this.searchQuery = ''
     this.onClose = onClose
-    this.onSave = onSave
+    
+    // Only override onSave if a new callback is provided
+    if (onSave !== null) {
+      this.onSave = onSave
+    }
+    
     this.hasChanges = false
     
     // Initialize local settings from saved settings (deep copy)
@@ -1339,6 +1344,22 @@ export class SettingsDialog {
         if (editor.customTheme !== undefined) {
           this.settingsManager.set('editor.customTheme', editor.customTheme)
         }
+      }
+      
+      // Save CodeMirror settings
+      if (this.localSettings?.codemirror) {
+        const codemirror = this.localSettings.codemirror
+        if (codemirror.lineNumbers !== undefined) this.settingsManager.set('codemirror.lineNumbers', codemirror.lineNumbers)
+        if (codemirror.lineWrapping !== undefined) this.settingsManager.set('codemirror.lineWrapping', codemirror.lineWrapping)
+        if (codemirror.highlightActiveLine !== undefined) this.settingsManager.set('codemirror.highlightActiveLine', codemirror.highlightActiveLine)
+        if (codemirror.bracketMatching !== undefined) this.settingsManager.set('codemirror.bracketMatching', codemirror.bracketMatching)
+        if (codemirror.codeFolding !== undefined) this.settingsManager.set('codemirror.codeFolding', codemirror.codeFolding)
+        if (codemirror.foldGutter !== undefined) this.settingsManager.set('codemirror.foldGutter', codemirror.foldGutter)
+        if (codemirror.autocompletion !== undefined) this.settingsManager.set('codemirror.autocompletion', codemirror.autocompletion)
+        if (codemirror.searchTop !== undefined) this.settingsManager.set('codemirror.searchTop', codemirror.searchTop)
+        if (codemirror.placeholderText !== undefined) this.settingsManager.set('codemirror.placeholderText', codemirror.placeholderText)
+        if (codemirror.fontSize !== undefined) this.settingsManager.set('codemirror.fontSize', codemirror.fontSize)
+        if (codemirror.fontFamily !== undefined) this.settingsManager.set('codemirror.fontFamily', codemirror.fontFamily)
       }
       
       this.hasChanges = false

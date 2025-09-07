@@ -11,121 +11,175 @@ import { autocompletion, completionKeymap } from '@codemirror/autocomplete'
 import { foldGutter, codeFolding, bracketMatching } from '@codemirror/language'
 
 export class EditorExtensions {
-  constructor(themeManager) {
+  constructor(themeManager, settingsManager = null) {
     this.themeManager = themeManager
+    this.settingsManager = settingsManager
     this.spellCheckEnabled = this.loadSpellCheckPreference()
+  }
+
+  /**
+   * Get CodeMirror settings from settings manager
+   * @returns {Object} CodeMirror settings
+   */
+  getCodeMirrorSettings() {
+    if (!this.settingsManager) {
+      // Fallback defaults when no settings manager available (match schema defaults)
+      return {
+        lineNumbers: false,
+        lineWrapping: true,
+        highlightActiveLine: true,
+        bracketMatching: true,
+        codeFolding: true,
+        foldGutter: true,
+        autocompletion: true,
+        searchTop: true,
+        placeholderText: 'Start writing your story...'
+      }
+    }
+    
+    const settings = this.settingsManager.getAllSettings()
+    const cmSettings = settings.codemirror || {}
+    return cmSettings
   }
 
   /**
    * Get all extensions for the editor based on current configuration
    */
   getExtensions() {
-    return [
+    const cmSettings = this.getCodeMirrorSettings()
+    
+    const extensions = [
       // Core editing features
       history(),
-      markdown(),
-      EditorView.lineWrapping,
+      markdown()
+    ]
 
-      // Theme and visual enhancements
-      highlightActiveLine(),
-      bracketMatching(),
-      highlightSelectionMatches(),
+    // Conditional line wrapping
+    if (cmSettings.lineWrapping === true) {
+      extensions.push(EditorView.lineWrapping)
+    }
 
-      // Writer-focused features
-      autocompletion(),
-      placeholder('Start writing your story...'),
+    // Conditional visual enhancements
+    if (cmSettings.highlightActiveLine === true) {
+      extensions.push(highlightActiveLine())
+    }
+    if (cmSettings.bracketMatching === true) {
+      extensions.push(bracketMatching())
+    }
+    extensions.push(highlightSelectionMatches())
 
-      // Document structure and navigation
-      codeFolding({
+    // Conditional writer-focused features
+    if (cmSettings.autocompletion === true) {
+      extensions.push(autocompletion())
+    }
+    
+    const placeholderText = cmSettings.placeholderText || 'Start writing your story...'
+    extensions.push(placeholder(placeholderText))
+
+    // Conditional document structure and navigation
+    if (cmSettings.codeFolding === true) {
+      extensions.push(codeFolding({
         placeholderText: '...',
         placeholderDOM: null
-      }),
-      foldGutter({
+      }))
+    }
+    if (cmSettings.foldGutter === true && cmSettings.codeFolding === true) {
+      extensions.push(foldGutter({
         openText: '▼',
         closedText: '▶'
-      }),
+      }))
+    }
 
-      // Search functionality
-      search({
-        top: true,
-        caseSensitive: false,
-        literal: false,
-        regexp: false
-      }),
+    // Search functionality
+    const searchTop = cmSettings.searchTop === true
+    extensions.push(search({
+      top: searchTop,
+      caseSensitive: false,
+      literal: false,
+      regexp: false
+    }))
 
-      // Keyboard mappings
-      keymap.of([
-        ...defaultKeymap,
-        ...historyKeymap,
-        ...searchKeymap,
-        ...completionKeymap,
-        // Custom writer shortcuts
-        {
-          key: 'Ctrl-d',
-          run: this.duplicateLine.bind(this),
-          preventDefault: true
-        },
-        {
-          key: 'Alt-ArrowUp',
-          run: this.moveLineUp.bind(this),
-          preventDefault: true
-        },
-        {
-          key: 'Alt-ArrowDown',
-          run: this.moveLineDown.bind(this),
-          preventDefault: true
-        }
-      ]),
+    // Keyboard mappings
+    extensions.push(keymap.of([
+      ...defaultKeymap,
+      ...historyKeymap,
+      ...searchKeymap,
+      ...completionKeymap,
+      // Custom writer shortcuts
+      {
+        key: 'Ctrl-d',
+        run: this.duplicateLine.bind(this),
+        preventDefault: true
+      },
+      {
+        key: 'Alt-ArrowUp',
+        run: this.moveLineUp.bind(this),
+        preventDefault: true
+      },
+      {
+        key: 'Alt-ArrowDown',
+        run: this.moveLineDown.bind(this),
+        preventDefault: true
+      }
+    ]))
 
-      // Theme integration
-      EditorView.theme(this.getEditorTheme()),
+    // Theme integration
+    extensions.push(EditorView.theme(this.getEditorTheme()))
 
-      // Spell check integration
-      ...(this.spellCheckEnabled ? this.getSpellCheckExtensions() : []),
+    // Spell check integration
+    if (this.spellCheckEnabled) {
+      extensions.push(...this.getSpellCheckExtensions())
+    }
 
-      // Line numbers with custom styling
-      lineNumbers(),
+    // Conditional line numbers
+    if (cmSettings.lineNumbers === true) {
+      extensions.push(lineNumbers())
+    }
 
-      // Writer-optimized settings
-      EditorView.theme({
-        '&': {
-          height: '100%',
-          fontSize: 'var(--font-size-base)',
-          fontFamily: 'var(--font-family-mono)'
-        },
-        '.cm-scroller': {
-          overflow: 'auto',
-          fontFamily: 'inherit'
-        },
-        '.cm-content': {
-          padding: '16px',
-          lineHeight: 'var(--line-height-relaxed)',
-          minHeight: '100%'
-        },
-        '.cm-focused': {
-          outline: 'none'
-        },
-        // Fold gutter styling
-        '.cm-foldGutter': {
-          width: '20px'
-        },
-        '.cm-foldGutter .cm-gutterElement': {
-          padding: '0 4px',
-          cursor: 'pointer'
-        },
-        // Search panel styling
-        '.cm-search': {
-          backgroundColor: 'var(--background-secondary)',
-          border: '1px solid var(--border-color)',
-          borderRadius: 'var(--border-radius)'
-        },
-        // Placeholder styling
-        '.cm-placeholder': {
-          color: 'var(--text-muted)',
-          fontStyle: 'italic'
-        }
-      })
-    ]
+    // Writer-optimized settings with dynamic font settings
+    const fontSize = cmSettings.fontSize === 'inherit' ? 'var(--font-size-base)' : cmSettings.fontSize || 'var(--font-size-base)'
+    const fontFamily = cmSettings.fontFamily || 'var(--font-family-mono)'
+    
+    extensions.push(EditorView.theme({
+      '&': {
+        height: '100%',
+        fontSize: fontSize,
+        fontFamily: fontFamily
+      },
+      '.cm-scroller': {
+        overflow: 'auto',
+        fontFamily: 'inherit'
+      },
+      '.cm-content': {
+        padding: '16px',
+        lineHeight: 'var(--line-height-relaxed)',
+        minHeight: '100%'
+      },
+      '.cm-focused': {
+        outline: 'none'
+      },
+      // Fold gutter styling
+      '.cm-foldGutter': {
+        width: '20px'
+      },
+      '.cm-foldGutter .cm-gutterElement': {
+        padding: '0 4px',
+        cursor: 'pointer'
+      },
+      // Search panel styling
+      '.cm-search': {
+        backgroundColor: 'var(--background-secondary)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--border-radius)'
+      },
+      // Placeholder styling
+      '.cm-placeholder': {
+        color: 'var(--text-muted)',
+        fontStyle: 'italic'
+      }
+    }))
+
+    return extensions
   }
 
   /**

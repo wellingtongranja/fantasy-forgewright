@@ -151,12 +151,17 @@ export function getDefaultSettings(component) {
       autoSaveInterval: 5000
     },
     codemirror: {
-      lineNumbers: true,
-      wordWrap: false,
-      codeFolding: true,
+      lineNumbers: false,
+      lineWrapping: true,
+      highlightActiveLine: true,
       bracketMatching: true,
-      fontSize: 14,
-      fontFamily: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace'
+      codeFolding: true,
+      foldGutter: true,
+      autocompletion: true,
+      searchTop: true,
+      placeholderText: 'Start writing your story...',
+      fontSize: 'inherit',
+      fontFamily: 'var(--font-family-mono)'
     },
     gitIntegration: {
       provider: 'github',

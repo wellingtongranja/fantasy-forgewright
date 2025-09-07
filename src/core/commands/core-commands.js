@@ -6,6 +6,19 @@ import { registerGitCommands } from './git-commands.js'
 import { SettingsDialog } from '../../components/dialogs/settings-dialog.js'
 import { SettingsManager } from '../settings/settings-manager.js'
 
+// Helper function to initialize settings dialog with proper callbacks
+function initializeSettingsDialog(app) {
+  if (!app.settingsDialog) {
+    app.settingsDialog = new SettingsDialog(app.settingsManager)
+    // Set up callback to reload editor extensions when settings change
+    app.settingsDialog.onSave = () => {
+      if (app.editor && typeof app.editor.reloadExtensions === 'function') {
+        app.editor.reloadExtensions()
+      }
+    }
+  }
+}
+
 export function registerCoreCommands(registry, app) {
   const commands = [
     // Document Management Commands
@@ -1571,9 +1584,7 @@ export function registerCoreCommands(registry, app) {
         }
         
         // Initialize settings dialog if not exists
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         const tab = args[0] || 'editor'
         const validTabs = ['editor', 'themes', 'codemirror', 'sync', 'privacy']
@@ -1604,9 +1615,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('editor')
         return { success: true, message: 'Editor settings opened' }
@@ -1623,9 +1632,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('themes')
         return { success: true, message: 'Theme customization opened' }
@@ -1642,9 +1649,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('codemirror')
         return { success: true, message: 'CodeMirror settings opened' }
@@ -1661,9 +1666,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('sync')
         return { success: true, message: 'Sync settings opened' }
@@ -1680,9 +1683,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('privacy')
         return { success: true, message: 'Privacy settings opened' }

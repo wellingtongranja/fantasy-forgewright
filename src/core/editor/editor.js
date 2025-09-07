@@ -6,12 +6,13 @@ import { foldAll, unfoldAll, foldCode, unfoldCode } from '@codemirror/language'
 import { openSearchPanel } from '@codemirror/search'
 
 export class EditorManager {
-  constructor(element, themeManager = null, notificationCallback = null) {
+  constructor(element, themeManager = null, notificationCallback = null, settingsManager = null) {
     this.element = element
     this.view = null
     this.state = null
     this.themeManager = themeManager
-    this.editorExtensions = new EditorExtensions(themeManager)
+    this.settingsManager = settingsManager
+    this.editorExtensions = new EditorExtensions(themeManager, settingsManager)
     this.readonlyExtensions = new ReadonlyExtensions(notificationCallback)
     this.extensionCompartment = new Compartment()
     this.isReadonly = false
@@ -84,6 +85,13 @@ export class EditorManager {
     if (this.themeManager) {
       this.themeManager.applyTheme(theme)
     }
+  }
+
+  /**
+   * Reload editor extensions (call when settings change)
+   */
+  reloadExtensions() {
+    this.reconfigure()
   }
 
   /**
@@ -190,27 +198,30 @@ export class EditorManager {
   }
 
   /**
-   * Reconfigure editor with updated extensions
+   * Reconfigure editor with updated extensions including readonly state
    */
   reconfigure() {
     if (this.view && this.editorExtensions) {
+      const newExtensions = [
+        ...this.editorExtensions.getExtensions(),
+        ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
+        ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
+      ]
       this.view.dispatch({
-        effects: this.extensionCompartment.reconfigure([
-          ...this.editorExtensions.getExtensions(),
-          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
-        ])
+        effects: this.extensionCompartment.reconfigure(newExtensions)
       })
     }
   }
 
   /**
-   * Reconfigure editor with specific font size
+   * Reconfigure editor with specific font size including readonly state
    */
   reconfigureWithFontSize(fontSize) {
     if (this.view && this.editorExtensions && this.themeManager) {
       this.view.dispatch({
         effects: this.extensionCompartment.reconfigure([
           ...this.editorExtensions.getExtensions(),
+          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
           ...this.themeManager.getCodeMirrorTheme(this.themeManager.currentTheme, { fontSize })
         ])
       })
@@ -355,33 +366,4 @@ export class EditorManager {
     return newState
   }
 
-  /**
-   * Reconfigure editor with readonly state
-   */
-  reconfigure() {
-    if (this.view && this.editorExtensions) {
-      this.view.dispatch({
-        effects: this.extensionCompartment.reconfigure([
-          ...this.editorExtensions.getExtensions(),
-          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
-          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
-        ])
-      })
-    }
-  }
-
-  /**
-   * Reconfigure editor with specific font size and readonly state
-   */
-  reconfigureWithFontSize(fontSize) {
-    if (this.view && this.editorExtensions && this.themeManager) {
-      this.view.dispatch({
-        effects: this.extensionCompartment.reconfigure([
-          ...this.editorExtensions.getExtensions(),
-          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
-          ...this.themeManager.getCodeMirrorTheme(this.themeManager.currentTheme, { fontSize })
-        ])
-      })
-    }
-  }
 }

@@ -8,6 +8,10 @@ if (!global.structuredClone) {
   }
 }
 
+// Mock window confirmation dialogs
+global.confirm = jest.fn().mockReturnValue(true)
+global.alert = jest.fn()
+
 // Mock DOM APIs
 global.localStorage = {
   data: {},
@@ -46,6 +50,8 @@ global.import = {
   meta: {
     env: {
       VITE_GITHUB_REDIRECT_URI: 'https://fantasy.forgewright.io/',
+      VITE_APP_VERSION: '0.0.2-alpha',
+      VITE_BUILD_DATE: '2025-01-15',
       MODE: 'test',
       PROD: false,
       DEV: true

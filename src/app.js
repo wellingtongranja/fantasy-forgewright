@@ -101,7 +101,7 @@ class FantasyEditorApp {
 
     // Initialize editor with theme manager integration
     const editorElement = document.getElementById('editor')
-    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this))
+    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this), this.settingsManager)
 
     // Initialize writer enhancements
     this.exportManager = new ExportManager(this)

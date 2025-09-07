@@ -4,7 +4,6 @@
  */
 
 import { SettingField } from '../components/setting-field.js'
-import { validateFontSize } from '../utils/validation.js'
 import { getSetting, setSetting, getDefaultSettings } from '../utils/settings-helpers.js'
 
 export class CodeMirrorTab {
@@ -46,20 +45,20 @@ export class CodeMirrorTab {
         description: 'Display line numbers in the editor gutter'
       })
 
-      const wordWrapField = new SettingField({
+      const lineWrappingField = new SettingField({
         label: 'Enable word wrap',
         type: 'checkbox',
-        setting: 'codemirror.wordWrap',
-        value: settings.wordWrap,
+        setting: 'codemirror.lineWrapping',
+        value: settings.lineWrapping,
         description: 'Wrap long lines instead of horizontal scrolling'
       })
 
       const codeFoldingField = new SettingField({
-        label: 'Enable code folding',
+        label: 'Enable section folding',
         type: 'checkbox',
         setting: 'codemirror.codeFolding',
         value: settings.codeFolding,
-        description: 'Allow collapsing code blocks and sections'
+        description: 'Allow collapsing chapters and sections'
       })
 
       const bracketMatchingField = new SettingField({
@@ -67,88 +66,56 @@ export class CodeMirrorTab {
         type: 'checkbox',
         setting: 'codemirror.bracketMatching',
         value: settings.bracketMatching,
-        description: 'Highlight matching brackets and parentheses'
+        description: 'Highlight matching punctuation marks'
       })
 
-      const fontSizeField = new SettingField({
-        label: 'Font size (px)',
-        type: 'number',
-        setting: 'codemirror.fontSize',
-        value: settings.fontSize,
-        attributes: {
-          min: '10',
-          max: '32',
-          step: '1'
-        },
-        description: 'Font size for editor text (10-32 pixels)',
-        validator: validateFontSize
+      const highlightActiveLineField = new SettingField({
+        label: 'Highlight current line',
+        type: 'checkbox',
+        setting: 'codemirror.highlightActiveLine',
+        value: settings.highlightActiveLine,
+        description: 'Highlight the line you are currently writing'
       })
 
-      const fontFamilyField = new SettingField({
-        label: 'Font family',
-        type: 'select',
-        setting: 'codemirror.fontFamily',
-        value: settings.fontFamily,
-        options: [
-          { value: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace', label: 'System Monospace' },
-          { value: '"Fira Code", monospace', label: 'Fira Code' },
-          { value: '"Source Code Pro", monospace', label: 'Source Code Pro' },
-          { value: '"JetBrains Mono", monospace', label: 'JetBrains Mono' },
-          { value: '"Cascadia Code", monospace', label: 'Cascadia Code' },
-          { value: '"Monaco", monospace', label: 'Monaco' },
-          { value: 'monospace', label: 'Generic Monospace' }
-        ],
-        description: 'Font family for editor text'
+      const foldGutterField = new SettingField({
+        label: 'Show folding controls',
+        type: 'checkbox',
+        setting: 'codemirror.foldGutter',
+        value: settings.foldGutter,
+        description: 'Show controls for collapsing sections'
       })
 
-      const tabSizeField = new SettingField({
-        label: 'Tab size',
-        type: 'select',
-        setting: 'codemirror.tabSize',
-        value: settings.tabSize || 2,
-        options: [
-          { value: 2, label: '2 spaces' },
-          { value: 4, label: '4 spaces' },
-          { value: 8, label: '8 spaces' }
-        ],
-        description: 'Number of spaces per tab indentation'
+      const autocompletionField = new SettingField({
+        label: 'Writing suggestions',
+        type: 'checkbox',
+        setting: 'codemirror.autocompletion',
+        value: settings.autocompletion,
+        description: 'Show word and phrase completion suggestions'
       })
 
-      const indentUnitField = new SettingField({
-        label: 'Indent unit',
-        type: 'select', 
-        setting: 'codemirror.indentUnit',
-        value: settings.indentUnit || 2,
-        options: [
-          { value: 2, label: '2 spaces' },
-          { value: 4, label: '4 spaces' }
-        ],
-        description: 'Number of spaces for automatic indentation'
+      const searchTopField = new SettingField({
+        label: 'Search at top',
+        type: 'checkbox',
+        setting: 'codemirror.searchTop',
+        value: settings.searchTop,
+        description: 'Show find panel at top of editor instead of bottom'
       })
+
+
 
       return `
         <div class="settings-sections">
           <div class="settings-section">
-            <h4>Display Options</h4>
+            <h4>Editor Display</h4>
             
             ${lineNumbersField.render()}
-            ${wordWrapField.render()}
-            ${codeFoldingField.render()}
+            ${lineWrappingField.render()}
+            ${highlightActiveLineField.render()}
             ${bracketMatchingField.render()}
-          </div>
-          
-          <div class="settings-section">
-            <h4>Typography</h4>
-            
-            ${fontSizeField.render()}
-            ${fontFamilyField.render()}
-          </div>
-          
-          <div class="settings-section">
-            <h4>Indentation</h4>
-            
-            ${tabSizeField.render()}
-            ${indentUnitField.render()}
+            ${codeFoldingField.render()}
+            ${foldGutterField.render()}
+            ${autocompletionField.render()}
+            ${searchTopField.render()}
           </div>
         </div>
       `
@@ -181,58 +148,7 @@ export class CodeMirrorTab {
         })
       })
 
-      const selects = container.querySelectorAll('select[data-setting^="codemirror."]')
-      selects.forEach(select => {
-        select.addEventListener('change', (e) => {
-          const setting = e.target.dataset.setting
-          let value = e.target.value
-          
-          // Parse numeric values for tabSize and indentUnit
-          if (setting.includes('tabSize') || setting.includes('indentUnit')) {
-            value = parseInt(value, 10)
-          }
-          
-          updateSetting(setting, value)
-        })
-      })
 
-      const numberInputs = container.querySelectorAll('input[type="number"][data-setting^="codemirror."]')
-      numberInputs.forEach(input => {
-        // Debounce number input changes
-        let timeout
-        input.addEventListener('input', (e) => {
-          clearTimeout(timeout)
-          timeout = setTimeout(() => {
-            const setting = e.target.dataset.setting
-            const value = parseInt(e.target.value, 10)
-            
-            if (setting.includes('fontSize')) {
-              const validation = validateFontSize(value)
-              if (validation.isValid) {
-                updateSetting(setting, value)
-              }
-            } else {
-              updateSetting(setting, value)
-            }
-          }, 500) // 500ms debounce
-        })
-
-        // Also handle blur for immediate validation
-        input.addEventListener('blur', (e) => {
-          clearTimeout(timeout)
-          const setting = e.target.dataset.setting
-          const value = parseInt(e.target.value, 10)
-          
-          if (setting.includes('fontSize')) {
-            const validation = validateFontSize(value)
-            if (validation.isValid) {
-              updateSetting(setting, value)
-            }
-          } else {
-            updateSetting(setting, value)
-          }
-        })
-      })
 
     } catch (error) {
       console.error('Error attaching CodeMirror tab event listeners:', error)
@@ -246,15 +162,8 @@ export class CodeMirrorTab {
    */
   validate(settings) {
     const errors = []
-    const codeMirrorSettings = getSetting(settings, 'codemirror') || {}
-
-    // Validate font size
-    if (codeMirrorSettings.fontSize !== undefined) {
-      const fontSizeValidation = validateFontSize(codeMirrorSettings.fontSize)
-      if (!fontSizeValidation.isValid) {
-        errors.push(`Font size: ${fontSizeValidation.error}`)
-      }
-    }
+    // Currently no validation needed for CodeMirror settings
+    // All settings are boolean or have predefined select options
 
     return {
       isValid: errors.length === 0,
@@ -269,9 +178,9 @@ export class CodeMirrorTab {
   static getConfig() {
     return {
       id: 'codemirror',
-      name: '🖥️ CodeMirror',
-      label: 'CodeMirror Settings',
-      keywords: ['line numbers', 'wrap', 'fold', 'font', 'bracket', 'indentation', 'tab']
+      name: '📝 Editor',
+      label: 'Editor Settings',
+      keywords: ['line numbers', 'wrap', 'fold', 'font', 'bracket', 'indentation', 'tab', 'writing', 'editor']
     }
   }
 }
