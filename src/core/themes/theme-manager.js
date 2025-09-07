@@ -1,4 +1,5 @@
 import { getThemeExtension } from './codemirror-themes.js'
+import { THEME_COLORS, getHeaderColors } from './theme-constants.js'
 
 export class ThemeManager {
   constructor(settingsManager) {
@@ -316,29 +317,6 @@ export class ThemeManager {
    * Get default header colors for a specific theme
    */
   getDefaultHeaderColors(theme) {
-    const defaults = {
-      light: {
-        background: '#f8f9fa',
-        text: '#212529',
-        border: '#dee2e6'
-      },
-      dark: {
-        background: '#2d3748',
-        text: '#f7fafc',
-        border: '#4a5568'
-      },
-      fantasy: {
-        background: '#2A4D2E', // King's Green Base
-        text: '#D4AF37',       // Imperial Gold Base - Better contrast
-        border: '#17301A'      // King's Green Dark
-      },
-      custom: {
-        background: '#f8f9fa', // Defaults to light theme
-        text: '#212529',
-        border: '#dee2e6'
-      }
-    }
-
-    return defaults[theme] || defaults.light
+    return getHeaderColors(theme)
   }
 }

@@ -184,47 +184,48 @@
 }
 
 /* Command bar styling for consistency with header and auth components */
-[data-theme='light'] .command-bar,
-[data-theme='light'] .command-bar-v2 {
+[data-theme='light'] .command-bar-v2__modal {
   background-color: var(--surface-color);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
 }
 
-[data-theme='light'] .command-bar input,
-[data-theme='light'] .command-bar-v2 input {
+[data-theme='light'] .command-bar-v2__input {
   background-color: var(--background-color);
   color: var(--text-color);
   border-color: var(--border-color);
 }
 
-[data-theme='light'] .command-bar .command-item,
-[data-theme='light'] .command-bar-v2 .command-item {
+[data-theme='light'] .command-bar-v2__result-item {
   color: var(--text-color);
-  border-bottom: 1px solid var(--border-light);
 }
 
-[data-theme='light'] .command-bar .command-item:hover,
-[data-theme='light'] .command-bar-v2 .command-item:hover,
-[data-theme='light'] .command-bar .command-item.selected,
-[data-theme='light'] .command-bar-v2 .command-item.selected {
+[data-theme='light'] .command-bar-v2__result-item:hover {
   background-color: var(--surface-hover);
   color: var(--text-color);
 }
 
-[data-theme='light'] .command-bar .command-name,
-[data-theme='light'] .command-bar-v2 .command-name {
+[data-theme='light'] .command-bar-v2__result-item.selected {
+  background-color: var(--surface-hover);
   color: var(--text-color);
 }
 
-[data-theme='light'] .command-bar .command-description,
-[data-theme='light'] .command-bar-v2 .command-description {
+[data-theme='light'] .command-bar-v2__result-name {
+  color: var(--text-color);
+}
+
+[data-theme='light'] .command-bar-v2__result-description {
   color: var(--text-secondary);
 }
 
-[data-theme='light'] .command-bar .command-alias,
-[data-theme='light'] .command-bar-v2 .command-alias {
+[data-theme='light'] .command-bar-v2__result-alias {
   color: var(--accent-color);
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+[data-theme='light'] .command-bar-v2__category-title {
+  color: var(--text-secondary);
 }
 
 /* Print optimizations for light theme */

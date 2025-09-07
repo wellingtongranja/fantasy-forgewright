@@ -42,7 +42,7 @@
   /* Header-specific (can be overridden independently) */
   --header-background: #2A4D2E;       /* King's Green Base */
   --header-text-color: #D4AF37;       /* Imperial Gold Base - Better contrast */
-  --header-border-color: #17301A;     /* King's Green Dark */
+  --header-border-color: #E6C875;     /* Light Imperial Gold - Luxurious definition */
   --header-shadow: 0 2px 8px rgba(23, 48, 26, 0.2);
 
   /* Text colors - Medieval ink inspired */

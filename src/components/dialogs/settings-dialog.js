@@ -3,6 +3,8 @@
  * Provides tabbed interface for comprehensive user configuration
  */
 
+import { THEME_COLORS, getThemeColors, getHeaderColors, getCustomThemeBaseColors } from '../../core/themes/theme-constants.js'
+
 export class SettingsDialog {
   constructor(settingsManager) {
     this.settingsManager = settingsManager
@@ -480,6 +482,8 @@ export class SettingsDialog {
             <select id="custom-base-theme" data-setting="editor.customTheme.baseTheme">
               <option value="light" ${customTheme.baseTheme === 'light' ? 'selected' : ''}>Light</option>
               <option value="dark" ${customTheme.baseTheme === 'dark' ? 'selected' : ''}>Dark</option>
+              <option value="fantasy" ${customTheme.baseTheme === 'fantasy' ? 'selected' : ''}>Fantasy</option>
+              <option value="custom" ${customTheme.baseTheme === 'custom' ? 'selected' : ''}>Custom</option>
             </select>
             <small>Select a base theme to start from</small>
           </div>
@@ -613,7 +617,16 @@ export class SettingsDialog {
    */
   renderHeaderColorPicker(key, label) {
     const headerColors = this.localSettings?.editor?.headerColors || {}
-    const value = headerColors[key] || ''
+    const hasCustomValue = headerColors[key] ? true : false
+    
+    // Always get the theme default color to display
+    const currentTheme = this.localSettings?.editor?.theme || 'light'
+    const themeDefaults = this.getThemeHeaderDefaults(currentTheme)
+    const defaultValue = themeDefaults[key] || ''
+    
+    // Use custom value if set, otherwise use theme default
+    const value = headerColors[key] || defaultValue
+    
     const inputId = `header-color-${key}`
     
     return `
@@ -625,23 +638,22 @@ export class SettingsDialog {
             id="${inputId}"
             data-setting="editor.headerColors.${key}"
             value="${value}"
-            ${!value ? 'disabled' : ''}
           />
           <input 
             type="text" 
             class="color-hex-input"
             data-setting="editor.headerColors.${key}"
-            value="${value}"
+            value="${hasCustomValue ? value : ''}"
             pattern="^#[0-9a-fA-F]{6}$"
             maxlength="7"
-            placeholder="Theme default"
+            placeholder="${defaultValue}"
           />
           <button 
             type="button" 
             class="btn-icon btn-sm clear-header-color"
             data-header-color-key="${key}"
             title="Clear to use theme default"
-            ${!value ? 'style="display: none"' : ''}
+            ${!hasCustomValue ? 'style="display: none"' : ''}
           >
             ×
           </button>
@@ -1318,20 +1330,9 @@ export class SettingsDialog {
   handleResetHeaderColors() {
     const currentTheme = this.getLocalSetting('editor.theme') || 'light'
     
-    // Get theme manager for defaults (assuming it's available globally)
-    if (window.app?.themeManager) {
-      const defaults = window.app.themeManager.getDefaultHeaderColors(currentTheme)
-      this.updateSetting('editor.headerColors', defaults)
-    } else {
-      // Fallback defaults
-      const defaults = {
-        light: { background: '#f8f9fa', text: '#212529', border: '#dee2e6' },
-        dark: { background: '#2d3748', text: '#f7fafc', border: '#4a5568' },
-        fantasy: { background: '#2A4D2E', text: '#F3E6D1', border: '#17301A' },
-        custom: { background: '#f8f9fa', text: '#212529', border: '#dee2e6' }
-      }
-      this.updateSetting('editor.headerColors', defaults[currentTheme] || defaults.light)
-    }
+    // Get theme defaults from centralized constants
+    const defaults = getHeaderColors(currentTheme)
+    this.updateSetting('editor.headerColors', defaults)
     
     // Refresh the tab to show updated colors
     this.refreshTabContent()
@@ -1352,28 +1353,14 @@ export class SettingsDialog {
    * Get default colors for a base theme
    */
   getDefaultThemeColors(baseTheme) {
-    const themes = {
-      light: {
-        backgroundPrimary: '#ffffff',
-        backgroundSecondary: '#f8f9fa',
-        textPrimary: '#212529',
-        textSecondary: '#6c757d',
-        textMuted: '#868e96',
-        accent: '#007bff',
-        border: '#dee2e6'
-      },
-      dark: {
-        backgroundPrimary: '#1a1a1a',
-        backgroundSecondary: '#2d3748',
-        textPrimary: '#f7fafc',
-        textSecondary: '#a0aec0',
-        textMuted: '#718096',
-        accent: '#63b3ed',
-        border: '#4a5568'
-      }
-    }
-    
-    return themes[baseTheme] || themes.light
+    return getCustomThemeBaseColors(baseTheme)
+  }
+  
+  /**
+   * Get theme header defaults for displaying proper colors
+   */
+  getThemeHeaderDefaults(theme) {
+    return getHeaderColors(theme)
   }
 
   /**
