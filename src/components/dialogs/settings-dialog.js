@@ -9,6 +9,7 @@ import { EditorTab } from './settings-dialog/tabs/editor-tab.js'
 import { CodeMirrorTab } from './settings-dialog/tabs/codemirror-tab.js'
 import { GitIntegrationTab } from './settings-dialog/tabs/git-integration-tab.js'
 import { PrivacyTab } from './settings-dialog/tabs/privacy-tab.js'
+import { SkeletonLoader } from './settings-dialog/components/skeleton-loader.js'
 
 export class SettingsDialog {
   constructor(settingsManager) {
@@ -220,7 +221,13 @@ export class SettingsDialog {
           ${this.renderTabNavigation()}
         </div>
         <div class="settings-main">
-          <div class="settings-tab-content">
+          <div 
+            class="settings-tab-content"
+            id="settings-panel-${this.currentTab}"
+            role="tabpanel"
+            aria-labelledby="settings-tab-${this.currentTab}"
+            tabindex="0"
+          >
             ${this.renderTabContent()}
           </div>
         </div>
@@ -272,14 +279,17 @@ export class SettingsDialog {
       <nav class="settings-tabs" role="tablist" aria-label="Settings categories">
         ${visibleTabs.map(tab => `
           <button 
+            id="settings-tab-${tab.id}"
             class="settings-tab ${tab.id === this.currentTab ? 'active' : ''}"
             data-tab="${tab.id}"
             role="tab"
             aria-selected="${tab.id === this.currentTab}"
             aria-controls="settings-panel-${tab.id}"
             tabindex="${tab.id === this.currentTab ? '0' : '-1'}"
+            aria-describedby="tab-desc-${tab.id}"
           >
             ${tab.name}
+            <span id="tab-desc-${tab.id}" class="sr-only">${tab.label}</span>
           </button>
         `).join('')}
       </nav>
@@ -474,6 +484,9 @@ export class SettingsDialog {
     
     // Keyboard navigation
     this.element.addEventListener('keydown', this.handleKeydown.bind(this))
+    
+    // Tab navigation with arrow keys
+    this.element.addEventListener('keydown', this.handleTabNavigation.bind(this))
     
     // Click outside to close
     this.element.addEventListener('click', this.handleOverlayClick.bind(this))
@@ -1201,14 +1214,77 @@ export class SettingsDialog {
   /**
    * Switch to a different tab
    */
-  switchTab(tabId) {
+  async switchTab(tabId) {
     if (this.currentTab === tabId) return
     
     this.currentTab = tabId
     this.refreshTabNavigation()
-    this.refreshTabContent()
-    // Re-attach tab-specific event listeners after content refresh
-    this.attachTabEventListeners()
+    
+    // Use progressive loading with skeleton states
+    await this.loadTabContentWithSkeleton(tabId)
+  }
+
+  /**
+   * Load tab content with skeleton loading states
+   * @param {string} tabId - Tab identifier
+   */
+  async loadTabContentWithSkeleton(tabId) {
+    const tabContent = this.element?.querySelector('.settings-tab-content')
+    if (!tabContent) return
+
+    try {
+      // Get the tab configuration
+      const tab = this.tabs.find(t => t.id === tabId)
+      if (!tab) return
+
+      // Use skeleton loader for progressive loading
+      await SkeletonLoader.loadTabContent(
+        tabContent,
+        tabId,
+        async () => {
+          // Simulate async loading and return rendered content
+          return this.renderTabContentBody(tab)
+        }
+      )
+
+      // Attach event listeners after content is loaded
+      this.attachTabEventListeners()
+      
+      // Focus management for accessibility
+      this.manageFocusAfterTabSwitch(tabContent)
+      
+    } catch (error) {
+      console.error('Error loading tab content:', error)
+      
+      // Show error state
+      tabContent.innerHTML = `
+        <div class="settings-error" role="alert">
+          <h4>Error Loading Tab</h4>
+          <p>Failed to load ${tabId} settings. Please try refreshing the page.</p>
+          <button class="settings-button secondary" onclick="location.reload()">
+            Refresh Page
+          </button>
+        </div>
+      `
+    }
+  }
+
+  /**
+   * Manage focus after tab switch for accessibility
+   * @param {HTMLElement} tabContent - Tab content element
+   */
+  manageFocusAfterTabSwitch(tabContent) {
+    // Find the first focusable element in the new tab content
+    const focusableElements = tabContent.querySelectorAll(
+      'input:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex="0"]'
+    )
+    
+    if (focusableElements.length > 0) {
+      // Focus the first interactive element, but with a delay to let screen readers announce the tab change
+      setTimeout(() => {
+        focusableElements[0].focus()
+      }, 100)
+    }
   }
 
   /**
@@ -1335,5 +1411,185 @@ export class SettingsDialog {
    */
   getSearchQuery() {
     return this.searchQuery
+  }
+
+  /**
+   * Handle keyboard navigation for general dialog
+   * @param {KeyboardEvent} event - Keyboard event
+   */
+  handleKeydown(event) {
+    // Handle theme card keyboard selection
+    const themeCard = event.target.closest('[data-theme-preview]')
+    if (themeCard && (event.key === 'Enter' || event.key === ' ')) {
+      const theme = themeCard.dataset.themePreview
+      this.handleThemeSelect(theme)
+      event.preventDefault()
+      return
+    }
+    
+    // Close dialog with Escape
+    if (event.key === 'Escape' && !this.searchQuery) {
+      this.hide()
+      event.preventDefault()
+      return
+    }
+    
+    // Focus search with Ctrl/Cmd+F
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      event.preventDefault()
+      const searchInput = this.element?.querySelector('.settings-search')
+      if (searchInput) {
+        searchInput.focus()
+        searchInput.select()
+      }
+      return
+    }
+  }
+
+  /**
+   * Handle tab navigation with arrow keys and other shortcuts
+   * @param {KeyboardEvent} event - Keyboard event
+   */
+  handleTabNavigation(event) {
+    const activeTab = event.target.closest('[role="tab"]')
+    if (!activeTab) return
+
+    const tabs = Array.from(this.element.querySelectorAll('[role="tab"]'))
+    const currentIndex = tabs.indexOf(activeTab)
+    let newIndex = currentIndex
+
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        event.preventDefault()
+        newIndex = currentIndex > 0 ? currentIndex - 1 : tabs.length - 1
+        break
+      case 'ArrowRight':
+      case 'ArrowDown':
+        event.preventDefault()
+        newIndex = currentIndex < tabs.length - 1 ? currentIndex + 1 : 0
+        break
+      case 'Home':
+        event.preventDefault()
+        newIndex = 0
+        break
+      case 'End':
+        event.preventDefault()
+        newIndex = tabs.length - 1
+        break
+      case 'Enter':
+      case ' ':
+        event.preventDefault()
+        this.switchTab(activeTab.dataset.tab)
+        return
+      default:
+        return
+    }
+
+    // Focus new tab and switch to it
+    if (newIndex !== currentIndex && tabs[newIndex]) {
+      tabs[newIndex].focus()
+      this.switchTab(tabs[newIndex].dataset.tab)
+    }
+  }
+
+  /**
+   * Handle settings form keyboard shortcuts
+   * @param {KeyboardEvent} event - Keyboard event
+   */
+  handleFormKeyboardShortcuts(event) {
+    // Quick save with Ctrl/Cmd+S
+    if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+      event.preventDefault()
+      this.saveSettings()
+      return
+    }
+    
+    // Reset with Ctrl/Cmd+R
+    if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+      event.preventDefault()
+      this.resetSettings()
+      return
+    }
+    
+    // Toggle search with Ctrl/Cmd+K
+    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+      event.preventDefault()
+      const searchInput = this.element?.querySelector('.settings-search')
+      if (searchInput) {
+        searchInput.focus()
+        if (searchInput.value) {
+          this.clearSearch()
+        }
+      }
+      return
+    }
+  }
+
+  /**
+   * Announce changes to screen readers
+   * @param {string} message - Message to announce
+   * @param {string} priority - Announcement priority (polite, assertive)
+   */
+  announceToScreenReader(message, priority = 'polite') {
+    const announcement = document.createElement('div')
+    announcement.setAttribute('aria-live', priority)
+    announcement.setAttribute('aria-atomic', 'true')
+    announcement.className = 'sr-only'
+    announcement.textContent = message
+    
+    document.body.appendChild(announcement)
+    
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement)
+    }, 1000)
+  }
+
+  /**
+   * Update ARIA states when settings change
+   * @param {string} setting - Setting key
+   * @param {*} value - New value
+   */
+  updateAriaStates(setting, value) {
+    // Update relevant ARIA attributes when settings change
+    const settingElement = this.element?.querySelector(`[data-setting="${setting}"]`)
+    if (settingElement) {
+      // Update aria-describedby for validation states
+      if (!this.validateSetting(setting, value)) {
+        settingElement.setAttribute('aria-invalid', 'true')
+      } else {
+        settingElement.removeAttribute('aria-invalid')
+      }
+    }
+    
+    // Announce important setting changes
+    if (setting === 'editor.theme') {
+      this.announceToScreenReader(`Theme changed to ${value}`)
+    }
+  }
+
+  /**
+   * Validate setting value
+   * @param {string} setting - Setting key
+   * @param {*} value - Value to validate
+   * @returns {boolean} Whether value is valid
+   */
+  validateSetting(setting, value) {
+    // Use appropriate tab validator based on setting
+    if (setting.startsWith('editor.')) {
+      return this.editorTab.validate({ editor: { [setting.split('.')[1]]: value } }).isValid
+    }
+    if (setting.startsWith('codemirror.')) {
+      return this.codeMirrorTab.validate({ codemirror: { [setting.split('.')[1]]: value } }).isValid
+    }
+    if (setting.startsWith('gitIntegration.')) {
+      return this.gitIntegrationTab.validate({ gitIntegration: { [setting.split('.')[1]]: value } }).isValid
+    }
+    if (setting.startsWith('privacy.')) {
+      return this.privacyTab.validate({ privacy: { [setting.split('.')[1]]: value } }).isValid
+    }
+    
+    return true // Default to valid for unknown settings
   }
 }
