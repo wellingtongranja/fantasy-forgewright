@@ -298,7 +298,7 @@ class FantasyEditorApp {
       const availableProviders = this.authManager.getAvailableProviders()
       if (availableProviders.length === 0) {
         console.warn('No OAuth providers configured. Check environment variables for provider client IDs.')
-        return
+        // Don't return early - continue with initialization even without providers
       }
 
       // Initialize GitHub storage (backward compatibility)
@@ -317,8 +317,11 @@ class FantasyEditorApp {
       // Initialize authentication UI components
       this.initializeAuthUI()
     } catch (error) {
-      console.error('❌ Failed to initialize authentication integration:', error)
+      console.error('Failed to initialize authentication integration:', error)
       // Don't show warning notification - authentication is optional functionality
+      
+      // Ensure authManager is null on failure so debugging is clear
+      this.authManager = null
     }
   }
 

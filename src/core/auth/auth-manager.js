@@ -13,7 +13,7 @@ export class AuthManager {
     const getEnvVar = (key) => {
       try {
         return import.meta.env?.[key]
-      } catch {
+      } catch (error) {
         return process.env?.[key]
       }
     }
