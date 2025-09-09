@@ -13,10 +13,14 @@ export class AboutTab {
    * @returns {Object} Version info
    */
   getVersionInfo() {
+    // Use global import for Jest compatibility
+    const env = typeof import !== 'undefined' && import.meta?.env ? import.meta.env : 
+                (typeof global !== 'undefined' && global.import?.meta?.env ? global.import.meta.env : {})
+    
     return {
-      version: import.meta.env.VITE_APP_VERSION || '0.0.2-alpha',
-      buildDate: import.meta.env.VITE_BUILD_DATE || new Date().toISOString().split('T')[0],
-      environment: import.meta.env.MODE || 'development'
+      version: env.VITE_APP_VERSION || '0.0.2-alpha',
+      buildDate: env.VITE_BUILD_DATE || new Date().toISOString().split('T')[0],
+      environment: env.MODE || 'development'
     }
   }
 

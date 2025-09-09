@@ -184,7 +184,11 @@ export class StatusBarManager {
    */
   getAppVersion() {
     // Get version from Vite environment variable or fallback to package.json version
-    return import.meta.env.VITE_APP_VERSION || '0.0.2-alpha'
+    // Use global import for Jest compatibility
+    const env = typeof import !== 'undefined' && import.meta?.env ? import.meta.env : 
+                (typeof global !== 'undefined' && global.import?.meta?.env ? global.import.meta.env : {})
+    
+    return env.VITE_APP_VERSION || '0.0.2-alpha'
   }
 
   /**

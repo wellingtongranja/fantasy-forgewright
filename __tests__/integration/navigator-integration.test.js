@@ -42,17 +42,23 @@ const mockLocalStorage = {
 }
 Object.defineProperty(global, 'localStorage', { value: mockLocalStorage })
 
-// Mock document
-Object.defineProperty(global, 'document', {
-  value: {
-    createElement: jest.fn(() => new HTMLElement()),
-    getElementById: jest.fn(() => new HTMLElement()),
-    querySelector: jest.fn(() => new HTMLElement()),
-    querySelectorAll: jest.fn(() => []),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn()
-  }
-})
+// Mock document conditionally  
+if (!global.document || !global.document.createElement) {
+  Object.defineProperty(global, 'document', {
+    value: {
+      createElement: jest.fn(() => new HTMLElement()),
+      getElementById: jest.fn(() => new HTMLElement()),
+      querySelector: jest.fn(() => new HTMLElement()),
+      querySelectorAll: jest.fn(() => []),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      body: { style: {} },
+      ...global.document
+    },
+    configurable: true,
+    writable: true
+  })
+}
 
 // Mock tab components
 jest.mock('../../src/components/navigator/tabs/documents-tab.js', () => ({

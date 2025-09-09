@@ -3,10 +3,10 @@
  * Testing complete user workflows and component interactions
  */
 
-// Mock the problematic privacy tab first
-jest.mock('../../src/components/dialogs/settings-dialog/tabs/privacy-tab.js', () => ({
-  PrivacyTab: jest.fn(() => ({
-    render: jest.fn().mockReturnValue('<div>Privacy Tab Content</div>'),
+// Mock the problematic data privacy tab first
+jest.mock('../../src/components/dialogs/settings-dialog/tabs/data-privacy-tab.js', () => ({
+  DataPrivacyTab: jest.fn(() => ({
+    render: jest.fn().mockReturnValue('<div>Data Privacy Tab Content</div>'),
     attachEventListeners: jest.fn(),
     validate: jest.fn().mockReturnValue({ isValid: true, errors: [] }),
     destroy: jest.fn()
