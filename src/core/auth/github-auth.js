@@ -8,12 +8,26 @@ export class GitHubAuth {
   constructor() {
     this.clientId = null
     // Handle import.meta.env in both browser and test environments
-    let envUri
-    try {
-      envUri = import.meta.env?.VITE_GITHUB_REDIRECT_URI
-    } catch {
-      envUri = process.env?.VITE_GITHUB_REDIRECT_URI
+    let env = {}
+    
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Use eval to dynamically access import.meta to avoid syntax errors in Jest
+      try {
+        const importMetaAccess = eval('import.meta')
+        env = importMetaAccess?.env || {}
+      } catch (error) {
+        env = {}
+      }
+    } else if (typeof global !== 'undefined' && global.import?.meta?.env) {
+      // Jest environment with mocked import.meta
+      env = global.import.meta.env
+    } else {
+      // Node.js environment
+      env = process.env || {}
     }
+    
+    const envUri = env.VITE_GITHUB_REDIRECT_URI
     const origin = (typeof window !== 'undefined' && window.location) 
       ? window.location.origin 
       : 'http://localhost:3000'

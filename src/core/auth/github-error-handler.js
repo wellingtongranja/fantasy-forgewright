@@ -411,9 +411,9 @@ export class GitHubErrorHandler {
       ...context
     }
 
-    // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('GitHub Error:', logData)
+    // Log to console in development and test environments
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      console.error('Git repository Error:', logData)
     }
 
     // In production, you might want to send to error tracking service

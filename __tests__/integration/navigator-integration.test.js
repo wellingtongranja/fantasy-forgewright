@@ -58,6 +58,10 @@ if (!global.document || !global.document.createElement) {
     configurable: true,
     writable: true
   })
+} else if (global.document && !global.document.addEventListener.mock) {
+  // If document exists but addEventListener isn't mocked, create proper mock
+  global.document.addEventListener = jest.fn()
+  global.document.removeEventListener = jest.fn()
 }
 
 // Mock tab components
@@ -422,14 +426,31 @@ describe('Navigator Integration Tests', () => {
   })
 
   describe('tab component lifecycle integration', () => {
-    it('should properly initialize tab components', (done) => {
-      // Tab components are loaded asynchronously
-      setTimeout(() => {
-        expect(navigator.tabComponents.documents).toBeDefined()
-        expect(navigator.tabComponents.outline).toBeDefined()
-        expect(navigator.tabComponents.search).toBeDefined()
-        done()
-      }, 100)
+    it('should properly initialize tab components', async () => {
+      // Mock the required DOM elements for tab initialization
+      const mockDocumentsContainer = { id: 'documents-tab-content' }
+      const mockOutlineContainer = { id: 'outline-tab-content' }  
+      const mockSearchContainer = { id: 'search-tab-content' }
+
+      // Override the document.getElementById mock for this test
+      const originalGetElementById = document.getElementById
+      document.getElementById = jest.fn().mockImplementation((id) => {
+        if (id === 'documents-tab-content') return mockDocumentsContainer
+        if (id === 'outline-tab-content') return mockOutlineContainer
+        if (id === 'search-tab-content') return mockSearchContainer
+        return null
+      })
+      
+      // Initialize tab components
+      await navigator.initializeTabs()
+      
+      // After async initialization, components should be defined
+      expect(navigator.tabComponents.documents).toBeDefined()
+      expect(navigator.tabComponents.outline).toBeDefined()
+      expect(navigator.tabComponents.search).toBeDefined()
+      
+      // Restore original mock
+      document.getElementById = originalGetElementById
     })
 
     it('should handle tab component loading errors', () => {

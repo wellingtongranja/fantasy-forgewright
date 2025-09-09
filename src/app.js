@@ -18,7 +18,6 @@ import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
 import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
-import { ExportManager } from './core/export/export-manager.js'
 import { WidthManager } from './core/editor/width-manager.js'
 import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
 
@@ -104,9 +103,11 @@ class FantasyEditorApp {
     this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this), this.settingsManager)
 
     // Initialize writer enhancements
-    this.exportManager = new ExportManager(this)
     this.widthManager = new WidthManager(this.settingsManager, this)
     this.statusBarManager = new StatusBarManager(this)
+    
+    // ExportManager is lazy-loaded to reduce bundle size
+    this._exportManager = null
     
     // Set up width manager callbacks to update status bar
     if (this.widthManager && this.statusBarManager) {
@@ -183,6 +184,20 @@ class FantasyEditorApp {
   setupCommandEventHandlers() {
     // Command event handling is now done in core-commands.js
     // This avoids duplicate event listeners and inconsistent formatting
+  }
+
+  /**
+   * Lazy-load ExportManager to reduce bundle size
+   * Only loads when export functionality is first used
+   */
+  async getExportManager() {
+    if (!this._exportManager) {
+      // Dynamically import ExportManager only when needed
+      const module = await import('./core/export/export-manager.js')
+      const { ExportManager } = module
+      this._exportManager = new ExportManager(this)
+    }
+    return this._exportManager
   }
 
   /**

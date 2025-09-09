@@ -1,3 +1,18 @@
+// Helper function to get environment variables across different environments
+function getEnvVar(key) {
+  // Jest test environment with mocked import.meta
+  if (typeof global !== 'undefined' && global.import?.meta?.env) {
+    return global.import.meta.env[key]
+  }
+  
+  // Node.js environment fallback
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key]
+  }
+  
+  return undefined
+}
+
 /**
  * AuthManager - Multi-provider OAuth authentication manager
  * Provides unified interface for GitHub, GitLab, Bitbucket, and generic Git providers
@@ -9,16 +24,18 @@ export class AuthManager {
     this.accessToken = null
     this.user = null
     this.initialized = false
-    // Handle import.meta.env in both browser and test environments
-    const getEnvVar = (key) => {
-      try {
-        return import.meta.env?.[key]
-      } catch (error) {
-        return process.env?.[key]
-      }
-    }
 
-    this.workerUrl = getEnvVar('VITE_OAUTH_WORKER_URL') || 'https://oauth.forgewright.io'
+    // Get environment variables - use import.meta.env directly in browser, fallback for tests
+    const githubClientId = (typeof window !== 'undefined') 
+      ? import.meta.env.VITE_GITHUB_CLIENT_ID 
+      : getEnvVar('VITE_GITHUB_CLIENT_ID')
+    
+    const workerUrl = (typeof window !== 'undefined') 
+      ? import.meta.env.VITE_OAUTH_WORKER_URL 
+      : getEnvVar('VITE_OAUTH_WORKER_URL')
+    
+    this.workerUrl = workerUrl || 'https://oauth.forgewright.io'
+    
     
     // Provider configurations
     this.providers = {
@@ -26,7 +43,7 @@ export class AuthManager {
         name: 'github',
         displayName: 'GitHub',
         authUrl: 'https://github.com/login/oauth/authorize',
-        clientId: getEnvVar('VITE_GITHUB_CLIENT_ID'),
+        clientId: githubClientId,
         scopes: ['repo', 'user'],
         color: '#24292e'
       },
@@ -34,7 +51,9 @@ export class AuthManager {
         name: 'gitlab',
         displayName: 'GitLab',
         authUrl: 'https://gitlab.com/oauth/authorize',
-        clientId: getEnvVar('VITE_GITLAB_CLIENT_ID'),
+        clientId: (typeof window !== 'undefined') 
+          ? import.meta.env.VITE_GITLAB_CLIENT_ID 
+          : getEnvVar('VITE_GITLAB_CLIENT_ID'),
         scopes: ['api', 'read_user', 'read_repository', 'write_repository'],
         color: '#fc6d26'
       },
@@ -42,7 +61,9 @@ export class AuthManager {
         name: 'bitbucket',
         displayName: 'Bitbucket',
         authUrl: 'https://bitbucket.org/site/oauth2/authorize',
-        clientId: getEnvVar('VITE_BITBUCKET_CLIENT_ID'),
+        clientId: (typeof window !== 'undefined') 
+          ? import.meta.env.VITE_BITBUCKET_CLIENT_ID 
+          : getEnvVar('VITE_BITBUCKET_CLIENT_ID'),
         scopes: ['account', 'repositories:read', 'repositories:write'],
         color: '#0052cc'
       }

@@ -3,8 +3,6 @@
  * Supports multiple formats with theme-aware styling
  */
 
-import DOMPurify from 'dompurify'
-
 export class ExportManager {
   constructor(app) {
     this.app = app
@@ -34,7 +32,7 @@ export class ExportManager {
         return this.exportAsText(title, content, doc, options)
 
       case 'html':
-        return this.exportAsHTML(title, content, doc, stats, options)
+        return await this.exportAsHTML(title, content, doc, stats, options)
 
       case 'pdf':
         return this.exportAsPDF(title, content, doc, stats, options)
@@ -113,9 +111,9 @@ export class ExportManager {
   /**
    * Export as HTML with theme styling
    */
-  exportAsHTML(title, content, doc, stats, options = {}) {
+  async exportAsHTML(title, content, doc, stats, options = {}) {
     const theme = this.app.themeManager.getCurrentTheme()
-    const htmlContent = this.markdownToHTML(content)
+    const htmlContent = await this.markdownToHTML(content)
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -294,7 +292,7 @@ export class ExportManager {
   /**
    * Convert markdown to HTML (basic implementation)
    */
-  markdownToHTML(markdown) {
+  async markdownToHTML(markdown) {
     let html = markdown
       // Headers
       .replace(/^### (.*$)/gm, '<h3>$1</h3>')
@@ -325,6 +323,8 @@ export class ExportManager {
       // Line breaks
       .replace(/\n/g, '<br>')
 
+    // Dynamically import DOMPurify
+    const DOMPurify = (await import('dompurify')).default
     return DOMPurify.sanitize(html)
   }
 

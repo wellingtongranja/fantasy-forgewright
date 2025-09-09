@@ -763,29 +763,27 @@ export function registerCoreCommands(registry, app) {
         }
       ],
       handler: async (args) => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
-        const format = args[0]
-        if (!format) {
-          const formats = app.exportManager.getSupportedFormats()
-          return {
-            success: true,
-            message: 'Available export formats:',
-            data: formats.map((f) => f.toUpperCase())
-          }
-        }
-
-        if (!app.exportManager.isFormatSupported(format)) {
-          return {
-            success: false,
-            message: `Unsupported format: ${format}. Available formats: ${app.exportManager.getSupportedFormats().join(', ')}`
-          }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument(format)
+          const exportManager = await app.getExportManager()
+
+          const format = args[0]
+          if (!format) {
+            const formats = exportManager.getSupportedFormats()
+            return {
+              success: true,
+              message: 'Available export formats:',
+              data: formats.map((f) => f.toUpperCase())
+            }
+          }
+
+          if (!exportManager.isFormatSupported(format)) {
+            return {
+              success: false,
+              message: `Unsupported format: ${format}. Available formats: ${exportManager.getSupportedFormats().join(', ')}`
+            }
+          }
+
+          const result = await exportManager.exportDocument(format)
           return result
         } catch (error) {
           return { success: false, message: `Export failed: ${error.message}` }
@@ -800,12 +798,9 @@ export function registerCoreCommands(registry, app) {
       icon: '📝',
       aliases: [':em'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('md')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('md')
           return result
         } catch (error) {
           return { success: false, message: `Markdown export failed: ${error.message}` }
@@ -820,12 +815,9 @@ export function registerCoreCommands(registry, app) {
       icon: '📄',
       aliases: [':et'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('txt')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('txt')
           return result
         } catch (error) {
           return { success: false, message: `Text export failed: ${error.message}` }
@@ -840,12 +832,9 @@ export function registerCoreCommands(registry, app) {
       icon: '🌐',
       aliases: [':eh'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('html')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('html')
           return result
         } catch (error) {
           return { success: false, message: `HTML export failed: ${error.message}` }
@@ -860,12 +849,9 @@ export function registerCoreCommands(registry, app) {
       icon: '📑',
       aliases: [':ep'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('pdf')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('pdf')
           return result
         } catch (error) {
           return { success: false, message: `PDF export failed: ${error.message}` }
