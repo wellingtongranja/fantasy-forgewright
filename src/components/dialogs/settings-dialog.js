@@ -8,7 +8,8 @@ import { ThemesTab } from './settings-dialog/tabs/themes-tab.js'
 import { EditorTab } from './settings-dialog/tabs/editor-tab.js'
 import { CodeMirrorTab } from './settings-dialog/tabs/codemirror-tab.js'
 import { GitIntegrationTab } from './settings-dialog/tabs/git-integration-tab.js'
-import { PrivacyTab } from './settings-dialog/tabs/privacy-tab.js'
+import { DataPrivacyTab } from './settings-dialog/tabs/data-privacy-tab.js'
+import { AboutTab } from './settings-dialog/tabs/about-tab.js'
 import { SkeletonLoader } from './settings-dialog/components/skeleton-loader.js'
 
 export class SettingsDialog {
@@ -70,10 +71,16 @@ export class SettingsDialog {
         keywords: ['github', 'gitlab', 'bitbucket', 'git', 'provider', 'version', 'control', 'repository', 'sync']
       },
       { 
-        id: 'privacy', 
-        name: '🔒 Privacy', 
-        label: 'Privacy & About',
-        keywords: ['analytics', 'crash', 'privacy', 'about', 'license']
+        id: 'data-privacy', 
+        name: '🔒 Data Privacy', 
+        label: 'Data Privacy',
+        keywords: ['privacy', 'data', 'terms', 'agreement', 'export', 'import', 'clear', 'storage']
+      },
+      { 
+        id: 'about', 
+        name: 'ℹ️ About', 
+        label: 'About',
+        keywords: ['about', 'version', 'license', 'help', 'shortcuts', 'changelog', 'support', 'documentation']
       }
     ]
     
@@ -90,7 +97,8 @@ export class SettingsDialog {
     this.themesTab = new ThemesTab(settingsManager)
     this.codeMirrorTab = new CodeMirrorTab(settingsManager)
     this.gitIntegrationTab = new GitIntegrationTab(settingsManager)
-    this.privacyTab = new PrivacyTab(settingsManager)
+    this.dataPrivacyTab = new DataPrivacyTab(settingsManager)
+    this.aboutTab = new AboutTab(settingsManager)
   }
 
   /**
@@ -361,8 +369,10 @@ export class SettingsDialog {
         return this.codeMirrorTab.render(this.localSettings, this.updateSetting.bind(this))
       case 'git-integration':
         return this.gitIntegrationTab.render(this.localSettings, this.updateSetting.bind(this))
-      case 'privacy':
-        return this.privacyTab.render(this.localSettings, this.updateSetting.bind(this))
+      case 'data-privacy':
+        return this.dataPrivacyTab.render(this.localSettings, this.updateSetting.bind(this))
+      case 'about':
+        return this.aboutTab.render(this.localSettings, this.updateSetting.bind(this))
       default:
         return this.renderTabContentPlaceholder(tab)
     }
@@ -537,8 +547,11 @@ export class SettingsDialog {
       case 'git-integration':
         this.gitIntegrationTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
         break
-      case 'privacy':
-        this.privacyTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+      case 'data-privacy':
+        this.dataPrivacyTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
+        break
+      case 'about':
+        this.aboutTab.attachEventListeners(tabContent, this.updateSetting.bind(this))
         break
       // Add other tabs here as they are implemented
     }

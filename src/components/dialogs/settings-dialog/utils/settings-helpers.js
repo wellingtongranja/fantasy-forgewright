@@ -171,9 +171,8 @@ export function getDefaultSettings(component) {
       conflictResolution: 'prompt'
     },
     privacy: {
-      analytics: false,
-      crashReporting: false,
-      dataSaving: true
+      agreedToTerms: false,
+      agreedDate: null
     }
   }
   
