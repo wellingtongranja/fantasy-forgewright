@@ -4,7 +4,7 @@
 
 **Fantasy Editor** is a distraction-free, keyboard-first markdown editor for writers, hosted at **forgewright.io**.
 
-**Architecture**: Client-side PWA with GitHub storage, CodeMirror 6 editor, VS Code-style command palette
+**Architecture**: Client-side PWA with Git storage (GitHub integrated, GitLab/Bitbucket/others planned), CodeMirror 6 editor, VS Code-style command palette
 
 **License**: GNU Affero General Public License v3 (AGPL-3.0)
 
@@ -20,7 +20,7 @@
 - [x] Offline-first PWA functionality
 - [x] Full-text search and document tagging
 - [x] Writer-focused UI with optimal 65ch layout
-- [x] GitHub OAuth integration with automatic repository setup
+- [x] Git OAuth integration with automatic repository setup (GitHub completed, multi-provider system in place)
 - [x] Editor Width & Zoom Controls - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - [x] Document Export System - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
 
@@ -34,7 +34,7 @@
 - [ ] **Merge Functionality** - Needs comprehensive review
 
 #### 📋 Planned Features
-- [ ] Multi-Provider OAuth System (GitLab, Bitbucket, generic Git)
+- [ ] Additional Git Providers (GitLab, Bitbucket, generic Git) - OAuth system already supports multi-provider
 - [ ] Project Gutenberg integration
 - [ ] Internationalization support
 
@@ -64,9 +64,9 @@
 - **RECENT/PREVIOUS Organization** - Simplified document grouping without complex time-based categories
 - **Smooth Animations** - 0.4s cubic-bezier transitions for polished Navigator show/hide effects
 - **Integrated Commands** - `:d`, `:f`, `:l` commands with proper focus management and filtering
-- **GitHub UI Integration** - Authentication button in header with user dropdown menu
-- **Document Synchronization** - Bidirectional sync between local IndexedDB and GitHub
-- **Command System Enhancement** - All GitHub operations via colon shortcuts
+- **Git Provider UI Integration** - Authentication button in header with user dropdown menu (GitHub first, others coming)
+- **Document Synchronization** - Bidirectional sync between local IndexedDB and Git providers
+- **Command System Enhancement** - All Git operations via colon shortcuts
 - **Editor Width & Zoom Controls** - Dynamic width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - **Document Export System** - Multi-format export capabilities (Markdown, HTML, PDF, Text) with streamlined commands
 
@@ -88,7 +88,7 @@ src/
 ├── core/                    # Business logic
 │   ├── auth/               # OAuth authentication
 │   │   ├── auth-manager.js # Multi-provider OAuth manager
-│   │   └── github-auth.js  # GitHub-specific auth (legacy)
+│   │   └── github-auth.js  # GitHub-specific auth (legacy, kept for compatibility)
 │   ├── editor/             # CodeMirror integration & width/zoom controls
 │   │   ├── editor.js       # Main editor manager
 │   │   └── width-manager.js # Width presets & zoom functionality
@@ -103,7 +103,7 @@ src/
 │   │   └── utils/         # Navigator utilities (outline parser)
 │   ├── command-bar/       # Command palette interface
 │   ├── command-bar-v2/    # Enhanced command system with SearchEngine
-│   ├── auth/              # GitHub authentication UI
+│   ├── auth/              # Git provider authentication UI
 │   ├── status-bar/        # Status bar with unified sync indicators
 │   └── sidebar/           # Legacy sidebar (fallback)
 ├── styles/                 # CSS themes & base styles
@@ -123,7 +123,7 @@ workers/                    # Cloudflare Workers (OAuth proxy)
 docs/                      # Documentation (simplified structure)
 ├── README.md             # Main documentation index
 ├── help.md              # User guide with essential commands
-├── github-integration.md # Complete GitHub/OAuth guide
+├── github-integration.md # Complete Git provider/OAuth guide
 ├── architecture.md      # System architecture
 ├── testing.md           # Testing strategy
 ├── security.md          # Security implementation
@@ -214,8 +214,8 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:st`** | `statistics` | `:st` |
 | **`:v`** | `version` | `:v` |
 
-#### GitHub Integration Commands
-*Aligned with standard Git aliases (st=status, pu=push, pl=pull, etc.)*
+#### Git Provider Integration Commands
+*Currently GitHub, with GitLab/Bitbucket/others coming. Aligned with standard Git aliases (st=status, pu=push, pl=pull, etc.)*
 
 | Shortcut | Command | Usage Example |
 |----------|---------|---------------|
@@ -303,21 +303,21 @@ Ctrl+Space → ":f dragons"    # Search documents
 }
 ```
 
-## 🐙 GitHub Integration UI
+## 🐙 Git Provider Integration UI
 
-Fantasy Editor provides a complete GitHub integration experience with visual feedback and seamless authentication.
+Fantasy Editor provides a complete Git integration experience with visual feedback and seamless authentication. GitHub is the first integrated provider, with GitLab, Bitbucket, and others planned.
 
-### GitHub Authentication Button (Header - Top-right)
+### Git Provider Authentication Button (Header - Top-right)
 
 **When not signed in:**
-- "Sign in with GitHub" button with GitHub icon
-- Clicking redirects to GitHub OAuth authorization
+- "Sign in with [Provider]" button with provider icon (currently GitHub)
+- Clicking redirects to provider's OAuth authorization
 
 **When signed in:**
 - Shows user avatar, username, and dropdown arrow
 - Click to open user dropdown menu
 
-### GitHub User Dropdown Menu
+### Git Provider User Dropdown Menu
 
 **Repository Information:**
 - Current configured repository name
@@ -325,15 +325,15 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 - Hint to use `:gcf` (GitHub Configure) command
 
 **Menu Actions:**
-- **Sign out** - Log out from GitHub
-- **Help** - Show GitHub command documentation
+- **Sign out** - Log out from Git provider
+- **Help** - Show Git provider command documentation
 
 ### Sync Status Indicators (Status Bar - Bottom-right)
 
 **Unified status container with color-coded pill styling:**
 - 🟢 **synced**: Document matches remote repository (green background)
-- 🟡 **out-of-sync**: Local changes need push to GitHub (yellow background)
-- 🔴 **local-only**: Document never synced to GitHub (red background)
+- 🟡 **out-of-sync**: Local changes need push to remote (yellow background)
+- 🔴 **local-only**: Document never synced to remote (red background)
 - **Hidden**: When not authenticated or not configured
 
 **Enhanced Features:**
@@ -358,14 +358,14 @@ Fantasy Editor provides a complete GitHub integration experience with visual fee
 
 ## 🔐 Multi-Provider OAuth System
 
-Fantasy Editor implements a secure, provider-agnostic OAuth system supporting multiple Git providers through a Cloudflare Worker proxy.
+Fantasy Editor implements a secure, provider-agnostic OAuth system supporting multiple Git providers through a Cloudflare Worker proxy. GitHub is fully integrated as the first provider, with GitLab, Bitbucket, and generic Git support coming soon.
 
 ### OAuth Architecture
 
 **Core Components:**
 - **AuthManager** (`src/core/auth/auth-manager.js`) - Provider-agnostic authentication manager
 - **OAuth Worker** (`workers/oauth-proxy.js`) - Secure Cloudflare Worker proxy for token exchange
-- **Provider Implementations** - GitHub, GitLab, Bitbucket, and generic Git support
+- **Provider Implementations** - GitHub (completed), GitLab, Bitbucket, and generic Git (infrastructure ready, integration pending)
 
 ### Security Features
 
@@ -383,7 +383,7 @@ Fantasy Editor implements a secure, provider-agnostic OAuth system supporting mu
 
 ### OAuth Flow
 
-1. **Initiation**: User clicks "Sign in with GitHub"
+1. **Initiation**: User clicks "Sign in with [Provider]" (currently GitHub)
 2. **Authorization**: Redirect to provider with PKCE challenge
 3. **Token Exchange**: Worker exchanges code for access token
 4. **Session**: Token stored securely, user authenticated
@@ -404,12 +404,12 @@ https://fantasy-oauth-proxy.wellington-granja.workers.dev
 
 ### API Operations
 
-All GitHub API operations are proxied through the Worker for security:
+All Git provider API operations are proxied through the Worker for security (GitHub currently implemented):
 ```javascript
 // Repository operations
 await authManager.makeAuthenticatedRequest('fetchRepositories')
 
-// Direct API proxy (GitHub Storage compatibility)
+// Direct API proxy (Git provider storage compatibility)
 await authManager.makeAuthenticatedRequest('/repos/owner/repo/contents/file.md')
 ```
 
@@ -422,11 +422,11 @@ await authManager.makeAuthenticatedRequest('/repos/owner/repo/contents/file.md')
 ### Development Setup
 
 For local development with OAuth:
-1. Create development GitHub OAuth app (callback: `http://localhost:3000/`)
+1. Create development OAuth app for your provider (GitHub example - callback: `http://localhost:3000/`)
 2. Configure `.dev.vars` with client ID and secret
 3. Run Worker locally: `npx wrangler dev --env dev`
 
-See `docs/github-integration.md` for complete OAuth documentation.
+See `docs/github-integration.md` for complete OAuth and Git provider documentation.
 
 ## ✏️ Editor Width and Zoom Controls
 
