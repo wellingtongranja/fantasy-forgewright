@@ -10,6 +10,10 @@
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:dev": "wrangler deploy --env dev",
     "tail": "wrangler tail",
+    "dev:legal": "wrangler dev --config wrangler.legal.toml --env dev",
+    "deploy:legal": "wrangler deploy --config wrangler.legal.toml",
+    "deploy:legal:staging": "wrangler deploy --config wrangler.legal.toml --env staging",
+    "deploy:legal:dev": "wrangler deploy --config wrangler.legal.toml --env dev",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },
