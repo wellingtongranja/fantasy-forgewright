@@ -20,6 +20,9 @@ import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 import { WidthManager } from './core/editor/width-manager.js'
 import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
+import { LegalManager } from './core/legal/legal-manager.js'
+import { LegalSplash } from './components/legal-splash/legal-splash.js'
+import './components/legal-splash/legal-splash.css'
 
 class FantasyEditorApp {
   constructor() {
@@ -52,11 +55,16 @@ class FantasyEditorApp {
     this.exportManager = null
     this.widthManager = null
     this.statusBarManager = null
+
+    // Legal compliance system
+    this.legalManager = null
+    this.legalSplash = null
   }
 
   async init() {
     try {
       await this.initializeManagers()
+      await this.initializeLegalCompliance()
       this.attachEventListeners()
       await this.loadInitialDocument()
       this.updateUI()
@@ -176,6 +184,40 @@ class FantasyEditorApp {
 
     // Setup window resize handler for responsive width behavior
     this.setupResizeHandler()
+  }
+
+  /**
+   * Initialize legal compliance system
+   */
+  async initializeLegalCompliance() {
+    try {
+      // Initialize legal manager
+      this.legalManager = new LegalManager()
+      await this.legalManager.init()
+
+      // Initialize legal splash component
+      this.legalSplash = new LegalSplash(this.legalManager, undefined, { appName: 'Fantasy' })
+
+      // Check if user needs to accept legal documents
+      const hasAccepted = await this.legalManager.hasUserAcceptedAll()
+      if (!hasAccepted) {
+        // Show legal splash modal with required parameters
+        const userId = this.legalManager.generateUserId()
+        const requiredDocuments = ['privacy-policy', 'eula', 'license'] // Required documents for app usage
+
+        const onAcceptance = () => {
+          console.log('User has accepted all legal documents')
+          // Future: Record acceptance in legal manager
+        }
+
+        await this.legalSplash.show(userId, requiredDocuments, onAcceptance)
+      }
+
+    } catch (error) {
+      console.error('Failed to initialize legal compliance system:', error)
+      // Continue app initialization even if legal system fails
+      // This ensures the app remains functional for existing users
+    }
   }
 
   /**

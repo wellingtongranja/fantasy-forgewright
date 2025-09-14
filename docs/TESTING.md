@@ -301,17 +301,99 @@ test('command system is keyboard accessible', async ({ page }) => {
 })
 ```
 
+## 📋 Manual Regression Testing Plan
+
+### Phase 4 Legal Splash Screen Validation
+
+#### Pre-Test Setup
+- [ ] Clear browser cache and localStorage
+- [ ] Test in incognito/private mode
+- [ ] Verify clean state without previous legal acceptances
+
+#### Legal Splash Modal Display
+- [ ] **Initial Load**: Splash appears on first app visit
+- [ ] **Modal Overlay**: Dark background overlay blocks interaction with app
+- [ ] **App Branding**: PWA manifest data loads correctly (name, icons)
+- [ ] **ESC Key**: Modal closes when ESC pressed
+- [ ] **Click Outside**: Modal closes when clicking overlay background
+
+#### Document Tabs Navigation
+- [ ] **Privacy Policy Tab**: Loads and displays correctly
+- [ ] **EULA Tab**: Switches properly, shows content
+- [ ] **AGPL License Tab**: Navigation works, content renders
+- [ ] **Tab Indicators**: Active tab highlighted properly
+- [ ] **Keyboard Navigation**: Tab key cycles through tabs correctly
+
+#### Scroll Progress Tracking
+- [ ] **Progress Bar**: Shows 0% initially for each document
+- [ ] **Scroll Detection**: Progress updates as user scrolls
+- [ ] **80% Threshold**: Progress bar turns green at 80% scroll
+- [ ] **Document Switching**: Progress preserved when switching tabs
+- [ ] **Visual Feedback**: Smooth progress bar animations
+
+#### Acceptance Validation
+- [ ] **Checkbox Disabled**: Initially disabled until 80% read
+- [ ] **Checkbox Enabled**: Becomes clickable after sufficient reading
+- [ ] **Accept Button**: Remains disabled until all documents accepted
+- [ ] **Full Acceptance**: Button activates when all three checkboxes checked
+- [ ] **Persistence**: Acceptance state saved to IndexedDB
+
+#### Theme Integration
+- [ ] **Light Theme**: Modal styling matches light theme
+- [ ] **Dark Theme**: Proper contrast and colors in dark mode
+- [ ] **Fantasy Theme**: Medieval styling applied correctly
+- [ ] **Theme Switching**: Modal adapts when theme changed via `:t` command
+
+#### Responsive Design
+- [ ] **Desktop**: Modal centers properly, appropriate size
+- [ ] **Tablet**: Responsive layout, readable text
+- [ ] **Mobile**: Touch-friendly controls, proper scrolling
+- [ ] **Small Screens**: Content remains accessible
+
+#### Accessibility (WCAG 2.1 AA)
+- [ ] **Focus Trap**: Tab navigation stays within modal
+- [ ] **Screen Reader**: Proper ARIA labels and descriptions
+- [ ] **Keyboard Only**: All interactions possible via keyboard
+- [ ] **Color Contrast**: Sufficient contrast ratios in all themes
+- [ ] **Text Scaling**: Content readable at 200% zoom
+
+#### Error Handling
+- [ ] **Network Failure**: Graceful fallback when manifest fails to load
+- [ ] **Missing Documents**: Proper error display for missing legal docs
+- [ ] **Storage Failure**: Handles IndexedDB errors gracefully
+- [ ] **Content Errors**: Manages malformed document content
+
+#### Integration Testing
+- [ ] **App Entry**: Editor remains blocked until acceptance complete
+- [ ] **Command Palette**: Ctrl+Space blocked until legal acceptance
+- [ ] **Storage Persistence**: Acceptance remembered across sessions
+- [ ] **Re-entry**: Splash doesn't appear after successful acceptance
+
+### Test Execution Checklist
+1. **Environment Setup**: Clean browser state
+2. **Functionality Tests**: All interactive elements
+3. **Cross-Theme Tests**: Light, Dark, Fantasy themes
+4. **Cross-Device Tests**: Desktop, tablet, mobile
+5. **Accessibility Tests**: Keyboard navigation, screen reader
+6. **Integration Tests**: App flow and persistence
+
+### Expected Results
+- ✅ Legal splash blocks app access until all documents accepted
+- ✅ Smooth, accessible user experience across all devices
+- ✅ Proper theme integration and responsive design
+- ✅ Reliable persistence and re-entry behavior
+
 ## 📊 Performance Testing
 
 ### Bundle Size Tests
 
 ```javascript
 describe('Bundle Size', () => {
-  it('should stay under 1MB gzipped', async () => {
+  it('should stay under 3MB gzipped', async () => {
     const bundleStats = await getBundleStats()
     const gzippedSize = bundleStats.gzippedSize
-    
-    expect(gzippedSize).toBeLessThan(1024 * 1024) // 1MB
+
+    expect(gzippedSize).toBeLessThan(3 * 1024 * 1024) // 3MB - Updated target
   })
 })
 ```

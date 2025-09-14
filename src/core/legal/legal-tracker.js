@@ -24,20 +24,26 @@ export class LegalDocumentTracker {
 
     try {
       const textContent = String(content)
-      
-      // Use Web Crypto API if available, fallback to simple hash for testing
-      if (typeof crypto !== 'undefined' && crypto.subtle && typeof TextEncoder !== 'undefined') {
-        const encoder = new TextEncoder()
-        const data = encoder.encode(textContent)
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-        return this.bufferToHex(hashBuffer)
-      } else {
-        // Fallback for testing environments
-        return this.simpleHash(textContent)
-      }
+      return await this.computeHash(textContent)
     } catch (error) {
       // Fallback to simple hash on any error
       return this.simpleHash(String(content))
+    }
+  }
+
+  /**
+   * Compute hash using Web Crypto API or fallback
+   */
+  async computeHash(textContent) {
+    // Use Web Crypto API if available, fallback to simple hash for testing
+    if (typeof crypto !== 'undefined' && crypto.subtle && typeof TextEncoder !== 'undefined') {
+      const encoder = new TextEncoder()
+      const data = encoder.encode(textContent)
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+      return this.bufferToHex(hashBuffer)
+    } else {
+      // Fallback for testing environments
+      return this.simpleHash(textContent)
     }
   }
 

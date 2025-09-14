@@ -13,7 +13,7 @@
 const ALLOWED_ORIGINS = {
   production: 'https://fantasy.forgewright.io',
   staging: 'https://fantasy-editor.pages.dev',
-  development: 'http://localhost:3000'
+  development: 'http://localhost:3001'
 }
 
 const RATE_LIMIT = {
