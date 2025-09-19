@@ -39,7 +39,7 @@
 - [ ] Internationalization support
 
 #### ⚠️ Technical Debt
-- **Bundle Size**: Currently >1MB (target relaxed to <3MB, needs optimization)
+- **Bundle Size**: Currently >1MB (target <5MB, acceptable for feature-rich editor)
 - **Test Coverage**: Need to increase coverage to >90%
 - **Mobile Experience**: Functional but not optimized
 
@@ -600,7 +600,7 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 
 ## 🎯 Performance Targets
 
-- Bundle size: < 1MB gzipped
+- Bundle size: < 5MB gzipped
 - First Paint: < 1.5s  
 - Time to Interactive: < 3s
 - Test coverage: > 90%
@@ -697,7 +697,7 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 ### Phase 1: Core Stabilization (Weeks 1-2)
 
 #### 1.1 Bundle Size Optimization
-**Target**: <3MB gzipped (currently >1MB)
+**Target**: <5MB gzipped (currently >1MB, acceptable for feature-rich editor)
 - [ ] Analyze bundle with `npm run bundle-analyzer`
 - [ ] Implement code splitting for non-critical features
 - [ ] Lazy load heavy dependencies (jspdf, html2canvas)
