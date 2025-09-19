@@ -15,48 +15,31 @@ This roadmap outlines the development plan for Fantasy Editor Q1 2025, focusing 
 - PWA functionality
 
 ### Areas Requiring Attention
-- **Fantasy Theme**: Not implemented
-- **Bundle Size**: >1MB (target: <3MB)
+- **Fantasy Theme**: ✅ COMPLETED - Full implementation with King's Colors palette
+- **Bundle Size**: ~1.7MB (target: <5MB, acceptable for feature-rich editor)
 - **Navigator Component**: Needs refinement
 - **Settings Dialog**: UX improvements needed
 - **Sync System**: Conflict resolution, status indicators need fixes
+- **Legal Documents System**: ✅ COMPLETED - Phase 4 with secure worker and persistent acceptance tracking
 
 ## Development Phases
 
 ### Phase 1: Core Stabilization (Weeks 1-2)
 
-#### 1.1 Fantasy Theme Implementation
+#### 1.1 ✅ Fantasy Theme Implementation - COMPLETED
 
-**Objective**: Create an immersive fantasy writing experience
+**Status**: ✅ **COMPLETED** - Full implementation with King's Colors palette
 
-**Design Specifications**:
-```css
-/* Fantasy Theme Color Palette */
---fantasy-bg-primary: #f4e8d0;      /* Aged parchment */
---fantasy-bg-secondary: #e8dcc0;     /* Darker parchment */
---fantasy-text-primary: #3d2914;     /* Dark brown ink */
---fantasy-text-secondary: #5d4e37;   /* Faded ink */
---fantasy-accent: #8b4513;          /* Leather brown */
---fantasy-highlight: #d4af37;       /* Gold leaf */
---fantasy-border: #a0826d;          /* Wood grain */
-```
-
-**TDD Implementation Steps**:
-1. Write visual regression tests for theme colors
-2. Create WCAG compliance tests (contrast ratios)
-3. Implement theme CSS variables
-4. Test with all components
-5. Add theme preview to Settings
-
-**Acceptance Criteria**:
-- [ ] WCAG AA compliance (4.5:1 contrast ratio)
-- [ ] All UI components properly themed
-- [ ] Smooth transition between themes
-- [ ] Theme persists across sessions
+**Implemented Features**:
+- Medieval manuscript-inspired color palette
+- Parchment backgrounds with royal burgundy accents
+- Complete CodeMirror integration with syntax highlighting
+- Available via `:t fantasy` command and theme selector (⚔️ icon)
+- WCAG AA compliance maintained
 
 #### 1.2 Bundle Size Optimization
 
-**Objective**: Reduce bundle to <3MB gzipped
+**Objective**: Optimize bundle (currently ~1.7MB, target <5MB gzipped)
 
 **Analysis First**:
 ```bash
@@ -91,9 +74,10 @@ npm run bundle-analyzer
    - Minify CSS/JS
 
 **Success Metrics**:
-- [ ] Bundle <3MB gzipped
+- [ ] Bundle optimized with lazy loading
 - [ ] No regression in load time
 - [ ] All features remain functional
+- [ ] Better code splitting implemented
 
 ### Phase 2: Component Enhancement (Weeks 3-4)
 
