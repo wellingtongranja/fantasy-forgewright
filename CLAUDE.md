@@ -10,7 +10,7 @@
 
 ## 🎯 Core Requirements
 
-### Current Status (Updated: January 2025)
+### Current Status (Updated: September 2025)
 
 #### ✅ Completed Features
 - [x] Markdown editing with CodeMirror 6
@@ -23,7 +23,7 @@
 - [x] Git OAuth integration with automatic repository setup (GitHub completed, multi-provider system in place)
 - [x] Editor Width & Zoom Controls - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - [x] Document Export System - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
-- [x] Legal Documents Management System - Complete Phase 4 implementation with splash screen, secure worker, and user acceptance tracking
+- [x] Legal Documents Management System - Complete Phase 4 implementation with splash screen, secure worker, user acceptance tracking, and hash consistency fixes
 
 #### 🚧 In Progress / Needs Improvement
 - [ ] **Fantasy Theme** - Not yet implemented (only Light/Dark + custom theme exist)
@@ -70,7 +70,7 @@
 - **Command System Enhancement** - All Git operations via colon shortcuts
 - **Editor Width & Zoom Controls** - Dynamic width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - **Document Export System** - Multi-format export capabilities (Markdown, HTML, PDF, Text) with streamlined commands
-- **Legal Documents Management System** - Complete legal compliance workflow with responsive modal splash screen, secure Cloudflare Worker for document serving, IndexedDB acceptance tracking, and automatic release notes display after legal acceptance
+- **Legal Documents Management System** - Complete legal compliance workflow with responsive modal splash screen, secure Cloudflare Worker for document serving, IndexedDB acceptance tracking, automatic release notes display after legal acceptance, and hash consistency fixes for persistent user acceptance records
 
 ## 🛠️ Development Standards
 
