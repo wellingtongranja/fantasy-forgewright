@@ -1463,14 +1463,40 @@ export function registerCoreCommands(registry, app) {
 
     {
       name: 'version',
-      description: 'show version',
+      description: 'show version info or open release notes',
       category: 'about',
       icon: '🏷️',
       aliases: [':v'],
-      handler: async () => {
+      parameters: [
+        { name: 'action', required: false, type: 'string', description: 'Use "notes" to open release notes' }
+      ],
+      handler: async (args) => {
+        const action = args?.action?.toLowerCase()
+
+        // If "notes" is specified, open release notes document
+        if (action === 'notes' || action === 'release') {
+          try {
+            if (!app.systemDocumentsManager) {
+              const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+              app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+            }
+
+            const releaseDoc = await app.systemDocumentsManager.getSystemDocument('release-notes')
+            if (releaseDoc) {
+              app.loadDocument(releaseDoc)
+              return { success: true, message: 'Release notes loaded' }
+            } else {
+              return { success: false, message: 'Release notes not available' }
+            }
+          } catch (error) {
+            return { success: false, message: `Failed to load release notes: ${error.message}` }
+          }
+        }
+
+        // Default: show version information
         return {
           success: true,
-          message: 'Fantasy Editor v0.0.1-alpha',
+          message: 'Fantasy Editor v0.0.1-alpha - Use ":v notes" to open release notes',
           data: {
             version: '0.0.1-alpha',
             build: 'development',
@@ -1480,7 +1506,8 @@ export function registerCoreCommands(registry, app) {
               'Multi-theme',
               'Command Palette',
               'GUID System',
-              'Readonly Documents'
+              'Legal Documents Management',
+              'Release Notes Auto-Open'
             ]
           }
         }

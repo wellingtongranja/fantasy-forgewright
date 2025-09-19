@@ -23,6 +23,7 @@
 - [x] Git OAuth integration with automatic repository setup (GitHub completed, multi-provider system in place)
 - [x] Editor Width & Zoom Controls - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - [x] Document Export System - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
+- [x] Legal Documents Management System - Complete Phase 4 implementation with splash screen, secure worker, and user acceptance tracking
 
 #### 🚧 In Progress / Needs Improvement
 - [ ] **Fantasy Theme** - Not yet implemented (only Light/Dark + custom theme exist)
@@ -69,6 +70,7 @@
 - **Command System Enhancement** - All Git operations via colon shortcuts
 - **Editor Width & Zoom Controls** - Dynamic width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - **Document Export System** - Multi-format export capabilities (Markdown, HTML, PDF, Text) with streamlined commands
+- **Legal Documents Management System** - Complete legal compliance workflow with responsive modal splash screen, secure Cloudflare Worker for document serving, IndexedDB acceptance tracking, and automatic release notes display after legal acceptance
 
 ## 🛠️ Development Standards
 
@@ -96,6 +98,7 @@ src/
 │   ├── search/             # Full-text search + tags
 │   ├── commands/           # Command registry & handlers
 │   ├── export/             # Document export functionality
+│   ├── legal/              # Legal documents management system
 │   └── themes/             # Theme management
 ├── components/             # UI components
 │   ├── navigator/          # Tabbed sidebar (Documents/Outline/Search)
@@ -105,20 +108,23 @@ src/
 │   ├── command-bar-v2/    # Enhanced command system with SearchEngine
 │   ├── auth/              # Git provider authentication UI
 │   ├── status-bar/        # Status bar with unified sync indicators
+│   ├── legal-splash/      # Legal documents modal interface
 │   └── sidebar/           # Legacy sidebar (fallback)
 ├── styles/                 # CSS themes & base styles
 ├── workers/               # Service worker + PWA
 └── utils/                 # Validation, security, logging
 
-workers/                    # Cloudflare Workers (OAuth proxy)
-├── oauth-proxy.js         # Main OAuth proxy Worker
+workers/                    # Cloudflare Workers
+├── oauth-proxy.js         # OAuth proxy Worker
+├── legal-docs-worker.js   # Legal documents Worker
 ├── providers/             # OAuth provider implementations
 │   ├── base-provider.js  # Abstract base class
 │   ├── github.js         # GitHub OAuth provider
 │   ├── gitlab.js         # GitLab OAuth provider
 │   ├── bitbucket.js      # Bitbucket OAuth provider
 │   └── generic-git.js    # Generic Git provider
-└── wrangler.toml         # Cloudflare Worker configuration
+├── wrangler.toml         # OAuth Worker configuration
+└── wrangler.legal.toml   # Legal Worker configuration
 
 docs/                      # Documentation (simplified structure)
 ├── README.md             # Main documentation index
@@ -212,7 +218,7 @@ ALL command aliases MUST use colon prefix followed by 1-3 characters:
 | **`:sy`** | `sync` | `:sy` |
 | **`:r`** | `refresh` | `:r` |
 | **`:st`** | `statistics` | `:st` |
-| **`:v`** | `version` | `:v` |
+| **`:v`** | `version` | `:v` or `:v notes` |
 
 #### Git Provider Integration Commands
 *Currently GitHub, with GitLab/Bitbucket/others coming. Aligned with standard Git aliases (st=status, pu=push, pl=pull, etc.)*

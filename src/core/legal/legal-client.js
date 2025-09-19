@@ -212,7 +212,7 @@ export class LegalClient {
       throw new Error('Invalid response format')
     }
 
-    if (!response.lastUpdated) {
+    if (!response.timestamp && !response.lastUpdated) {
       throw new Error('Invalid response format')
     }
   }

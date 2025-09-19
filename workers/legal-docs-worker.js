@@ -227,8 +227,14 @@ async function fetchDocumentMetadata(env) {
       
       if (response.ok) {
         const data = await response.json()
+
+        // Decode content and generate hash for consistency with /legal/documents endpoint
+        const content = atob(data.content)
+        const hash = await generateHash(content)
+
         metadata[type] = {
           sha: data.sha,
+          hash: hash,  // Content-based hash for consistency
           size: data.size,
           path: data.path,
           lastModified: data.commit?.date || null

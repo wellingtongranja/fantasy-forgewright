@@ -205,9 +205,9 @@ class FantasyEditorApp {
         const userId = this.legalManager.generateUserId()
         const requiredDocuments = ['privacy-policy', 'eula', 'license'] // Required documents for app usage
 
-        const onAcceptance = () => {
-          console.log('User has accepted all legal documents')
-          // Future: Record acceptance in legal manager
+        const onAcceptance = async () => {
+          // Auto-open release notes after legal acceptance (first-time only)
+          await this.openReleaseNotesAfterAcceptance()
         }
 
         await this.legalSplash.show(userId, requiredDocuments, onAcceptance)
@@ -217,6 +217,35 @@ class FantasyEditorApp {
       console.error('Failed to initialize legal compliance system:', error)
       // Continue app initialization even if legal system fails
       // This ensures the app remains functional for existing users
+    }
+  }
+
+  /**
+   * Auto-open release notes after legal acceptance
+   * Provides users with latest updates after they accept legal documents
+   */
+  async openReleaseNotesAfterAcceptance() {
+    try {
+      // Initialize system documents manager if needed
+      if (!this.systemDocumentsManager) {
+        const { SystemDocumentsManager } = await import('./core/storage/system-documents.js')
+        this.systemDocumentsManager = new SystemDocumentsManager(this.storageManager)
+      }
+
+      // Load release notes using same pattern as :release command
+      const releaseDoc = await this.systemDocumentsManager.getSystemDocument('release-notes')
+      if (releaseDoc) {
+        // Small delay to ensure legal splash has finished closing
+        setTimeout(() => {
+          this.loadDocument(releaseDoc)
+          this.showNotification('Welcome to Fantasy Editor! Here\'s what\'s new in this version.', 'info')
+        }, 500)
+      } else {
+        console.warn('Release notes not available for auto-open after legal acceptance')
+      }
+    } catch (error) {
+      console.error('Failed to auto-open release notes after legal acceptance:', error)
+      // Non-critical failure - don't block user experience
     }
   }
 

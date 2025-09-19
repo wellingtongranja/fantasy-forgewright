@@ -307,16 +307,30 @@ export class LegalSplash {
    * Record user acceptances to storage
    */
   async recordAcceptances(documentTypes) {
-    const promises = documentTypes.map(docType => {
+    const promises = documentTypes.map(async (docType) => {
       const document = this.documents[docType]
-      return this.legalManager.recordUserAcceptance({
+
+      if (!document) {
+        console.error(`No document loaded for type: ${docType}`)
+        return
+      }
+
+      const acceptanceData = {
         userId: this.userId,
         documentType: docType,
         documentHash: document.hash,
-        documentVersion: document.version,
+        documentVersion: document.sha || document.version || document.hash,
         acceptedAt: new Date(),
         readProgress: this.readProgress[docType]
-      })
+      }
+
+      try {
+        const result = await this.legalManager.recordUserAcceptance(acceptanceData)
+        return result
+      } catch (error) {
+        console.error(`Failed to record acceptance for ${docType}:`, error)
+        throw error
+      }
     })
 
     await Promise.all(promises)

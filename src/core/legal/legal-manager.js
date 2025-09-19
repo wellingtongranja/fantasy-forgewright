@@ -136,19 +136,42 @@ export class LegalManager {
 
   /**
    * Check if user has accepted all required legal documents
-   * For initial implementation, return false so users always see splash
-   * This ensures the legal splash is shown on first visit
+   * Checks actual acceptance records in IndexedDB
    */
   async hasUserAcceptedAll() {
     this.ensureInitialized()
 
     try {
-      // For MVP: Always return false so users see the legal splash
-      // This will be refined later to check actual acceptance records
-      return false
+      const userId = this.generateUserId()
+      const requiredDocuments = ['privacy-policy', 'eula', 'license']
+
+      // Get current document metadata to check versions
+      const metadata = await this.checkForUpdates()
+
+      // If worker is unavailable, we can't verify current document versions
+      // In this case, assume user needs to accept (safer approach)
+      if (!metadata || !metadata.documents || Object.keys(metadata.documents).length === 0) {
+        return false
+      }
+
+      // Check if user has accepted all required documents with current versions
+      for (const docType of requiredDocuments) {
+        const currentDocHash = metadata.documents[docType]?.hash || metadata.documents[docType]?.sha
+
+        if (!currentDocHash) {
+          return false
+        }
+
+        const hasAccepted = await this.acceptance.hasUserAccepted(userId, docType, currentDocHash)
+
+        if (!hasAccepted) {
+          return false
+        }
+      }
+      return true
     } catch (error) {
       // If there's an error checking, assume user needs to accept (safer approach)
-      console.warn('Error checking user acceptance status:', error.message)
+      console.error('Error checking user acceptance status:', error)
       return false
     }
   }

@@ -47,7 +47,7 @@ export class ManifestLoader {
       return this.getFallbackIcons()
     }
 
-    return manifest.icons.map(icon => ({
+    return manifest.icons.map((icon) => ({
       src: icon.src,
       sizes: icon.sizes || '48x48',
       type: icon.type || 'image/png',
@@ -66,7 +66,7 @@ export class ManifestLoader {
     }
 
     // Find exact match first
-    const exactMatch = icons.find(icon => {
+    const exactMatch = icons.find((icon) => {
       const sizes = this.parseIconSizes(icon.sizes)
       return sizes.includes(preferredSize)
     })
@@ -76,7 +76,7 @@ export class ManifestLoader {
     }
 
     // Find closest larger size
-    const largerIcons = icons.filter(icon => {
+    const largerIcons = icons.filter((icon) => {
       const sizes = this.parseIconSizes(icon.sizes)
       return Math.max(...sizes) >= preferredSize
     })
@@ -115,11 +115,11 @@ export class ManifestLoader {
 
     return sizesString
       .split(' ')
-      .map(size => {
+      .map((size) => {
         const match = size.match(/^(\d+)x\d+$/)
         return match ? parseInt(match[1], 10) : null
       })
-      .filter(size => size !== null)
+      .filter((size) => size !== null)
   }
 
   /**
@@ -182,7 +182,7 @@ export class ManifestLoader {
   getFallbackIcons() {
     const sizes = [72, 96, 144, 192, 512]
 
-    return sizes.map(size => ({
+    return sizes.map((size) => ({
       src: `${this.fallbackIconPath}/icon-${size}x${size}.png`,
       sizes: `${size}x${size}`,
       type: 'image/png',
