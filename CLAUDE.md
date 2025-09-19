@@ -15,7 +15,7 @@
 #### ✅ Completed Features
 - [x] Markdown editing with CodeMirror 6
 - [x] VS Code-style command palette (Ctrl+Space only)
-- [x] Theme support (Light, Dark modes)
+- [x] Theme support (Light, Dark, Fantasy modes)
 - [x] Custom theme configuration via Settings Dialog
 - [x] Offline-first PWA functionality
 - [x] Full-text search and document tagging
@@ -26,7 +26,6 @@
 - [x] Legal Documents Management System - Complete Phase 4 implementation with splash screen, secure worker, user acceptance tracking, and hash consistency fixes
 
 #### 🚧 In Progress / Needs Improvement
-- [ ] **Fantasy Theme** - Not yet implemented (only Light/Dark + custom theme exist)
 - [ ] **Navigator Component** - Basic implementation exists, needs refinement
 - [ ] **Settings Dialog** - Functional but requires UX enhancements
 - [ ] **Sync Status Indicators** - Implemented but needs review and fixes
@@ -697,15 +696,7 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 
 ### Phase 1: Core Stabilization (Weeks 1-2)
 
-#### 1.1 Fantasy Theme Implementation
-**Approach**: TDD with visual regression testing
-- [ ] Design color palette (parchment, aged paper, medieval tones)
-- [ ] Write theme tests first (contrast ratios, WCAG compliance)
-- [ ] Implement CSS variables for Fantasy theme
-- [ ] Test with all UI components
-- [ ] Add theme preview in Settings Dialog
-
-#### 1.2 Bundle Size Optimization
+#### 1.1 Bundle Size Optimization
 **Target**: <3MB gzipped (currently >1MB)
 - [ ] Analyze bundle with `npm run bundle-analyzer`
 - [ ] Implement code splitting for non-critical features
@@ -713,9 +704,7 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 - [ ] Tree-shake unused CodeMirror extensions
 - [ ] Optimize image assets and fonts
 
-### Phase 2: Component Enhancement (Weeks 3-4)
-
-#### 2.1 Navigator Component Improvements
+#### 1.2 Navigator Component Improvements
 **Principles**: KISS, defensive programming
 - [ ] Write unit tests for current Navigator behavior
 - [ ] Fix keyboard navigation issues
@@ -724,7 +713,9 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 - [ ] Enhance outline parser for better markdown support
 - [ ] Implement virtual scrolling for large document lists
 
-#### 2.2 Settings Dialog Enhancement
+### Phase 2: Component Enhancement (Weeks 3-4)
+
+#### 2.1 Settings Dialog Enhancement
 **Focus**: UX and accessibility
 - [ ] Add theme preview panel
 - [ ] Implement settings validation
