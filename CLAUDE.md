@@ -24,11 +24,11 @@
 - [x] Editor Width & Zoom Controls - Width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - [x] Document Export System - Multi-format export (Markdown, HTML, PDF, Text) with `:ex` and `:em` commands
 - [x] Legal Documents Management System - Complete Phase 4 implementation with splash screen, secure worker, user acceptance tracking, and hash consistency fixes
+- [x] Centralized Sync Status Management - Unified sync status detection and display across Navigator and status bar components
+- [x] Real-time Navigator Outline Updates - Live document outline updates synchronized with editor content changes
 
 #### 🚧 In Progress / Needs Improvement
-- [ ] **Navigator Component** - Basic implementation exists, needs refinement
 - [ ] **Settings Dialog** - Functional but requires UX enhancements
-- [ ] **Sync Status Indicators** - Implemented but needs review and fixes
 - [ ] **Conflict Resolution** - Basic system exists, needs robust testing and improvements
 - [ ] **Local File Handling** - Requires review and optimization
 - [ ] **Merge Functionality** - Needs comprehensive review
@@ -98,6 +98,7 @@ src/
 │   ├── commands/           # Command registry & handlers
 │   ├── export/             # Document export functionality
 │   ├── legal/              # Legal documents management system
+│   ├── sync/               # Centralized sync status management
 │   └── themes/             # Theme management
 ├── components/             # UI components
 │   ├── navigator/          # Tabbed sidebar (Documents/Outline/Search)
