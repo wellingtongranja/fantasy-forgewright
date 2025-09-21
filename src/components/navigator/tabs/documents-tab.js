@@ -340,7 +340,34 @@ export class DocumentsTab {
   }
 
   getDocumentSyncStatus(doc) {
-    // Delegate to centralized sync status manager
+    // For the currently open document, use EXACTLY the same method as the status bar
+    // This eliminates any possibility of inconsistency between navigator and status bar
+    if (this.app.currentDocument && this.app.currentDocument.id === doc.id) {
+      const currentStatus = this.app.syncStatusManager?.getCurrentDocumentStatus()
+
+      if (currentStatus && currentStatus.display) {
+        // Map status bar format to navigator format for perfect consistency
+        const statusClassMap = {
+          'Synced': 'synced',
+          'Out-of-sync': 'out-of-sync',
+          'Local': 'local-only'
+        }
+
+        return {
+          icon: currentStatus.icon,
+          class: statusClassMap[currentStatus.status] || 'no-sync',
+          tooltip: `${currentStatus.status} with Git repository`
+        }
+      }
+
+      return {
+        icon: '',
+        class: 'no-sync',
+        tooltip: 'Not configured for Git sync'
+      }
+    }
+
+    // For other documents, use the normal method with cached data
     return this.app.syncStatusManager?.getDocumentSyncStatus(doc) || {
       icon: '',
       class: 'no-sync',
@@ -731,7 +758,8 @@ export class DocumentsTab {
 
     if (result.success) {
       this.app.showNotification?.(result.message, 'success')
-      this.renderDocuments() // Refresh to show updated status
+      // GitService already calls syncStatusManager.updateAll() which updates navigator
+      // No need for additional renderDocuments() call which uses stale cached data
     } else {
       this.app.showNotification?.(result.message, 'error')
     }
@@ -749,7 +777,8 @@ export class DocumentsTab {
 
     if (result.success) {
       this.app.showNotification?.(result.message, 'success')
-      this.renderDocuments() // Refresh to show updated content
+      // GitService already calls syncStatusManager.updateAll() which updates navigator
+      // No need for additional renderDocuments() call which uses stale cached data
     } else {
       this.app.showNotification?.(result.message, 'error')
     }
@@ -1099,21 +1128,33 @@ export class DocumentsTab {
    * @param {Object} updatedDoc - Updated document object
    */
   async updateDocument(docId, updatedDoc) {
-    // Update the document in the cache
-    const index = this.documents.findIndex(doc => doc.id === docId)
-    if (index !== -1) {
-      this.documents[index] = updatedDoc
+    // Always update the document in our cache first if we have the updated document
+    if (updatedDoc) {
+      const index = this.documents.findIndex(doc => doc.id === docId)
+      if (index !== -1) {
+        // Update the cached document with fresh data
+        this.documents[index] = updatedDoc
 
-      // Update recent documents if this is a recent document
-      const recentIndex = this.recentDocuments.findIndex(doc => doc.id === docId)
-      if (recentIndex !== -1) {
-        this.recentDocuments[recentIndex] = updatedDoc
+        // Also update recent documents if this document is in the recent list
+        const recentIndex = this.recentDocuments.findIndex(doc => doc.id === docId)
+        if (recentIndex !== -1) {
+          this.recentDocuments[recentIndex] = updatedDoc
+        }
       }
+    }
 
-      // Re-render the documents
+    // For current document operations (like Git PULL), force immediate re-render
+    // This ensures the navigator shows updated sync status immediately
+    if (this.app.currentDocument && this.app.currentDocument.id === docId) {
+      // Force immediate re-render with fresh cached data
       this.renderDocuments()
+
+      // Also do a delayed re-render to ensure any async operations are complete
+      setTimeout(() => {
+        this.renderDocuments()
+      }, 50)
     } else {
-      // Document not in cache, do a full refresh
+      // For other documents, do a full refresh to get latest data from storage
       await this.refresh()
     }
   }
