@@ -4,17 +4,19 @@
  */
 
 import { history, historyKeymap, defaultKeymap } from '@codemirror/commands'
-import { EditorView, keymap, placeholder, highlightActiveLine, lineNumbers } from '@codemirror/view'
+import { EditorView, keymap, placeholder, highlightActiveLine, lineNumbers, ViewUpdate } from '@codemirror/view'
 import { markdown } from '@codemirror/lang-markdown'
 import { search, searchKeymap, highlightSelectionMatches } from '@codemirror/search'
 import { autocompletion, completionKeymap } from '@codemirror/autocomplete'
 import { foldGutter, codeFolding, bracketMatching } from '@codemirror/language'
 
 export class EditorExtensions {
-  constructor(themeManager, settingsManager = null) {
+  constructor(themeManager, settingsManager = null, onContentChange = null) {
     this.themeManager = themeManager
     this.settingsManager = settingsManager
+    this.onContentChange = onContentChange
     this.spellCheckEnabled = this.loadSpellCheckPreference()
+    this.contentChangeTimeout = null
   }
 
   /**
@@ -53,6 +55,11 @@ export class EditorExtensions {
       history(),
       markdown()
     ]
+
+    // Content change listener for real-time outline updates
+    if (this.onContentChange) {
+      extensions.push(this.createContentChangeListener())
+    }
 
     // Conditional line wrapping
     if (cmSettings.lineWrapping === true) {
@@ -314,5 +321,29 @@ export class EditorExtensions {
     })
 
     return true
+  }
+
+  /**
+   * Create content change listener for real-time outline updates
+   * Uses debounced updates to avoid excessive processing
+   */
+  createContentChangeListener() {
+    return EditorView.updateListener.of((update) => {
+      // Only process if the document content actually changed
+      if (update.docChanged) {
+        // Clear any existing timeout
+        if (this.contentChangeTimeout) {
+          clearTimeout(this.contentChangeTimeout)
+        }
+
+        // Debounce the content change callback (500ms delay)
+        this.contentChangeTimeout = setTimeout(() => {
+          if (this.onContentChange && typeof this.onContentChange === 'function') {
+            const newContent = update.state.doc.toString()
+            this.onContentChange(newContent)
+          }
+        }, 500)
+      }
+    })
   }
 }

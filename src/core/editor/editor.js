@@ -6,13 +6,14 @@ import { foldAll, unfoldAll, foldCode, unfoldCode } from '@codemirror/language'
 import { openSearchPanel } from '@codemirror/search'
 
 export class EditorManager {
-  constructor(element, themeManager = null, notificationCallback = null, settingsManager = null) {
+  constructor(element, themeManager = null, notificationCallback = null, settingsManager = null, onContentChange = null) {
     this.element = element
     this.view = null
     this.state = null
     this.themeManager = themeManager
     this.settingsManager = settingsManager
-    this.editorExtensions = new EditorExtensions(themeManager, settingsManager)
+    this.onContentChange = onContentChange
+    this.editorExtensions = new EditorExtensions(themeManager, settingsManager, onContentChange)
     this.readonlyExtensions = new ReadonlyExtensions(notificationCallback)
     this.extensionCompartment = new Compartment()
     this.isReadonly = false

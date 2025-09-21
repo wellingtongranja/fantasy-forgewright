@@ -16,6 +16,7 @@ import { devHelpers } from './utils/dev-helpers.js'
 import { AuthManager } from './core/auth/auth-manager.js'
 import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
+import { SyncStatusManager } from './core/sync/sync-status-manager.js'
 import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 import { WidthManager } from './core/editor/width-manager.js'
@@ -108,7 +109,7 @@ class FantasyEditorApp {
 
     // Initialize editor with theme manager integration
     const editorElement = document.getElementById('editor')
-    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this), this.settingsManager)
+    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this), this.settingsManager, this.handleContentChange.bind(this))
 
     // Initialize writer enhancements
     this.widthManager = new WidthManager(this.settingsManager, this)
@@ -397,6 +398,9 @@ class FantasyEditorApp {
         autoSync: false, // Can be enabled by user
         autoSyncInterval: 5 * 60 * 1000 // 5 minutes
       })
+
+      // Initialize centralized sync status manager
+      this.syncStatusManager = new SyncStatusManager(this)
 
       // Multi-provider authentication integration initialized
 
@@ -692,6 +696,27 @@ class FantasyEditorApp {
     }, 100) // Small delay to ensure command bar has closed and DOM is ready
   }
 
+  /**
+   * Handle content changes from the editor for real-time outline updates
+   * This is called by the editor when content changes (debounced)
+   * @param {string} newContent - The updated content from the editor
+   */
+  handleContentChange(newContent) {
+    if (!this.currentDocument || !this.navigator) return
+
+    // Update the current document content for outline parsing
+    // Note: This doesn't save the document, just updates it for outline parsing
+    const updatedDocument = {
+      ...this.currentDocument,
+      content: newContent
+    }
+
+    // Update the Navigator outline with the new content
+    if (this.navigator.tabComponents && this.navigator.tabComponents.outline) {
+      this.navigator.tabComponents.outline.updateOutline(updatedDocument)
+    }
+  }
+
   async saveDocument() {
     if (!this.currentDocument) return { success: false, reason: 'no_document' }
 
@@ -855,58 +880,10 @@ class FantasyEditorApp {
    * Update GitHub sync status indicator in footer
    */
   updateGitHubSyncStatus() {
-    // Use status bar manager if available
-    if (!this.statusBarManager) return
-
-    // Check if GitHub is configured and authenticated
-    const config = this.githubStorage?.getConfig() || {}
-    const isAuthenticated = this.authManager?.isAuthenticated()
-    const isConfigured = config.configured && config.owner && config.repo
-
-    if (!isAuthenticated) {
-      this.statusBarManager.updateGitHubSyncIndicator(false)
-      this.statusBarManager.updateRepositoryInfo(null, false)
-      return
+    // Delegate to centralized sync status manager
+    if (this.syncStatusManager) {
+      this.syncStatusManager.updateStatusBar()
     }
-
-    if (!isConfigured) {
-      this.statusBarManager.updateGitHubSyncIndicator(false)
-      this.statusBarManager.updateRepositoryInfo(null, false)
-      return
-    }
-
-    // Show repository name (just repo name, not owner/repo)
-    this.statusBarManager.updateRepositoryInfo(config.repo, true)
-
-    // Determine sync status
-    let status = 'local-only'
-    let icon = '🔴'
-
-    if (this.currentDocument) {
-      const hasGitHubMetadata = this.currentDocument.githubSha && this.currentDocument.githubPath
-
-      if (hasGitHubMetadata) {
-        const lastSynced = this.currentDocument.lastSyncedAt
-          ? new Date(this.currentDocument.lastSyncedAt)
-          : null
-        const lastModified = this.currentDocument.metadata?.modified
-          ? new Date(this.currentDocument.metadata.modified)
-          : this.currentDocument.updatedAt
-            ? new Date(this.currentDocument.updatedAt)
-            : null
-
-        if (lastSynced && lastModified && lastSynced >= lastModified) {
-          status = 'synced'
-          icon = '🟢'
-        } else {
-          status = 'out-of-sync'
-          icon = '🟡'
-        }
-      }
-    }
-
-    this.statusBarManager.updateSyncStatus(status, icon)
-    this.statusBarManager.updateGitHubSyncIndicator(true)
   }
 
   updateUI() {

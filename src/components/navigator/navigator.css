@@ -378,11 +378,20 @@
   gap: var(--spacing-xs);
 }
 
-.document-title-row {
+/* Enhanced Document Header */
+.document-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.document-title-row {
+  display: flex;
+  align-items: center;
   gap: var(--spacing-xs);
+  flex: 1;
 }
 
 .document-title {
@@ -392,6 +401,154 @@
   word-break: break-word;
   flex: 1;
   font-size: 13px;
+}
+
+.document-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.document-item:hover .document-actions {
+  opacity: 1;
+}
+
+.document-item:focus-within .document-actions {
+  opacity: 1;
+}
+
+/* Enhanced Sync Status Indicator */
+.sync-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.sync-status-indicator.synced {
+  background: rgba(var(--color-success-rgb, 76, 175, 80), 0.1);
+  color: var(--color-success, #4caf50);
+  border: 1px solid rgba(var(--color-success-rgb, 76, 175, 80), 0.2);
+}
+
+.sync-status-indicator.out-of-sync {
+  background: rgba(var(--color-warning-rgb, 255, 193, 7), 0.1);
+  color: var(--color-warning, #ffc107);
+  border: 1px solid rgba(var(--color-warning-rgb, 255, 193, 7), 0.2);
+}
+
+.sync-status-indicator.local-only {
+  background: rgba(var(--color-danger-rgb), 0.1);
+  color: var(--color-danger);
+  border: 1px solid rgba(var(--color-danger-rgb), 0.2);
+}
+
+.sync-status-indicator.conflicts {
+  background: rgba(var(--color-purple-rgb, 156, 39, 176), 0.1);
+  color: var(--color-purple, #9c27b0);
+  border: 1px solid rgba(var(--color-purple-rgb, 156, 39, 176), 0.2);
+}
+
+.sync-icon {
+  font-size: 8px;
+}
+
+.sync-text {
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+
+/* Git Actions */
+.git-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.git-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 10px;
+}
+
+.git-action-btn:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.git-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Enhanced Document Meta */
+.document-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 10px;
+}
+
+.document-meta-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.document-meta-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.word-count {
+  color: var(--color-text-secondary);
+  font-size: 9px;
+  background: var(--color-bg-tertiary);
+  padding: 1px 4px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* Sync Details */
+.sync-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid var(--color-border-light);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.document-item:hover .sync-details {
+  opacity: 1;
+}
+
+.document-item.selected .sync-details {
+  opacity: 1;
+}
+
+.conflict-count {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Document indicators */
@@ -846,6 +1003,40 @@
   color: var(--color-text-secondary);
   font-style: italic;
   margin-top: var(--spacing-xs);
+}
+
+/* Virtual Scrolling */
+.virtual-scrolling-container {
+  overflow: hidden;
+  position: relative;
+}
+
+.virtual-scrolling-content {
+  position: relative;
+  will-change: transform;
+}
+
+.documents-content {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.documents-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.documents-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.documents-content::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.documents-content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
 }
 
 /* Loading States */
