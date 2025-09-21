@@ -169,13 +169,15 @@ export class SyncStatusManager {
   /**
    * Notify all components that sync status has changed
    * This should be called after any operation that might change sync status
+   * @param {string} docId - Optional document ID for efficient single document update
+   * @param {Object} updatedDoc - Optional updated document object for efficient update
    */
-  notifyStatusChange() {
+  async notifyStatusChange(docId = null, updatedDoc = null) {
     // Update status bar
     this.updateStatusBar()
 
     // Update navigator if available
-    this.updateNavigator()
+    await this.updateNavigator(docId, updatedDoc)
 
     // Call registered callbacks
     this.statusUpdateCallbacks.forEach(callback => {
@@ -217,18 +219,28 @@ export class SyncStatusManager {
 
   /**
    * Update navigator components
+   * @param {string} docId - Optional document ID for efficient single document update
+   * @param {Object} updatedDoc - Optional updated document object for efficient update
    */
-  updateNavigator() {
+  async updateNavigator(docId = null, updatedDoc = null) {
     if (this.app.navigator?.tabComponents?.documents) {
-      this.app.navigator.tabComponents.documents.renderDocuments()
+      if (docId && updatedDoc) {
+        // Efficient single document update
+        await this.app.navigator.tabComponents.documents.updateDocument(docId, updatedDoc)
+      } else {
+        // Full refresh
+        await this.app.navigator.tabComponents.documents.refresh()
+      }
     }
   }
 
   /**
    * Update all UI components with latest sync status
    * This is the main method that should be called after sync operations
+   * @param {string} docId - Optional document ID for efficient single document update
+   * @param {Object} updatedDoc - Optional updated document object for efficient update
    */
-  updateAll() {
-    this.notifyStatusChange()
+  async updateAll(docId = null, updatedDoc = null) {
+    await this.notifyStatusChange(docId, updatedDoc)
   }
 }

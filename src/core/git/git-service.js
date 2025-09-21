@@ -79,9 +79,9 @@ export class GitService {
 
       await this.app.storageManager.saveDocument(updatedDocument)
 
-      // Update sync status across all components
+      // Update sync status across all components with efficient document update
       if (this.app.syncStatusManager) {
-        this.app.syncStatusManager.updateAll()
+        await this.app.syncStatusManager.updateAll(docId, updatedDocument)
       }
 
       return {
@@ -150,9 +150,9 @@ export class GitService {
 
       await this.app.storageManager.saveDocument(updatedDoc)
 
-      // Update sync status across all components
+      // Update sync status across all components with efficient document update
       if (this.app.syncStatusManager) {
-        this.app.syncStatusManager.updateAll()
+        await this.app.syncStatusManager.updateAll(docId, updatedDoc)
       }
 
       return {

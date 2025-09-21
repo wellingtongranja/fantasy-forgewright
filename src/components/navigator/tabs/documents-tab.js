@@ -1093,6 +1093,32 @@ export class DocumentsTab {
   }
 
   /**
+   * Update a specific document in the cache and re-render
+   * More efficient than full refresh for single document updates
+   * @param {string} docId - Document ID to update
+   * @param {Object} updatedDoc - Updated document object
+   */
+  async updateDocument(docId, updatedDoc) {
+    // Update the document in the cache
+    const index = this.documents.findIndex(doc => doc.id === docId)
+    if (index !== -1) {
+      this.documents[index] = updatedDoc
+
+      // Update recent documents if this is a recent document
+      const recentIndex = this.recentDocuments.findIndex(doc => doc.id === docId)
+      if (recentIndex !== -1) {
+        this.recentDocuments[recentIndex] = updatedDoc
+      }
+
+      // Re-render the documents
+      this.renderDocuments()
+    } else {
+      // Document not in cache, do a full refresh
+      await this.refresh()
+    }
+  }
+
+  /**
    * Apply a filter to the document list
    * @param {string} filter - Filter text to search in document titles, tags, and content
    * @public
