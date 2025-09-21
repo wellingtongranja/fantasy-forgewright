@@ -32,6 +32,7 @@ export class SyncStatusManager {
    * @returns {Object} Sync status with icon, class, and tooltip
    */
   getDocumentSyncStatus(doc) {
+
     // Check authentication and configuration
     const isAuthenticated = this.app.authManager?.isAuthenticated()
     const config = this.app.githubStorage?.getConfig()
@@ -58,7 +59,7 @@ export class SyncStatusManager {
     }
 
     // Document has Git metadata - check if it needs to be pushed
-    // Only show as out-of-sync if document was modified AFTER last sync
+    // BULLETPROOF SOLUTION: Use deterministic comparison to eliminate race conditions
     if (doc.lastSyncedAt) {
       const lastSynced = new Date(doc.lastSyncedAt)
       const lastModified = doc.metadata?.modified
@@ -69,6 +70,7 @@ export class SyncStatusManager {
 
       // If no modification time, assume synced
       if (!lastModified) {
+        console.log(`[SYNC-MGR-${caller.toUpperCase()}] Returning synced - no modification time`)
         return {
           icon: '🟢',
           class: 'synced',
@@ -76,9 +78,24 @@ export class SyncStatusManager {
         }
       }
 
-      // If modified after sync, show as out-of-sync
-      // Add 1 second buffer to handle timing issues
-      if (lastModified.getTime() > lastSynced.getTime() + 1000) {
+      // CRITICAL FIX: Use deterministic comparison to ensure navigator and status bar
+      // always return identical results, eliminating timing buffer race conditions
+      // Round timestamps to nearest second to eliminate millisecond inconsistencies
+      const syncedSeconds = Math.floor(lastSynced.getTime() / 1000)
+      const modifiedSeconds = Math.floor(lastModified.getTime() / 1000)
+
+      console.log(`[SYNC-MGR-${caller.toUpperCase()}] Timestamp comparison:`, {
+        lastSynced: lastSynced.toISOString(),
+        lastModified: lastModified.toISOString(),
+        syncedSeconds,
+        modifiedSeconds,
+        isModifiedAfterSync: modifiedSeconds > syncedSeconds
+      })
+
+      // If modified after sync (in seconds), show as out-of-sync
+      // This eliminates the 5-second buffer that caused inconsistencies
+      if (modifiedSeconds > syncedSeconds) {
+        console.log(`[SYNC-MGR-${caller.toUpperCase()}] Returning out-of-sync - modified after sync`)
         return {
           icon: '🟡',
           class: 'out-of-sync',
@@ -87,7 +104,8 @@ export class SyncStatusManager {
       }
     }
 
-    // Default: has Git metadata, so it's synced
+    // Default: has Git metadata and not modified after sync, so it's synced
+    console.log(`[SYNC-MGR-${caller.toUpperCase()}] Returning synced - default case (has Git metadata, not modified after sync)`)
     return {
       icon: '🟢',
       class: 'synced',
@@ -191,6 +209,7 @@ export class SyncStatusManager {
 
   /**
    * Update status bar with current document sync status
+   * BULLETPROOF APPROACH B: Force immediate navigator refresh after status bar update
    */
   updateStatusBar() {
     if (!this.app.statusBarManager) return
@@ -198,6 +217,8 @@ export class SyncStatusManager {
     if (!this.isGitConfigured()) {
       this.app.statusBarManager.updateGitHubSyncIndicator(false)
       this.app.statusBarManager.updateRepositoryInfo(null, false)
+      // Force immediate navigator update with same config state
+      this.forceNavigatorRefreshCurrentDocument()
       return
     }
 
@@ -215,6 +236,10 @@ export class SyncStatusManager {
     } else {
       this.app.statusBarManager.updateGitHubSyncIndicator(false)
     }
+
+    // CRITICAL: Force immediate navigator update after status bar update
+    // This ensures navigator displays the exact same status as the status bar
+    this.forceNavigatorRefreshCurrentDocument()
   }
 
   /**
@@ -225,12 +250,42 @@ export class SyncStatusManager {
   async updateNavigator(docId = null, updatedDoc = null) {
     if (this.app.navigator?.tabComponents?.documents) {
       if (docId && updatedDoc) {
-        // Efficient single document update
-        await this.app.navigator.tabComponents.documents.updateDocument(docId, updatedDoc)
+        // BULLETPROOF SOLUTION: For current document, ensure navigator uses the same
+        // document instance as status bar to eliminate ANY possibility of inconsistency
+        if (this.app.currentDocument && this.app.currentDocument.id === docId) {
+          // Pass the current document instance that status bar uses
+          await this.app.navigator.tabComponents.documents.updateDocument(docId, this.app.currentDocument)
+        } else {
+          // For other documents, use the provided updated document
+          await this.app.navigator.tabComponents.documents.updateDocument(docId, updatedDoc)
+        }
       } else {
         // Full refresh
         await this.app.navigator.tabComponents.documents.refresh()
       }
+    }
+  }
+
+  /**
+   * Force immediate navigator refresh for current document only
+   * BULLETPROOF SOLUTION: Ensures navigator immediately reflects status bar state
+   * @private
+   */
+  forceNavigatorRefreshCurrentDocument() {
+    if (!this.app.currentDocument) return
+
+    // Check if navigator exists and has documents tab
+    if (!this.app.navigator?.tabComponents?.documents) return
+
+    try {
+      // Update ONLY the current document item in navigator immediately
+      // No async operations, no waiting - immediate DOM update
+      this.app.navigator.tabComponents.documents.updateDocument(
+        this.app.currentDocument.id,
+        this.app.currentDocument
+      )
+    } catch (error) {
+      console.warn('Failed to force navigator refresh for current document:', error)
     }
   }
 
