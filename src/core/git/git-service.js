@@ -103,7 +103,10 @@ export class GitService {
    * @returns {Promise<{success: boolean, message: string, document?: Object}>}
    */
   async pullDocument(docId) {
+    console.log(`[GIT-SERVICE] Starting pullDocument for docId: ${docId}`)
+
     if (!this.isAvailable()) {
+      console.log('[GIT-SERVICE] Git not available or not configured')
       return {
         success: false,
         message: 'Git repository not available or not configured'
@@ -113,6 +116,13 @@ export class GitService {
     try {
       // Get the local document to find its Git path
       const localDoc = await this.app.storageManager.getDocument(docId)
+      console.log(`[GIT-SERVICE] Retrieved localDoc:`, {
+        id: localDoc?.id,
+        title: localDoc?.title,
+        lastSyncedAt: localDoc?.lastSyncedAt,
+        'metadata.modified': localDoc?.metadata?.modified,
+        githubPath: localDoc?.githubPath
+      })
       if (!localDoc) {
         return {
           success: false,
@@ -137,22 +147,60 @@ export class GitService {
       }
 
       // Merge remote content with local metadata
+      const syncTime = new Date().toISOString()
+      console.log(`[GIT-SERVICE] Creating updatedDoc with syncTime: ${syncTime}`)
+
       const updatedDoc = {
         ...localDoc,
         content: remoteDoc.content,
         githubSha: remoteDoc.githubSha,
-        lastSyncedAt: new Date().toISOString(),
+        lastSyncedAt: syncTime,
         metadata: {
           ...localDoc.metadata,
-          modified: new Date().toISOString()
+          // For pull operations, use sync time to ensure document appears synced
+          // Don't increment modified time since we're not locally modifying the document
+          modified: syncTime
         }
       }
 
+      console.log(`[GIT-SERVICE] Created updatedDoc:`, {
+        id: updatedDoc.id,
+        title: updatedDoc.title,
+        lastSyncedAt: updatedDoc.lastSyncedAt,
+        'metadata.modified': updatedDoc.metadata.modified
+      })
+
       await this.app.storageManager.saveDocument(updatedDoc)
+
+      // If this is the currently open document, reload it in the editor
+      if (this.app.currentDocument && this.app.currentDocument.id === docId) {
+        console.log(`[GIT-SERVICE] Updating app.currentDocument from:`, {
+          id: this.app.currentDocument.id,
+          title: this.app.currentDocument.title,
+          lastSyncedAt: this.app.currentDocument.lastSyncedAt,
+          'metadata.modified': this.app.currentDocument.metadata?.modified
+        })
+
+        this.app.currentDocument = updatedDoc
+
+        console.log(`[GIT-SERVICE] Updated app.currentDocument to:`, {
+          id: this.app.currentDocument.id,
+          title: this.app.currentDocument.title,
+          lastSyncedAt: this.app.currentDocument.lastSyncedAt,
+          'metadata.modified': this.app.currentDocument.metadata?.modified
+        })
+
+        // Reload the document content in the editor
+        if (this.app.loadDocument) {
+          await this.app.loadDocument(updatedDoc)
+        }
+      }
 
       // Update sync status across all components with efficient document update
       if (this.app.syncStatusManager) {
+        console.log(`[GIT-SERVICE] Calling syncStatusManager.updateAll with docId: ${docId}`)
         await this.app.syncStatusManager.updateAll(docId, updatedDoc)
+        console.log(`[GIT-SERVICE] Completed syncStatusManager.updateAll`)
       }
 
       return {

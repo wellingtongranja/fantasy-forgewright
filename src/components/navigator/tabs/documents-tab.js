@@ -149,7 +149,6 @@ export class DocumentsTab {
   }
 
   renderDocuments() {
-    console.log(`[NAVIGATOR] renderDocuments called, documents.length: ${this.documents.length}`)
     const content = this.container.querySelector('.documents-content')
 
     // Initialize sort select if needed
@@ -355,24 +354,12 @@ export class DocumentsTab {
     // CRITICAL: For current document, ALWAYS use app.currentDocument instance
     // This guarantees navigator and status bar use identical data, eliminating inconsistencies
     if (this.app.currentDocument && this.app.currentDocument.id === doc.id) {
-      console.log(`[NAVIGATOR] Using app.currentDocument for sync status:`, {
-        id: this.app.currentDocument.id,
-        title: this.app.currentDocument.title,
-        lastSyncedAt: this.app.currentDocument.lastSyncedAt,
-        'metadata.modified': this.app.currentDocument.metadata?.modified
-      })
       // Use the same document instance that status bar uses via getCurrentDocumentStatus()
-      return this.app.syncStatusManager.getDocumentSyncStatus(this.app.currentDocument, 'nav')
+      return this.app.syncStatusManager.getDocumentSyncStatus(this.app.currentDocument)
     }
 
     // For other documents, use the sync status manager with the document we have
-    console.log(`[NAVIGATOR] Using passed doc for sync status:`, {
-      id: doc.id,
-      title: doc.title,
-      lastSyncedAt: doc.lastSyncedAt,
-      'metadata.modified': doc.metadata?.modified
-    })
-    return this.app.syncStatusManager.getDocumentSyncStatus(doc, 'nav')
+    return this.app.syncStatusManager.getDocumentSyncStatus(doc)
   }
 
   filterDocuments(documents) {
@@ -1127,22 +1114,6 @@ export class DocumentsTab {
    * @param {Object} updatedDoc - Updated document object (ignored, we always fetch fresh)
    */
   async updateDocument(docId, updatedDoc) {
-    console.log(`[NAVIGATOR] updateDocument called for docId: ${docId}`, {
-      isCurrent: this.app.currentDocument && this.app.currentDocument.id === docId,
-      'app.currentDocument': this.app.currentDocument ? {
-        id: this.app.currentDocument.id,
-        title: this.app.currentDocument.title,
-        lastSyncedAt: this.app.currentDocument.lastSyncedAt,
-        'metadata.modified': this.app.currentDocument.metadata?.modified
-      } : null,
-      'updatedDoc': updatedDoc ? {
-        id: updatedDoc.id,
-        title: updatedDoc.title,
-        lastSyncedAt: updatedDoc.lastSyncedAt,
-        'metadata.modified': updatedDoc.metadata?.modified
-      } : null
-    })
-
     // For current document, skip ALL async operations and render immediately
     // This eliminates timing race conditions with storage updates
     if (this.app.currentDocument && this.app.currentDocument.id === docId) {
@@ -1150,19 +1121,16 @@ export class DocumentsTab {
       // to ensure perfect consistency with status bar
       const index = this.documents.findIndex(doc => doc.id === docId)
       if (index !== -1) {
-        console.log(`[NAVIGATOR] Updating documents[${index}] with app.currentDocument`)
         this.documents[index] = this.app.currentDocument
       }
 
       // Update recent documents if this document is in the recent list
       const recentIndex = this.recentDocuments.findIndex(doc => doc.id === docId)
       if (recentIndex !== -1) {
-        console.log(`[NAVIGATOR] Updating recentDocuments[${recentIndex}] with app.currentDocument`)
         this.recentDocuments[recentIndex] = this.app.currentDocument
       }
 
       // Immediate render with fresh current document data
-      console.log(`[NAVIGATOR] Calling renderDocuments immediately for current document`)
       this.renderDocuments()
 
       // No delayed rendering - immediate only to eliminate race conditions
@@ -1170,7 +1138,6 @@ export class DocumentsTab {
     }
 
     // For other documents, do a full refresh to get latest data from storage
-    console.log(`[NAVIGATOR] Calling refresh for non-current document`)
     await this.refresh()
   }
 
