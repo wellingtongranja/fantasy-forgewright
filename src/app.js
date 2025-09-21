@@ -17,6 +17,7 @@ import { AuthManager } from './core/auth/auth-manager.js'
 import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
 import { SyncStatusManager } from './core/sync/sync-status-manager.js'
+import { GitService } from './core/git/git-service.js'
 import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
 import { WidthManager } from './core/editor/width-manager.js'
@@ -401,6 +402,9 @@ class FantasyEditorApp {
 
       // Initialize centralized sync status manager
       this.syncStatusManager = new SyncStatusManager(this)
+
+      // Initialize generic Git service (provider-agnostic)
+      this.gitService = new GitService(this)
 
       // Multi-provider authentication integration initialized
 

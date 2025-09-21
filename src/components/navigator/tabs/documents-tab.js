@@ -720,68 +720,38 @@ export class DocumentsTab {
   }
 
   async pushDocument(docId) {
-    if (!this.app.githubStorage) {
-      this.app.showNotification?.('Git storage not available', 'error')
+    if (!this.app.gitService) {
+      this.app.showNotification?.('Git service not available', 'error')
       return
     }
 
-    try {
-      // Get the full document object first
-      const document = await this.app.storageManager.getDocument(docId)
-      if (!document) {
-        throw new Error(`Document with id ${docId} not found`)
-      }
+    this.app.showNotification?.('Pushing document...', 'info')
 
-      this.app.showNotification?.('Pushing document...', 'info')
-      const result = await this.app.githubStorage.saveDocument(document)
+    const result = await this.app.gitService.pushDocument(docId)
 
-      // Update local document with Git metadata from successful push
-      if (result && result.document) {
-        // GitHub storage returned proper metadata
-        await this.app.storageManager.saveDocument(result.document)
-      } else {
-        // Fallback: Set Git metadata manually to mark as synced
-        const updatedDocument = {
-          ...document,
-          githubSha: `pushed-${Date.now()}`, // Unique marker indicating successful push
-          githubPath: `documents/${document.id}.md`,
-          lastSyncedAt: new Date().toISOString()
-        }
-        await this.app.storageManager.saveDocument(updatedDocument)
-      }
-
-      this.app.showNotification?.('Document pushed successfully', 'success')
-
-      // Notify sync status manager about the change
-      if (this.app.syncStatusManager) {
-        this.app.syncStatusManager.updateAll()
-      } else {
-        // Fallback: refresh documents if sync status manager not available
-        this.renderDocuments()
-      }
-    } catch (error) {
-      console.error('Failed to push document:', error)
-      this.app.showNotification?.(`Failed to push document: ${error.message}`, 'error')
+    if (result.success) {
+      this.app.showNotification?.(result.message, 'success')
+      this.renderDocuments() // Refresh to show updated status
+    } else {
+      this.app.showNotification?.(result.message, 'error')
     }
   }
 
   async pullDocument(docId) {
-    if (!this.app.githubStorage) {
-      this.app.showNotification?.('Git storage not available', 'error')
+    if (!this.app.gitService) {
+      this.app.showNotification?.('Git service not available', 'error')
       return
     }
 
-    try {
-      this.app.showNotification?.('Pulling document...', 'info')
-      const remoteDoc = await this.app.githubStorage.getDocument(docId)
-      if (remoteDoc) {
-        await this.app.storageManager.saveDocument(remoteDoc)
-        this.app.showNotification?.('Document pulled successfully', 'success')
-        this.renderDocuments() // Refresh to show updated content
-      }
-    } catch (error) {
-      console.error('Failed to pull document:', error)
-      this.app.showNotification?.('Failed to pull document', 'error')
+    this.app.showNotification?.('Pulling document...', 'info')
+
+    const result = await this.app.gitService.pullDocument(docId)
+
+    if (result.success) {
+      this.app.showNotification?.(result.message, 'success')
+      this.renderDocuments() // Refresh to show updated content
+    } else {
+      this.app.showNotification?.(result.message, 'error')
     }
   }
 
@@ -1295,7 +1265,7 @@ export class DocumentsTab {
            title="${syncStatus.tooltip}"
            aria-label="${syncStatus.tooltip}">
         <span class="sync-icon">${syncStatus.icon}</span>
-        <span class="sync-text">${this.getSyncStatusText(syncStatus.class)}</span>
+        <span class="sync-text">${this.app.syncStatusManager?.getSyncStatusText(syncStatus.class) || ''}</span>
       </div>
     `
   }
@@ -1388,16 +1358,6 @@ export class DocumentsTab {
     `
   }
 
-  getSyncStatusText(statusClass) {
-    const statusMap = {
-      'synced': 'synced',
-      'out-of-sync': 'Modified',
-      'local-only': 'Local',
-      'conflicts': 'Conflicts',
-      'no-sync': ''
-    }
-    return statusMap[statusClass] || ''
-  }
 
   renderDocumentIndicators(doc) {
     const indicators = []

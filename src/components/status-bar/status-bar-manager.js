@@ -149,12 +149,13 @@ export class StatusBarManager {
         this.elements.syncStatusIcon.textContent = icon
       }
       
-      // Add appropriate class based on status
-      if (status.toLowerCase().includes('sync') || (icon && icon.includes('🟢'))) {
+      // Add appropriate class based on status - exact matching for consistency
+      const statusLower = status.toLowerCase()
+      if (statusLower === 'synced' || (icon && icon.includes('🟢'))) {
         this.elements.syncStatus.classList.add('synced')
-      } else if (status.toLowerCase().includes('out') || (icon && icon.includes('🟡'))) {
+      } else if (statusLower === 'out-of-sync' || (icon && icon.includes('🟡'))) {
         this.elements.syncStatus.classList.add('out-of-sync')
-      } else if (status.toLowerCase().includes('local') || (icon && icon.includes('🔴'))) {
+      } else if (statusLower === 'local' || (icon && icon.includes('🔴'))) {
         this.elements.syncStatus.classList.add('local-only')
       }
     }

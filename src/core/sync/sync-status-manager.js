@@ -11,6 +11,22 @@ export class SyncStatusManager {
   }
 
   /**
+   * Get sync status display text for a document class
+   * @param {string} statusClass - Status class (synced, out-of-sync, local-only, no-sync)
+   * @returns {string} Display text for the status
+   */
+  getSyncStatusText(statusClass) {
+    const statusMap = {
+      'synced': 'Synced',
+      'out-of-sync': 'Out-of-sync',
+      'local-only': 'Local',
+      'conflicts': 'Conflicts',
+      'no-sync': ''
+    }
+    return statusMap[statusClass] || ''
+  }
+
+  /**
    * Get sync status for a document
    * @param {Object} doc - Document object
    * @returns {Object} Sync status with icon, class, and tooltip
@@ -97,9 +113,9 @@ export class SyncStatusManager {
     // Map internal status to display text
     const statusMap = {
       'no-sync': { status: 'no-sync', icon: '', display: false },
-      'local-only': { status: 'local-only', icon: '🔴', display: true },
-      'synced': { status: 'synced', icon: '🟢', display: true },
-      'out-of-sync': { status: 'out-of-sync', icon: '🟡', display: true }
+      'local-only': { status: 'Local', icon: '🔴', display: true },
+      'synced': { status: 'Synced', icon: '🟢', display: true },
+      'out-of-sync': { status: 'Out-of-sync', icon: '🟡', display: true }
     }
 
     return statusMap[syncStatus.class] || { status: 'unknown', icon: '', display: false }
