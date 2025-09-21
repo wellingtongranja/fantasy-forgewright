@@ -64,20 +64,41 @@ export class GitService {
       const result = await this.app.githubStorage.saveDocument(document)
 
       // Update local document with Git metadata
+      const syncTime = new Date().toISOString()
       let updatedDocument
       if (result && result.document) {
-        updatedDocument = result.document
+        // Ensure consistent timestamps for proper sync status calculation
+        updatedDocument = {
+          ...result.document,
+          lastSyncedAt: syncTime,
+          metadata: {
+            ...result.document.metadata,
+            // Sync the modified time to match lastSyncedAt for consistent status
+            modified: syncTime
+          }
+        }
       } else {
-        // Fallback: manually set Git metadata
+        // Fallback: manually set Git metadata with consistent timestamps
         updatedDocument = {
           ...document,
           githubSha: `pushed-${Date.now()}`,
           githubPath: `documents/${document.id}.md`,
-          lastSyncedAt: new Date().toISOString()
+          lastSyncedAt: syncTime,
+          metadata: {
+            ...document.metadata,
+            // CRITICAL: Sync the modified time to match lastSyncedAt
+            // This ensures document shows as "synced" after push
+            modified: syncTime
+          }
         }
       }
 
       await this.app.storageManager.saveDocument(updatedDocument)
+
+      // If this is the currently open document, update it in the editor
+      if (this.app.currentDocument && this.app.currentDocument.id === docId) {
+        this.app.currentDocument = updatedDocument
+      }
 
       // Update sync status across all components with efficient document update
       if (this.app.syncStatusManager) {
