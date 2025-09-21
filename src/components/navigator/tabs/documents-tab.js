@@ -1110,25 +1110,36 @@ export class DocumentsTab {
   }
 
   /**
-   * Update a specific document - always refresh from storage to eliminate cache issues
+   * Update a specific document - bypass all async operations for current document
    * @param {string} docId - Document ID to update
    * @param {Object} updatedDoc - Updated document object (ignored, we always fetch fresh)
    */
   async updateDocument(docId, updatedDoc) {
-    // ELIMINATE ALL CACHE MANAGEMENT - always get fresh data from storage
-    // This completely removes the possibility of stale cache causing inconsistency
-
-    // Always do a full refresh to get completely fresh data
-    await this.refresh()
-
-    // For current document operations, do an additional immediate re-render
-    // to ensure the UI updates instantly
+    // For current document, skip ALL async operations and render immediately
+    // This eliminates timing race conditions with storage updates
     if (this.app.currentDocument && this.app.currentDocument.id === docId) {
-      // Force immediate additional re-render
-      setTimeout(() => {
-        this.renderDocuments()
-      }, 10)
+      // Update our cached document with the current document instance
+      // to ensure perfect consistency with status bar
+      const index = this.documents.findIndex(doc => doc.id === docId)
+      if (index !== -1) {
+        this.documents[index] = this.app.currentDocument
+      }
+
+      // Update recent documents if this document is in the recent list
+      const recentIndex = this.recentDocuments.findIndex(doc => doc.id === docId)
+      if (recentIndex !== -1) {
+        this.recentDocuments[recentIndex] = this.app.currentDocument
+      }
+
+      // Immediate render with fresh current document data
+      this.renderDocuments()
+
+      // No delayed rendering - immediate only to eliminate race conditions
+      return
     }
+
+    // For other documents, do a full refresh to get latest data from storage
+    await this.refresh()
   }
 
   /**
