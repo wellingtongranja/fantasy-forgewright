@@ -340,39 +340,27 @@ export class DocumentsTab {
   }
 
   getDocumentSyncStatus(doc) {
-    // For the currently open document, use EXACTLY the same method as the status bar
-    // This eliminates any possibility of inconsistency between navigator and status bar
-    if (this.app.currentDocument && this.app.currentDocument.id === doc.id) {
-      const currentStatus = this.app.syncStatusManager?.getCurrentDocumentStatus()
+    // ALWAYS use fresh data from sync status manager - no cache dependency
+    // This completely eliminates any possibility of stale data inconsistency
 
-      if (currentStatus && currentStatus.display) {
-        // Map status bar format to navigator format for perfect consistency
-        const statusClassMap = {
-          'Synced': 'synced',
-          'Out-of-sync': 'out-of-sync',
-          'Local': 'local-only'
-        }
-
-        return {
-          icon: currentStatus.icon,
-          class: statusClassMap[currentStatus.status] || 'no-sync',
-          tooltip: `${currentStatus.status} with Git repository`
-        }
-      }
-
+    if (!this.app.syncStatusManager) {
       return {
         icon: '',
         class: 'no-sync',
-        tooltip: 'Not configured for Git sync'
+        tooltip: 'Sync status manager not available'
       }
     }
 
-    // For other documents, use the normal method with cached data
-    return this.app.syncStatusManager?.getDocumentSyncStatus(doc) || {
-      icon: '',
-      class: 'no-sync',
-      tooltip: 'Sync status manager not available'
+    // For the currently open document, use the current document instance
+    // to ensure we're working with the most up-to-date data
+    if (this.app.currentDocument && this.app.currentDocument.id === doc.id) {
+      // Use the actual current document instance, not the cached navigator copy
+      const syncStatus = this.app.syncStatusManager.getDocumentSyncStatus(this.app.currentDocument)
+      return syncStatus
     }
+
+    // For other documents, use the sync status manager with the document we have
+    return this.app.syncStatusManager.getDocumentSyncStatus(doc)
   }
 
   filterDocuments(documents) {
@@ -1122,40 +1110,24 @@ export class DocumentsTab {
   }
 
   /**
-   * Update a specific document in the cache and re-render
-   * More efficient than full refresh for single document updates
+   * Update a specific document - always refresh from storage to eliminate cache issues
    * @param {string} docId - Document ID to update
-   * @param {Object} updatedDoc - Updated document object
+   * @param {Object} updatedDoc - Updated document object (ignored, we always fetch fresh)
    */
   async updateDocument(docId, updatedDoc) {
-    // Always update the document in our cache first if we have the updated document
-    if (updatedDoc) {
-      const index = this.documents.findIndex(doc => doc.id === docId)
-      if (index !== -1) {
-        // Update the cached document with fresh data
-        this.documents[index] = updatedDoc
+    // ELIMINATE ALL CACHE MANAGEMENT - always get fresh data from storage
+    // This completely removes the possibility of stale cache causing inconsistency
 
-        // Also update recent documents if this document is in the recent list
-        const recentIndex = this.recentDocuments.findIndex(doc => doc.id === docId)
-        if (recentIndex !== -1) {
-          this.recentDocuments[recentIndex] = updatedDoc
-        }
-      }
-    }
+    // Always do a full refresh to get completely fresh data
+    await this.refresh()
 
-    // For current document operations (like Git PULL), force immediate re-render
-    // This ensures the navigator shows updated sync status immediately
+    // For current document operations, do an additional immediate re-render
+    // to ensure the UI updates instantly
     if (this.app.currentDocument && this.app.currentDocument.id === docId) {
-      // Force immediate re-render with fresh cached data
-      this.renderDocuments()
-
-      // Also do a delayed re-render to ensure any async operations are complete
+      // Force immediate additional re-render
       setTimeout(() => {
         this.renderDocuments()
-      }, 50)
-    } else {
-      // For other documents, do a full refresh to get latest data from storage
-      await this.refresh()
+      }, 10)
     }
   }
 
