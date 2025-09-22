@@ -303,6 +303,58 @@ export class GitService {
   }
 
   /**
+   * Get remote document content for diff operations
+   * @param {string} docId - Document ID
+   * @returns {Promise<{success: boolean, message: string, content?: string}>}
+   */
+  async getRemoteDocumentContent(docId) {
+    if (!this.isAvailable()) {
+      return {
+        success: false,
+        message: 'Git repository not available or not configured'
+      }
+    }
+
+    try {
+      // Get the local document to find its Git path
+      const localDoc = await this.app.storageManager.getDocument(docId)
+      if (!localDoc) {
+        return {
+          success: false,
+          message: 'Document not found'
+        }
+      }
+
+      if (!localDoc.githubPath) {
+        return {
+          success: false,
+          message: 'Document has no Git path - cannot fetch remote content'
+        }
+      }
+
+      // Load from repository
+      const remoteDoc = await this.app.githubStorage.loadDocument(localDoc.githubPath)
+      if (!remoteDoc) {
+        return {
+          success: false,
+          message: 'Document not found in repository'
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Remote content retrieved successfully',
+        content: remoteDoc.content
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to get remote content: ${error.message}`
+      }
+    }
+  }
+
+  /**
    * Import a document from a Git repository URL
    * @param {string} url - Repository file URL
    * @returns {Promise<{success: boolean, message: string, document?: Object}>}

@@ -259,6 +259,31 @@
   background: var(--color-bg);
   color: var(--color-text);
   font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+.sort-select:hover {
+  border-color: var(--color-border-hover, var(--color-border));
+  background-color: var(--color-bg-hover, var(--color-bg-secondary));
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-alpha);
+}
+
+.sort-select option {
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: var(--spacing-xs);
 }
 
 .documents-content {
@@ -489,10 +514,47 @@
   background: var(--color-bg-secondary);
   color: var(--color-text);
   transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .git-action-btn:active {
   transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.git-action-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-alpha);
+}
+
+/* Enhanced styling for save button */
+.git-action-btn[data-action="save"] {
+  position: relative;
+}
+
+.git-action-btn[data-action="save"]:hover {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+}
+
+/* Clickable sync status indicators */
+.sync-status-indicator.clickable {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-radius: var(--border-radius-sm);
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.sync-status-indicator.clickable:hover {
+  background: rgba(var(--color-warning-rgb, 255, 193, 7), 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sync-status-indicator.clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Enhanced Document Meta */
@@ -1124,6 +1186,15 @@
   .search-options {
     display: none;
   }
+}
+
+/* Theme-aware dropdown arrow */
+[data-theme="dark"] .sort-select {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23aaa' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+}
+
+[data-theme="fantasy"] .sort-select {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23b695bf' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
 }
 
 @media (max-width: 480px) {

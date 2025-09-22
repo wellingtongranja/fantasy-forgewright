@@ -1,0 +1,463 @@
+/* Unified Diff Mode Styles for Fantasy Editor - Simplified */
+
+/* Unified Diff Highlighting Styles */
+.cm-deletedChunk {
+  background: var(--color-diff-deleted-bg, rgba(220, 53, 69, 0.15)) !important;
+  border-left: 4px solid var(--color-diff-deleted-border, #dc3545) !important;
+  margin: 2px 0 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  text-decoration: line-through !important;
+  opacity: 0.7 !important;
+}
+
+.cm-insertedChunk {
+  background: var(--color-diff-added-bg, rgba(40, 167, 69, 0.15)) !important;
+  border-left: 4px solid var(--color-diff-added-border, #28a745) !important;
+  margin: 2px 0 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+.cm-changedChunk {
+  background: var(--color-diff-modified-bg, rgba(255, 193, 7, 0.15)) !important;
+  border-left: 4px solid var(--color-diff-modified-border, #ffc107) !important;
+  margin: 2px 0 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+/* Gutter markers for unified diff */
+.cm-mergeViewGutter {
+  background: var(--color-gutter-bg, #f8f9fa) !important;
+  color: var(--color-text-muted, #6c757d) !important;
+  border-right: 1px solid var(--color-border, #e1e4e8) !important;
+  padding: 0 4px !important;
+}
+
+.cm-mergeViewGutter.cm-deleted {
+  background: var(--color-diff-deleted-gutter, #ffeef0) !important;
+  color: var(--color-diff-deleted-border, #dc3545) !important;
+}
+
+.cm-mergeViewGutter.cm-inserted {
+  background: var(--color-diff-added-gutter, #f0fff4) !important;
+  color: var(--color-diff-added-border, #28a745) !important;
+}
+
+/* Merge controls styling */
+.cm-mergeControl {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin: 2px 0 !important;
+  padding: 2px 6px !important;
+  background: var(--color-merge-control-bg, rgba(0, 0, 0, 0.05)) !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+
+.cm-mergeControl button {
+  background: none !important;
+  border: 1px solid var(--color-border, #e1e4e8) !important;
+  border-radius: 3px !important;
+  padding: 2px 6px !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  color: var(--color-text, #24292e) !important;
+}
+
+.cm-mergeControl button:hover {
+  background: var(--color-button-hover-bg, #f6f8fa) !important;
+}
+
+.cm-mergeControl .cm-mergeAccept:hover {
+  background: var(--color-success-hover-bg, #d4edda) !important;
+  border-color: var(--color-success-border, #28a745) !important;
+}
+
+.cm-mergeControl .cm-mergeReject:hover {
+  background: var(--color-danger-hover-bg, #f8d7da) !important;
+  border-color: var(--color-danger-border, #dc3545) !important;
+}
+
+/* Legacy container styles for side-by-side (keeping for fallback) */
+.merge-view-container {
+  width: 100% !important;
+  height: 600px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: 1px solid var(--color-border, #e1e4e8);
+  border-radius: 8px;
+  background: var(--color-editor-bg, white);
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 16px 0;
+}
+
+/* Diff header with side labels */
+.merge-view-header {
+  display: flex;
+  border-bottom: 1px solid var(--color-border, #e1e4e8);
+  background: var(--color-header-bg, #f6f8fa);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #656d76);
+}
+
+.merge-view-header-side {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.merge-view-header-side:first-child {
+  border-right: 1px solid var(--color-border, #e1e4e8);
+}
+
+.merge-view-header-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+}
+
+.merge-view-header-icon.remote {
+  background: var(--color-remote, #0969da);
+}
+
+.merge-view-header-icon.local {
+  background: var(--color-local, #cf222e);
+}
+
+/* Enhanced MergeView wrapper */
+.merge-view-wrapper {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* CodeMirror merge view customizations - CORRECT SELECTOR */
+.cm-mergeView {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  font-family: var(
+    --font-family-mono,
+    'SF Mono',
+    Monaco,
+    'Cascadia Code',
+    'Roboto Mono',
+    Consolas,
+    'Courier New',
+    monospace
+  );
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+/* Individual CodeMirror editors within MergeView */
+.cm-mergeView .cm-editor {
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border: none !important;
+  background: var(--color-editor-bg, white) !important;
+}
+
+/* Add visual separator between sides */
+.cm-mergeView .cm-editor:first-child {
+  border-right: 2px solid var(--color-diff-separator, #e1e4e8) !important;
+}
+
+/* Better styling for the remote side (left) */
+.cm-mergeView .cm-editor:first-child {
+  background: var(--color-remote-bg, rgba(9, 105, 218, 0.03)) !important;
+}
+
+/* Better styling for the local side (right) */
+.cm-mergeView .cm-editor:last-child {
+  background: var(--color-local-bg, rgba(207, 34, 46, 0.03)) !important;
+}
+
+/* Ensure proper scrolling for merge view content */
+.cm-mergeView .cm-scroller {
+  overflow: auto !important;
+  height: 100% !important;
+}
+
+/* Content area styling within merge view */
+.cm-mergeView .cm-content {
+  min-height: 100% !important;
+  padding: 10px !important;
+}
+
+/* Enhanced diff highlighting within merge view */
+.cm-mergeView .cm-changedLine,
+.cm-mergeView .cm-deletedChunk,
+.cm-mergeView .cm-insertedChunk {
+  position: relative;
+  margin: 2px 0;
+  border-radius: 3px;
+}
+
+/* Added content highlighting (local/right side) */
+.cm-mergeView .cm-insertedChunk,
+.cm-mergeView .cm-changedLine.cm-changedLine-added {
+  background: var(--color-diff-added-bg, rgba(40, 167, 69, 0.12));
+  border-left: 4px solid var(--color-diff-added-border, #28a745);
+}
+
+/* Deleted content highlighting (remote/left side) */
+.cm-mergeView .cm-deletedChunk,
+.cm-mergeView .cm-changedLine.cm-changedLine-deleted {
+  background: var(--color-diff-deleted-bg, rgba(220, 53, 69, 0.12));
+  border-left: 4px solid var(--color-diff-deleted-border, #dc3545);
+}
+
+/* Modified content highlighting */
+.cm-mergeView .cm-changedLine {
+  background: var(--color-diff-modified-bg, rgba(255, 193, 7, 0.12));
+  border-left: 4px solid var(--color-diff-modified-border, #ffc107);
+}
+
+/* Gutter improvements */
+.cm-mergeView .cm-gutter {
+  background: var(--color-gutter-bg, #f8f9fa);
+  border-right: 1px solid var(--color-border, #e1e4e8);
+  min-width: 32px;
+}
+
+/* Line numbers in diff */
+.cm-mergeView .cm-lineNumbers {
+  color: var(--color-text-muted, #656d76);
+  font-size: 12px;
+  padding: 0 6px;
+}
+
+.cm-merge-chunk {
+  background: var(--color-diff-modified-bg, rgba(255, 215, 0, 0.2));
+  border-left: 3px solid var(--color-diff-modified-border, #ffd700);
+  margin: 1px 0;
+}
+
+.cm-merge-chunk.cm-merge-chunk-added {
+  background: var(--color-diff-added-bg, rgba(40, 167, 69, 0.15));
+  border-left-color: var(--color-diff-added-border, #28a745);
+}
+
+.cm-merge-chunk.cm-merge-chunk-deleted {
+  background: var(--color-diff-deleted-bg, rgba(220, 53, 69, 0.15));
+  border-left-color: var(--color-diff-deleted-border, #dc3545);
+}
+
+.cm-merge-chunk.cm-merge-chunk-conflict {
+  background: var(--color-diff-conflict-bg, rgba(255, 193, 7, 0.2));
+  border-left-color: var(--color-diff-conflict-border, #ffc107);
+}
+
+/* Merge controls */
+.cm-merge-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  background: var(--color-merge-controls-bg, rgba(0, 0, 0, 0.05));
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.cm-merge-accept,
+.cm-merge-reject {
+  background: none;
+  border: 1px solid var(--color-border, #e1e4e8);
+  border-radius: 3px;
+  padding: 2px 6px;
+  cursor: pointer;
+  color: var(--color-text, #24292e);
+  font-size: 11px;
+}
+
+.cm-merge-accept:hover {
+  background: var(--color-success-hover-bg, #d4edda);
+  border-color: var(--color-success-border, #28a745);
+}
+
+.cm-merge-reject:hover {
+  background: var(--color-danger-hover-bg, #f8d7da);
+  border-color: var(--color-danger-border, #dc3545);
+}
+
+/* Gutter styling for diff */
+.cm-merge-gutter {
+  background: var(--color-gutter-bg, #f6f8fa);
+  border-right: 1px solid var(--color-border, #e1e4e8);
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-text-muted, #586069);
+}
+
+.cm-merge-gutter.cm-merge-gutter-added {
+  background: var(--color-diff-added-gutter-bg, #cdffd8);
+}
+
+.cm-merge-gutter.cm-merge-gutter-deleted {
+  background: var(--color-diff-deleted-gutter-bg, #ffdce0);
+}
+
+.cm-merge-gutter.cm-merge-gutter-modified {
+  background: var(--color-diff-modified-gutter-bg, #fff5b4);
+}
+
+/* Theme-specific overrides */
+[data-theme='dark'] .diff-mode-indicator {
+  /* Dark theme uses its own theme variables automatically */
+}
+
+[data-theme='dark'] .cm-deletedChunk {
+  background: rgba(220, 53, 69, 0.25) !important;
+  border-left-color: #ff6b7a !important;
+}
+
+[data-theme='dark'] .cm-insertedChunk {
+  background: rgba(40, 167, 69, 0.25) !important;
+  border-left-color: #52c788 !important;
+}
+
+[data-theme='dark'] .cm-changedChunk {
+  background: rgba(255, 193, 7, 0.25) !important;
+  border-left-color: #ffd43b !important;
+}
+
+[data-theme='dark'] .merge-view-container {
+  background: var(--color-editor-bg, #1e1e1e);
+  border-color: var(--color-border, #404040);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .merge-view-header {
+  background: var(--color-header-bg, #2d2d2d);
+  border-bottom-color: var(--color-border, #404040);
+  color: var(--color-text-secondary, #a5a5a5);
+}
+
+[data-theme='dark'] .merge-view-header-side:first-child {
+  border-right-color: var(--color-border, #404040);
+}
+
+[data-theme='dark'] .cm-mergeView {
+  background: transparent;
+}
+
+[data-theme='dark'] .cm-mergeView .cm-editor {
+  background: var(--color-editor-bg, #1e1e1e) !important;
+}
+
+[data-theme='dark'] .cm-mergeView .cm-editor:first-child {
+  background: rgba(9, 105, 218, 0.08) !important;
+  border-right-color: var(--color-border, #404040) !important;
+}
+
+[data-theme='dark'] .cm-mergeView .cm-editor:last-child {
+  background: rgba(207, 34, 46, 0.08) !important;
+}
+
+[data-theme='dark'] .cm-merge-gutter {
+  background: var(--color-gutter-bg, #2d2d2d);
+  border-right-color: var(--color-border, #404040);
+  color: var(--color-text-muted, #888);
+}
+
+[data-theme='fantasy'] .diff-mode-indicator {
+  /* Fantasy theme uses its own theme variables automatically */
+}
+
+[data-theme='fantasy'] .cm-deletedChunk {
+  background: rgba(255, 106, 140, 0.2) !important;
+  border-left-color: #ff6a8c !important;
+}
+
+[data-theme='fantasy'] .cm-insertedChunk {
+  background: rgba(106, 255, 199, 0.2) !important;
+  border-left-color: #6affc7 !important;
+}
+
+[data-theme='fantasy'] .cm-changedChunk {
+  background: rgba(255, 154, 86, 0.2) !important;
+  border-left-color: #ff9a56 !important;
+}
+
+[data-theme='fantasy'] .merge-view-container {
+  background: linear-gradient(135deg, #1a0f2e, #2d1b3e);
+  border-color: #8b5fbf;
+  box-shadow: 0 4px 20px rgba(139, 95, 191, 0.3);
+}
+
+[data-theme='fantasy'] .merge-view-header {
+  background: linear-gradient(135deg, #4a2c7e, #6b46a3);
+  border-bottom-color: #8b5fbf;
+  color: #f8f4ff;
+}
+
+[data-theme='fantasy'] .merge-view-header-side:first-child {
+  border-right-color: #8b5fbf;
+}
+
+[data-theme='fantasy'] .merge-view-header-icon.remote {
+  background: linear-gradient(135deg, #00d4ff, #6affc7);
+  color: #1a0f2e;
+}
+
+[data-theme='fantasy'] .merge-view-header-icon.local {
+  background: linear-gradient(135deg, #ff6a8c, #ff9a56);
+  color: #1a0f2e;
+}
+
+[data-theme='fantasy'] .cm-mergeView .cm-editor {
+  background: linear-gradient(135deg, #1a0f2e, #2d1b3e) !important;
+}
+
+[data-theme='fantasy'] .cm-mergeView .cm-editor:first-child {
+  background: linear-gradient(
+    135deg,
+    rgba(106, 255, 199, 0.08),
+    rgba(0, 212, 255, 0.05)
+  ) !important;
+  border-right-color: #8b5fbf !important;
+}
+
+[data-theme='fantasy'] .cm-mergeView .cm-editor:last-child {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 106, 140, 0.08),
+    rgba(255, 154, 86, 0.05)
+  ) !important;
+}
+
+[data-theme='fantasy'] .cm-merge-chunk.cm-merge-chunk-added {
+  background: rgba(106, 255, 199, 0.15);
+  border-left-color: #6affc7;
+}
+
+[data-theme='fantasy'] .cm-merge-chunk.cm-merge-chunk-deleted {
+  background: rgba(255, 106, 140, 0.15);
+  border-left-color: #ff6a8c;
+}
+
+/* Accessibility improvements for CodeMirror merge controls */
+.cm-merge-accept:focus,
+.cm-merge-reject:focus {
+  outline: 2px solid var(--color-focus-outline, #0066cc);
+  outline-offset: 2px;
+}

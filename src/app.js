@@ -25,6 +25,8 @@ import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
 import { LegalManager } from './core/legal/legal-manager.js'
 import { LegalSplash } from './components/legal-splash/legal-splash.js'
 import './components/legal-splash/legal-splash.css'
+import { DiffManager } from './core/diff/diff-manager.js'
+import './styles/diff-mode.css'
 
 class FantasyEditorApp {
   constructor() {
@@ -61,6 +63,9 @@ class FantasyEditorApp {
     // Legal compliance system
     this.legalManager = null
     this.legalSplash = null
+
+    // Git diff functionality
+    this.diffManager = null
   }
 
   async init() {
@@ -139,6 +144,9 @@ class FantasyEditorApp {
         this.statusBarManager.updateEditorZoom(currentZoom.level)
       }
     }
+
+    // Initialize Git diff functionality
+    this.diffManager = new DiffManager(this)
 
     // Initialize multi-provider authentication integration
     await this.initializeAuthIntegration()
@@ -773,6 +781,12 @@ class FantasyEditorApp {
         this.fileTree.updateDocument(savedDoc)
       }
 
+      // CRITICAL FIX: Update sync status manager after document save
+      // This ensures both navigator and status bar display consistent sync status
+      if (this.syncStatusManager) {
+        await this.syncStatusManager.updateAll(savedDoc.id, savedDoc)
+      }
+
       // Document saved successfully
 
       this.updateSyncStatus('Saved')
@@ -1079,6 +1093,12 @@ class FantasyEditorApp {
       }
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
+      }
+
+      // CRITICAL FIX: Update sync status manager after auto-save as well
+      // This ensures both navigator and status bar display consistent sync status
+      if (this.syncStatusManager) {
+        await this.syncStatusManager.updateAll(savedDoc.id, savedDoc)
       }
 
       this.updateSyncStatus('Auto-saved')

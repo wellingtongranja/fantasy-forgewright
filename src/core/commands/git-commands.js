@@ -324,24 +324,28 @@ export function registerGitCommands(registry, app) {
           const filename = args[0]
 
           if (filename) {
-            // Pull specific document
-            const document = await app.githubStorage.loadDocument(
-              `${app.githubStorage.documentsPath}/${filename}`
+            // Find local document that matches the filename
+            const allDocs = await app.storageManager.getAllDocuments()
+            const targetDoc = allDocs.find(doc =>
+              doc.githubPath && doc.githubPath.endsWith(filename)
             )
-            const savedDoc = await app.storageManager.saveDocument(document)
 
-            // Update Navigator to show newly pulled document
-            if (app.navigator) {
-              app.navigator.onDocumentSave(savedDoc)
+            if (!targetDoc) {
+              return {
+                success: false,
+                message: `No local document found matching "${filename}". Use git list to see available documents.`
+              }
             }
 
-            // Update Git UI
-            // app.updateGitUI() - Method not implemented yet
-
-            return {
-              success: true,
-              message: `Document "${document.title}" pulled from Git repository successfully`
+            // Use GitService for consistent pull behavior with editor reload
+            if (!app.gitService) {
+              return {
+                success: false,
+                message: 'Git service not available'
+              }
             }
+
+            return await app.gitService.pullDocument(targetDoc.id)
           } else {
             // List available documents for pulling
             const documents = await app.githubStorage.listDocuments()
@@ -399,6 +403,115 @@ export function registerGitCommands(registry, app) {
           return {
             success: false,
             message: `Import failed: ${error.message}`
+          }
+        }
+      }
+    },
+
+    {
+      name: 'git diff',
+      description: 'view differences between local and remote document',
+      category: 'git',
+      icon: '🔄',
+      aliases: [':gdf'],
+      handler: async () => {
+        if (!app.authManager?.isAuthenticated()) {
+          return {
+            success: false,
+            message: 'Not logged in to Git repository. Use ":glo" to log in first.'
+          }
+        }
+
+        if (!app.githubStorage?.isConfigured()) {
+          return {
+            success: false,
+            message: 'Git repository not configured. Use ":gcf <owner> <repo>" to configure.'
+          }
+        }
+
+        if (!app.currentDocument) {
+          return {
+            success: false,
+            message: 'No document currently open'
+          }
+        }
+
+        if (!app.gitService || !app.diffManager) {
+          return {
+            success: false,
+            message: 'Git service or diff manager not available'
+          }
+        }
+
+        try {
+          // Check if already in diff mode - if so, toggle off
+          if (app.editor && app.editor.isInDiffMode()) {
+            const success = await app.editor.exitDiffMode(true) // Keep current changes
+            if (success) {
+              return {
+                success: true,
+                message: 'Diff mode closed - changes preserved'
+              }
+            } else {
+              return {
+                success: false,
+                message: 'Failed to exit diff mode'
+              }
+            }
+          }
+
+          const document = app.currentDocument
+
+          // Check if document has Git metadata
+          if (!document.githubSha || !document.githubPath) {
+            return {
+              success: false,
+              message: 'Current document not synced to Git repository'
+            }
+          }
+
+          // Check if document is out-of-sync
+          const syncStatus = app.syncStatusManager.getDocumentSyncStatus(document)
+          if (syncStatus.class !== 'out-of-sync') {
+            return {
+              success: true,
+              message: 'Document is already synced - no changes to diff'
+            }
+          }
+
+          // Get remote document content
+          const remoteResult = await app.gitService.getRemoteDocumentContent(document.id)
+          if (!remoteResult.success) {
+            return {
+              success: false,
+              message: remoteResult.message
+            }
+          }
+
+          // Enter diff mode
+          if (app.editor) {
+            const success = await app.editor.enterDiffMode(document.content, remoteResult.content)
+            if (success) {
+              return {
+                success: true,
+                message: 'Diff mode activated - use inline accept/reject buttons or :gdf to exit'
+              }
+            } else {
+              return {
+                success: false,
+                message: 'Failed to enter diff mode'
+              }
+            }
+          } else {
+            return {
+              success: false,
+              message: 'Editor not available for diff mode'
+            }
+          }
+        } catch (error) {
+          return {
+            success: false,
+            message: `Diff failed: ${error.message}`
           }
         }
       }

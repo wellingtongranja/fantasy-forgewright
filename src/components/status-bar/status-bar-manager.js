@@ -64,6 +64,32 @@ export class StatusBarManager {
         this.cycleEditorZoom()
       })
     }
+
+    // Sync status double-click for diff mode
+    if (this.elements.syncStatus) {
+      this.elements.syncStatus.addEventListener('dblclick', () => {
+        this.handleSyncStatusDoubleClick()
+      })
+    }
+  }
+
+  /**
+   * Handle double-click on sync status to enter diff mode
+   */
+  handleSyncStatusDoubleClick() {
+    // Only trigger diff mode if document is out-of-sync
+    if (this.elements.syncStatus && this.elements.syncStatus.classList.contains('out-of-sync')) {
+      // Check if currently in diff mode - if so, toggle off
+      if (this.app.editor && this.app.editor.isInDiffMode()) {
+        this.app.editor.exitDiffMode(true) // Keep current changes
+        this.app.showNotification?.('Diff mode closed - changes preserved', 'info')
+      } else {
+        // Enter diff mode using the Git diff command
+        if (this.app.commandRegistry) {
+          this.app.commandRegistry.executeCommand('git diff', [])
+        }
+      }
+    }
   }
 
   /**

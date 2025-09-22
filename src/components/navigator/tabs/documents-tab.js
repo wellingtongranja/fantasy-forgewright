@@ -320,7 +320,7 @@ export class DocumentsTab {
               ${this.renderDocumentIndicators(doc)}
             </div>
             <div class="document-actions">
-              ${this.renderSyncIndicator(syncStatus)}
+              ${this.renderSyncIndicator(syncStatus, doc.id)}
               ${isAuthenticated && isConfigured ? this.renderGitActions(doc, syncStatus) : ''}
             </div>
           </div>
@@ -418,6 +418,14 @@ export class DocumentsTab {
       if (gitActionBtn) {
         e.stopPropagation()
         this.handleGitAction(gitActionBtn)
+        return
+      }
+
+      // Handle clickable sync status indicators (out-of-sync status for diff mode)
+      const syncStatusIndicator = e.target.closest('.sync-status-indicator.clickable')
+      if (syncStatusIndicator) {
+        e.stopPropagation()
+        this.handleSyncStatusClick(syncStatusIndicator)
         return
       }
 
@@ -569,11 +577,20 @@ export class DocumentsTab {
       case 'pull':
         this.pullDocument(docId)
         break
-      case 'diff':
-        this.viewDocumentDiff(docId)
+      case 'save':
+        this.saveDocument(docId)
         break
       default:
         console.warn('Unknown Git action:', action)
+    }
+  }
+
+  handleSyncStatusClick(syncStatusIndicator) {
+    const action = syncStatusIndicator.dataset.action
+    const docId = syncStatusIndicator.dataset.docId
+
+    if (action === 'diff' && docId) {
+      this.viewDocumentDiff(docId)
     }
   }
 
@@ -691,7 +708,7 @@ export class DocumentsTab {
         menuItems.push({
           label: 'View Diff',
           action: () => this.viewDocumentDiff(docId),
-          icon: '👁️',
+          icon: '↕️',
           shortcut: ':gdf'
         })
       }
@@ -771,10 +788,119 @@ export class DocumentsTab {
     }
   }
 
+  async saveDocument(docId) {
+    try {
+      this.app.showNotification?.('Saving document...', 'info')
+      const result = await this.app.saveDocument()
+
+      if (result.success) {
+        this.app.showNotification?.(result.message || 'Document saved successfully', 'success')
+        // Refresh documents to update sync status after save
+        this.loadDocuments()
+      } else {
+        this.app.showNotification?.(result.message || 'Failed to save document', 'error')
+      }
+    } catch (error) {
+      console.error('Failed to save document:', error)
+      this.app.showNotification?.('Failed to save document', 'error')
+    }
+  }
+
   async viewDocumentDiff(docId) {
-    // This would open a diff viewer showing local vs remote changes
-    console.log('View diff for document:', docId)
-    this.app.showNotification?.('Diff viewer not yet implemented', 'info')
+    console.log('🔄 Navigator.viewDocumentDiff called with docId:', docId)
+
+    if (!this.app.gitService || !this.app.diffManager) {
+      console.error('❌ Services not available:', {
+        gitService: !!this.app.gitService,
+        diffManager: !!this.app.diffManager
+      })
+      this.app.showNotification?.('Git service or diff manager not available', 'error')
+      return
+    }
+
+    // Check if already in diff mode - if so, toggle off
+    if (this.app.editor && this.app.editor.isInDiffMode()) {
+      console.log('📤 Already in diff mode, exiting...')
+      const success = await this.app.editor.exitDiffMode(true) // Keep current changes
+      if (success) {
+        this.app.showNotification?.('Diff mode closed - changes preserved', 'success')
+      } else {
+        this.app.showNotification?.('Failed to exit diff mode', 'error')
+      }
+      return
+    }
+
+    console.log('✅ Services available, proceeding with diff...')
+
+    try {
+      // Check if document is out-of-sync (has Git metadata and local changes)
+      const document = await this.app.storageManager.getDocument(docId)
+      if (!document) {
+        this.app.showNotification?.('Document not found', 'error')
+        return
+      }
+
+      // Check if document has Git metadata
+      if (!document.githubSha || !document.githubPath) {
+        this.app.showNotification?.('Document not synced to Git repository', 'info')
+        return
+      }
+
+      // Check if document is out-of-sync
+      const syncStatus = this.app.syncStatusManager.getDocumentSyncStatus(document)
+      if (syncStatus.class !== 'out-of-sync') {
+        this.app.showNotification?.('Document is already synced - no changes to diff', 'info')
+        return
+      }
+
+      this.app.showNotification?.('Loading diff...', 'info')
+
+      // Get remote document content
+      const remoteResult = await this.app.gitService.getRemoteDocumentContent(docId)
+      if (!remoteResult.success) {
+        this.app.showNotification?.(remoteResult.message, 'error')
+        return
+      }
+
+      // Open document if not already open
+      if (!this.app.currentDocument || this.app.currentDocument.id !== docId) {
+        await this.openDocument(docId)
+        // Wait a moment for document to load
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+
+      // Enter diff mode
+      if (this.app.editor && this.app.diffManager) {
+        console.log('🚀 Calling editor.enterDiffMode with:', {
+          localContentLength: document.content.length,
+          remoteContentLength: remoteResult.content.length
+        })
+
+        try {
+          const success = await this.app.editor.enterDiffMode(document.content, remoteResult.content)
+          console.log('📊 enterDiffMode result:', success)
+
+          if (success) {
+            this.app.showNotification?.('Diff mode activated - review changes and accept or cancel', 'success')
+          } else {
+            this.app.showNotification?.('Failed to enter diff mode', 'error')
+          }
+        } catch (diffError) {
+          console.error('💥 enterDiffMode threw error:', diffError)
+          this.app.showNotification?.('Failed to enter diff mode: ' + diffError.message, 'error')
+        }
+      } else {
+        console.error('❌ Editor/DiffManager not available:', {
+          editor: !!this.app.editor,
+          diffManager: !!this.app.diffManager
+        })
+        this.app.showNotification?.('Editor not available for diff mode', 'error')
+      }
+    } catch (error) {
+      console.error('❌ Failed to view document diff:', error)
+      console.error('Error stack:', error.stack)
+      this.app.showNotification?.('Failed to load diff: ' + error.message, 'error')
+    }
   }
 
   showDocumentContextMenu(x, y, menuItems) {
@@ -1292,13 +1418,21 @@ export class DocumentsTab {
     document.addEventListener('mouseup', this.documentMouseUp)
   }
 
-  renderSyncIndicator(syncStatus) {
+  renderSyncIndicator(syncStatus, docId = null) {
     if (!syncStatus.icon) return ''
 
+    const isClickable = syncStatus.class === 'out-of-sync'
+    const clickableClass = isClickable ? 'clickable' : ''
+    const clickableAttrs = isClickable && docId ? `data-action="diff" data-doc-id="${docId}"` : ''
+    const clickableTitle = isClickable ?
+      `${syncStatus.tooltip} (Click to view diff)` :
+      syncStatus.tooltip
+
     return `
-      <div class="sync-status-indicator ${syncStatus.class}"
-           title="${syncStatus.tooltip}"
-           aria-label="${syncStatus.tooltip}">
+      <div class="sync-status-indicator ${syncStatus.class} ${clickableClass}"
+           title="${clickableTitle}"
+           aria-label="${clickableTitle}"
+           ${clickableAttrs}>
         <span class="sync-icon">${syncStatus.icon}</span>
         <span class="sync-text">${this.app.syncStatusManager?.getSyncStatusText(syncStatus.class) || ''}</span>
       </div>
@@ -1329,15 +1463,13 @@ export class DocumentsTab {
       })
     }
 
-    // View diff for modified documents
-    if (syncStatus.class === 'out-of-sync') {
-      actions.push({
-        icon: '👁',
-        label: 'View diff',
-        action: 'diff',
-        shortcut: ':gdf'
-      })
-    }
+    // Save action - always available for any document
+    actions.push({
+      icon: '💾',
+      label: 'Save document',
+      action: 'save',
+      shortcut: ':s'
+    })
 
     if (actions.length === 0) return ''
 

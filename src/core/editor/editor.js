@@ -367,4 +367,73 @@ export class EditorManager {
     return newState
   }
 
+  /**
+   * Enter diff mode for comparing local and remote content
+   * @param {string} localContent - Local document content
+   * @param {string} remoteContent - Remote document content
+   * @returns {boolean} Success status
+   */
+  async enterDiffMode(localContent, remoteContent) {
+    console.log('EditorManager.enterDiffMode called with:', {
+      localLength: localContent?.length,
+      remoteLength: remoteContent?.length,
+      hasView: !!this.view,
+      hasFantasyEditor: !!window.fantasyEditor,
+      hasDiffManager: !!window.fantasyEditor?.diffManager
+    })
+
+    if (!this.view) {
+      console.error('❌ No editor view available')
+      return false
+    }
+
+    if (!window.fantasyEditor?.diffManager) {
+      console.error('❌ No diffManager available on window.fantasyEditor')
+      return false
+    }
+
+    try {
+      // Create a temporary document object for diff manager
+      const tempDoc = {
+        content: localContent,
+        title: 'Current Document'
+      }
+
+      console.log('🔥 Calling diffManager.enterDiffMode...')
+      // Use the DiffManager to enter diff mode
+      const result = await window.fantasyEditor.diffManager.enterDiffMode(tempDoc, remoteContent)
+      console.log('🔥 diffManager.enterDiffMode returned:', result)
+      return result
+    } catch (error) {
+      console.error('❌ EditorManager.enterDiffMode failed:', error)
+      return false
+    }
+  }
+
+  /**
+   * Exit diff mode and return to normal editing
+   * @param {boolean} saveChanges - Whether to save changes from diff mode
+   * @returns {boolean} Success status
+   */
+  async exitDiffMode(saveChanges = false) {
+    if (!window.fantasyEditor?.diffManager) {
+      return false
+    }
+
+    try {
+      return await window.fantasyEditor.diffManager.exitDiffMode(saveChanges)
+    } catch (error) {
+      console.error('Failed to exit diff mode:', error)
+      return false
+    }
+  }
+
+  /**
+   * Check if currently in diff mode
+   * @returns {boolean} True if in diff mode
+   */
+  isInDiffMode() {
+    return window.fantasyEditor?.diffManager?.isInDiff() || false
+  }
+
 }
