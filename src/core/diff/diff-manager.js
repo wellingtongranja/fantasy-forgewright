@@ -131,7 +131,10 @@ export class DiffManager {
       // Add body class for styling
       document.body.classList.add('diff-mode-active')
 
-      console.log('✅ Unified diff mode active - use inline accept/reject controls or :gdf to exit')
+      // Create and add close button
+      this.createCloseButton()
+
+      console.log('✅ Unified diff mode active - use inline accept/reject controls, close button, or :gdf to exit')
 
       console.log('Unified diff mode entered successfully')
       return true
@@ -207,6 +210,9 @@ export class DiffManager {
 
       // Remove body class
       document.body.classList.remove('diff-mode-active')
+
+      // Remove close button
+      this.removeCloseButton()
 
       console.log('✅ Unified diff mode exited - changes preserved')
 
@@ -382,6 +388,48 @@ export class DiffManager {
   }
 
   /**
+   * Create and add the close button for diff mode
+   */
+  createCloseButton() {
+    // Remove any existing close button first
+    this.removeCloseButton()
+
+    // Create the close button element
+    this.closeButton = document.createElement('button')
+    this.closeButton.className = 'diff-close-button'
+    this.closeButton.innerHTML = '×'
+    this.closeButton.title = 'Close diff mode'
+    this.closeButton.setAttribute('aria-label', 'Close diff mode')
+
+    // Add event listener
+    this.closeButtonHandler = () => {
+      this.exitDiffMode(true) // Keep changes when closing via button
+    }
+    this.closeButton.addEventListener('click', this.closeButtonHandler)
+
+    // Find the editor container to position relative to it
+    const editorContainer = document.querySelector('.app-main') || document.body
+    editorContainer.appendChild(this.closeButton)
+  }
+
+  /**
+   * Remove the close button
+   */
+  removeCloseButton() {
+    if (this.closeButton) {
+      // Remove event listener
+      if (this.closeButtonHandler) {
+        this.closeButton.removeEventListener('click', this.closeButtonHandler)
+        this.closeButtonHandler = null
+      }
+
+      // Remove from DOM
+      this.closeButton.remove()
+      this.closeButton = null
+    }
+  }
+
+  /**
    * Destroy the diff manager
    */
   destroy() {
@@ -394,5 +442,8 @@ export class DiffManager {
       clearTimeout(this.contentChangeTimeout)
       this.contentChangeTimeout = null
     }
+
+    // Remove close button
+    this.removeCloseButton()
   }
 }

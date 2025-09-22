@@ -1,5 +1,51 @@
 /* Unified Diff Mode Styles for Fantasy Editor - Simplified */
 
+/* Diff Mode Close Button */
+.diff-close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+  opacity: 0.9;
+}
+
+.diff-close-button:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.diff-close-button:active {
+  transform: scale(0.95);
+}
+
+.diff-close-button:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Hide close button when not in diff mode */
+body:not(.diff-mode-active) .diff-close-button {
+  display: none;
+}
+
 /* Unified Diff Highlighting Styles */
 .cm-deletedChunk {
   background: var(--color-diff-deleted-bg, rgba(220, 53, 69, 0.15)) !important;

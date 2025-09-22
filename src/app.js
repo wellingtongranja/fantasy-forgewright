@@ -550,12 +550,7 @@ class FantasyEditorApp {
       }
     })
 
-    if (this.editor.view) {
-      this.editor.view.dom.addEventListener('input', () => {
-        this.updateWordCount()
-        this.scheduleAutoSave()
-      })
-    }
+    // Auto save is now handled through CodeMirror content change callback in handleContentChange()
 
     document.getElementById('doc-title').addEventListener('input', () => {
       if (this.currentDocument) {
@@ -593,6 +588,7 @@ class FantasyEditorApp {
       // TODO: Update UI to reflect GitHub authentication state
     })
   }
+
 
   async loadInitialDocument() {
     const documents = await this.storageManager.getAllDocuments()
@@ -709,12 +705,12 @@ class FantasyEditorApp {
   }
 
   /**
-   * Handle content changes from the editor for real-time outline updates
+   * Handle content changes from the editor for real-time outline updates and auto save
    * This is called by the editor when content changes (debounced)
    * @param {string} newContent - The updated content from the editor
    */
   handleContentChange(newContent) {
-    if (!this.currentDocument || !this.navigator) return
+    if (!this.currentDocument) return
 
     // Update the current document content for outline parsing
     // Note: This doesn't save the document, just updates it for outline parsing
@@ -724,9 +720,15 @@ class FantasyEditorApp {
     }
 
     // Update the Navigator outline with the new content
-    if (this.navigator.tabComponents && this.navigator.tabComponents.outline) {
+    if (this.navigator && this.navigator.tabComponents && this.navigator.tabComponents.outline) {
       this.navigator.tabComponents.outline.updateOutline(updatedDocument)
     }
+
+    // Trigger word count update
+    this.updateWordCount()
+
+    // Trigger auto save
+    this.scheduleAutoSave()
   }
 
   async saveDocument() {
