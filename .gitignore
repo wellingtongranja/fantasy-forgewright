@@ -63,3 +63,6 @@ Thumbs.db
 sw.js
 workbox-*.js
 workers/.wrangler/
+
+# Cloudflare Workers secrets
+workers/.dev.vars
