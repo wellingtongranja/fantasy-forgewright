@@ -54,27 +54,76 @@ export class BaseProvider {
     }
 
     const tokenParams = this.buildTokenParams(code, codeVerifier)
-    
+    const headers = this.getTokenHeaders()
+    const body = this.formatTokenRequest(tokenParams)
+
+    // Comprehensive debugging for token exchange request
+    console.log('DEBUG: Token Exchange Request Details:', {
+      url: this.tokenUrl,
+      method: 'POST',
+      headers: headers,
+      body_length: body?.length,
+      body_preview: body?.substring(0, 100) + '...' // Show first 100 chars only
+    })
+
     try {
       const response = await fetch(this.tokenUrl, {
         method: 'POST',
-        headers: this.getTokenHeaders(),
-        body: this.formatTokenRequest(tokenParams)
+        headers: headers,
+        body: body
+      })
+
+      console.log('DEBUG: Token Exchange Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        url: response.url
       })
 
       if (!response.ok) {
         const errorText = await response.text()
+        console.error('DEBUG: Token Exchange Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+          provider: this.name,
+          rateLimit: {
+            remaining: response.headers.get('X-RateLimit-Remaining'),
+            reset: response.headers.get('X-RateLimit-Reset'),
+            limit: response.headers.get('X-RateLimit-Limit')
+          }
+        })
+
+        // Handle rate limiting specifically
+        if (response.status === 429 || response.status === 403) {
+          const resetTime = response.headers.get('X-RateLimit-Reset')
+          const resetDate = resetTime ? new Date(parseInt(resetTime) * 1000) : new Date(Date.now() + 3600000)
+          throw new Error(`GitHub API rate limit exceeded. Resets at: ${resetDate.toLocaleString()}`)
+        }
+
         throw new Error(`Token exchange failed: ${response.status} - ${errorText}`)
       }
 
       const data = await response.json()
-      
+      console.log('DEBUG: Token Exchange Success Response:', {
+        has_access_token: !!data.access_token,
+        token_type: data.token_type,
+        scope: data.scope,
+        provider: this.name
+      })
+
       if (data.error) {
+        console.error('DEBUG: OAuth Error in Response:', data)
         throw new Error(`OAuth error: ${data.error_description || data.error}`)
       }
 
       return this.processTokenResponse(data)
     } catch (error) {
+      console.error('DEBUG: Token Exchange Exception:', {
+        error: error.message,
+        stack: error.stack,
+        provider: this.name
+      })
       throw new Error(`Token exchange failed: ${error.message}`)
     }
   }

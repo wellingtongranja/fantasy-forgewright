@@ -81,19 +81,36 @@ async function handleTokenExchange(request, env) {
 
   try {
     const { provider, code, codeVerifier, providerConfig } = await request.json()
-    
+
+    console.log('DEBUG: Token Exchange Request:', {
+      provider,
+      code_present: !!code,
+      code_length: code?.length,
+      codeVerifier_present: !!codeVerifier,
+      providerConfig_provided: !!providerConfig
+    })
+
     if (!provider || !code) {
       return new Response('Missing required parameters', { status: 400 })
     }
 
     // Get provider configuration
-    const config = providerConfig 
+    const config = providerConfig
       ? { ...getProviderConfig(provider, env), ...providerConfig }
       : getProviderConfig(provider, env)
 
+    console.log('DEBUG: Final Provider Configuration:', {
+      provider,
+      clientId: config.clientId?.substring(0, 8) + '***',
+      clientSecret_present: !!config.clientSecret,
+      redirectUri: config.redirectUri,
+      env_cors_origin: env.CORS_ORIGIN,
+      env_redirect_uri: env.OAUTH_REDIRECT_URI
+    })
+
     // Create provider instance
     const providerInstance = createProvider(provider, config)
-    
+
     // Validate configuration
     providerInstance.validateConfig()
 
@@ -316,19 +333,35 @@ function handleCORS(env, origin) {
  */
 export default {
   async fetch(request, env, ctx) {
-    // Security: Strict origin validation
+    // Security: Strict origin validation with development support
     const origin = request.headers.get('Origin')
     const allowedOrigins = [
       env.CORS_ORIGIN || 'https://forgewright.io',
       'https://fantasy.forgewright.io',  // Allow subdomain
       'https://forgewright.io'
     ]
-    
+
+    // Add localhost origins for development
+    if (env.CORS_ORIGIN && env.CORS_ORIGIN.includes('localhost')) {
+      allowedOrigins.push('http://localhost:3000')
+      allowedOrigins.push('http://127.0.0.1:3000')
+    }
+
+    console.log('DEBUG: Origin Validation:', {
+      request_origin: origin,
+      allowed_origins: allowedOrigins,
+      cors_origin_env: env.CORS_ORIGIN
+    })
+
     // Block requests without proper origin
     if (!origin || !allowedOrigins.includes(origin)) {
-      return new Response('Forbidden - Invalid Origin', { 
+      console.error('DEBUG: Origin Validation Failed:', {
+        request_origin: origin,
+        allowed_origins: allowedOrigins
+      })
+      return new Response('Forbidden - Invalid Origin', {
         status: 403,
-        headers: { 
+        headers: {
           'Content-Type': 'text/plain',
           'X-Security-Error': 'Invalid Origin'
         }

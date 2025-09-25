@@ -52,13 +52,32 @@ export class GitHubProvider extends BaseProvider {
    * @returns {Object} Token parameters
    */
   buildTokenParams(code, codeVerifier = null) {
-    // Debug logging to see exactly what credentials are being used
-    console.log('DEBUG: GitHub OAuth credentials being used:', {
-      client_id: this.clientId?.substring(0, 8) + '...' + this.clientId?.substring(-4),
+    // Comprehensive debugging to trace token exchange issues
+    console.log('DEBUG: GitHub OAuth Token Exchange Parameters:', {
+      client_id: this.clientId?.substring(0, 8) + '***' + this.clientId?.slice(-4),
+      client_secret_present: !!this.clientSecret,
       client_secret_length: this.clientSecret?.length,
-      client_secret_start: this.clientSecret?.substring(0, 8) + '...',
-      code_length: code?.length
+      client_secret_start: this.clientSecret?.substring(0, 8) + '***',
+      redirect_uri: this.redirectUri,
+      code_present: !!code,
+      code_length: code?.length,
+      code_start: code?.substring(0, 8) + '***',
+      pkce_used: !!codeVerifier
     })
+
+    // Validate required credentials
+    if (!this.clientId) {
+      throw new Error('GitHub client_id is missing or undefined')
+    }
+    if (!this.clientSecret) {
+      throw new Error('GitHub client_secret is missing or undefined')
+    }
+    if (!this.redirectUri) {
+      throw new Error('GitHub redirect_uri is missing or undefined')
+    }
+    if (!code) {
+      throw new Error('Authorization code is missing or undefined')
+    }
 
     const params = {
       client_id: this.clientId,
@@ -69,11 +88,17 @@ export class GitHubProvider extends BaseProvider {
 
     // GitHub OAuth Apps DO require redirect_uri in token exchange if used in authorization
     // This was the root cause of the "incorrect client_id/client_secret" error
-    
+
     // Add PKCE code verifier if provided
     if (codeVerifier) {
       params.code_verifier = codeVerifier
     }
+
+    console.log('DEBUG: Final token params (censored):', {
+      ...params,
+      client_secret: '***HIDDEN***',
+      code: code?.substring(0, 8) + '***'
+    })
 
     return params
   }
