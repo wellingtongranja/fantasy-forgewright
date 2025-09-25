@@ -1,8 +1,8 @@
 # End User License Agreement (EULA)
 
-**Fantasy Editor**  
-**Version 0.0.1 (Alpha)**  
-**Last Updated**: January 2025
+**Fantasy Editor**
+**Version 0.0.2 (Alpha)**
+**Last Updated**: September 2025
 
 ## IMPORTANT - READ CAREFULLY
 
