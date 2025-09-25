@@ -296,10 +296,12 @@ body {
 
 .footer-center-section {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   justify-self: center;
+  max-width: 40vw;
+  overflow: hidden;
 }
 
 .footer-right-section {
@@ -350,7 +352,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
-  justify-self: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Repository Info */
@@ -364,6 +368,9 @@ body {
   border-radius: var(--border-radius-full);
   opacity: 0.9;
   font-size: var(--font-size-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .repo-name {

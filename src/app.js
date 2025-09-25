@@ -217,6 +217,7 @@ class FantasyEditorApp {
 
         const onAcceptance = async () => {
           // Auto-open release notes after legal acceptance (first-time only)
+          console.log('🎉 Legal documents accepted - opening release notes')
           await this.openReleaseNotesAfterAcceptance()
         }
 
@@ -236,25 +237,31 @@ class FantasyEditorApp {
    */
   async openReleaseNotesAfterAcceptance() {
     try {
+      console.log('📋 Attempting to open release notes after legal acceptance')
+
       // Initialize system documents manager if needed
       if (!this.systemDocumentsManager) {
+        console.log('📋 Initializing system documents manager')
         const { SystemDocumentsManager } = await import('./core/storage/system-documents.js')
         this.systemDocumentsManager = new SystemDocumentsManager(this.storageManager)
       }
 
       // Load release notes using same pattern as :release command
+      console.log('📋 Loading release notes document')
       const releaseDoc = await this.systemDocumentsManager.getSystemDocument('release-notes')
       if (releaseDoc) {
+        console.log('📋 Release notes found, loading with delay')
         // Small delay to ensure legal splash has finished closing
         setTimeout(() => {
+          console.log('📋 Loading release notes document into editor')
           this.loadDocument(releaseDoc)
           this.showNotification('Welcome to Fantasy Editor! Here\'s what\'s new in this version.', 'info')
         }, 500)
       } else {
-        console.warn('Release notes not available for auto-open after legal acceptance')
+        console.warn('⚠️ Release notes not available for auto-open after legal acceptance')
       }
     } catch (error) {
-      console.error('Failed to auto-open release notes after legal acceptance:', error)
+      console.error('❌ Failed to auto-open release notes after legal acceptance:', error)
       // Non-critical failure - don't block user experience
     }
   }
