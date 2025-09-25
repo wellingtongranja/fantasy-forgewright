@@ -32,7 +32,7 @@ export class GitHubAuth {
     const origin = (typeof window !== 'undefined' && window.location) 
       ? window.location.origin 
       : 'http://localhost:3000'
-    this.redirectUri = envUri || `${origin}/`
+    this.redirectUri = envUri || `${origin}/auth/callback`
     this.scope = 'repo user'
     this.state = null
     this.codeVerifier = null

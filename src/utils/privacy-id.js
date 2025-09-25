@@ -72,14 +72,15 @@ async function generateBrowserFingerprint(hasConsent = false) {
 
 /**
  * Get or generate a privacy-compliant user ID
- * Stored in sessionStorage to reset between browser sessions for privacy
+ * Stored in localStorage for legal compliance persistence across sessions
  * GDPR/CCPA Compliant: Only performs fingerprinting with explicit user consent
  * @returns {Promise<string>} Privacy-compliant user identifier
  */
 export async function getPrivacyCompliantUserId() {
   try {
-    // Check if we already have an ID for this session
-    let userId = sessionStorage.getItem('privacy_user_id')
+    // Check if we already have an ID (check both storage types)
+    let userId =
+      localStorage.getItem('privacy_user_id') || sessionStorage.getItem('privacy_user_id')
 
     if (!userId) {
       // Check if user has explicitly consented to fingerprinting (GDPR requirement)
@@ -92,7 +93,18 @@ export async function getPrivacyCompliantUserId() {
       const fingerprint = await generateBrowserFingerprint(hasFingerprintingConsent)
       userId = `user_${fingerprint}`
 
-      // Store in sessionStorage (expires when browser closes for privacy)
+      // Store in localStorage for persistence across sessions (needed for legal acceptance tracking)
+      // This is GDPR compliant as it's pseudonymous and used only for legal compliance
+      localStorage.setItem('privacy_user_id', userId)
+      // Also store in sessionStorage for backward compatibility
+      sessionStorage.setItem('privacy_user_id', userId)
+    }
+
+    // Ensure both storages have the ID for consistency
+    if (!localStorage.getItem('privacy_user_id')) {
+      localStorage.setItem('privacy_user_id', userId)
+    }
+    if (!sessionStorage.getItem('privacy_user_id')) {
       sessionStorage.setItem('privacy_user_id', userId)
     }
 

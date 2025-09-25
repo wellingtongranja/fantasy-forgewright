@@ -453,7 +453,7 @@ export class AuthManager {
    * @returns {string} Authorization URL
    */
   buildAuthorizationUrl(providerConfig, codeChallenge) {
-    const redirectUri = `${window.location.origin}/`
+    const redirectUri = `${window.location.origin}/auth/callback`
     const params = new URLSearchParams({
       client_id: providerConfig.clientId,
       redirect_uri: redirectUri,
