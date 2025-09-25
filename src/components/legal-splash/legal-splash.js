@@ -72,11 +72,17 @@ export class LegalSplash {
   }
 
   /**
-   * Hide splash screen modal
+   * Hide splash screen modal - ONLY allowed after legal acceptance
    */
-  hide() {
+  hide(forceClose = false) {
     if (!this.isOpen) {
       return
+    }
+
+    // CRITICAL: Prevent closing without acceptance unless force close
+    if (!forceClose && this.onAcceptance) {
+      console.warn('Legal splash cannot be closed without accepting terms')
+      return false
     }
 
     this.removeEventListeners()
@@ -90,6 +96,7 @@ export class LegalSplash {
 
     this.cleanup()
     this.isOpen = false
+    return true
   }
 
   /**
@@ -221,7 +228,8 @@ export class LegalSplash {
       })
     }
 
-    this.hide()
+    // Force close after legal acceptance
+    this.hide(true)
   }
 
   /**
@@ -242,7 +250,8 @@ export class LegalSplash {
       })
     }
 
-    this.hide()
+    // Force close after legal acceptance
+    this.hide(true)
   }
 
   /**
@@ -356,7 +365,6 @@ export class LegalSplash {
             <p class="splash-subtitle">Legal Agreement</p>
           </div>
         </div>
-        <button class="splash-close" aria-label="Close legal documents">×</button>
       </div>
     `
   }
@@ -552,7 +560,8 @@ export class LegalSplash {
 
     switch (event.key) {
       case 'Escape':
-        this.hide()
+        // CRITICAL: ESC key disabled to prevent bypassing legal agreement
+        console.warn('ESC key disabled - legal agreement must be accepted')
         event.preventDefault()
         break
       case 'Tab':
@@ -567,17 +576,8 @@ export class LegalSplash {
   handleClick(event) {
     const target = event.target
 
-    // Handle close button
-    if (target.classList.contains('splash-close')) {
-      this.hide()
-      return
-    }
-
-    // Handle overlay click
-    if (target === this.element) {
-      this.hide()
-      return
-    }
+    // CRITICAL: Close button and overlay click disabled to prevent legal bypass
+    // Users must accept terms to proceed
 
     // Handle tab clicks
     const tab = target.closest('[data-tab]')
@@ -592,6 +592,11 @@ export class LegalSplash {
     if (action) {
       this.handleAction(action)
       return
+    }
+
+    // Log attempts to bypass legal agreement
+    if (target === this.element || target.classList.contains('splash-close')) {
+      console.warn('Legal agreement cannot be bypassed - terms must be accepted')
     }
   }
 
@@ -664,6 +669,8 @@ export class LegalSplash {
 
       if (!document) {
         contentArea.innerHTML = '<div class="splash-loading">Loading document...</div>'
+        // CRITICAL: Reset scroll position to top for loading state
+        contentArea.scrollTop = 0
         return
       }
 
@@ -674,6 +681,8 @@ export class LegalSplash {
         errorDiv.textContent = `Error loading document: ${document.error}`
         contentArea.innerHTML = ''
         contentArea.appendChild(errorDiv)
+        // CRITICAL: Reset scroll position to top for error state
+        contentArea.scrollTop = 0
         return
       }
 
@@ -682,10 +691,15 @@ export class LegalSplash {
       safeHTML(content, ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'], ['href', 'title'])
         .then(sanitizedContent => {
           contentArea.innerHTML = sanitizedContent
+          // CRITICAL: Reset scroll position to top for each document
+          // This ensures users must read each document from the beginning
+          contentArea.scrollTop = 0
         })
         .catch(error => {
           console.error('Error sanitizing legal document content:', error)
           contentArea.textContent = document.content // Fallback to plain text
+          // CRITICAL: Reset scroll position to top even for fallback content
+          contentArea.scrollTop = 0
         })
     }
   }
