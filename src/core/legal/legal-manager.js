@@ -142,7 +142,7 @@ export class LegalManager {
     this.ensureInitialized()
 
     try {
-      const userId = this.generateUserId()
+      const userId = await this.generateUserId()
       const requiredDocuments = ['privacy-policy', 'eula', 'license']
 
       // Get current document metadata to check versions
@@ -177,20 +177,33 @@ export class LegalManager {
   }
 
   /**
-   * Generate a consistent user ID for legal acceptance tracking
-   * Uses a simple approach for now - can be enhanced later
+   * Generate a privacy-compliant user ID for legal acceptance tracking
+   * Uses browser fingerprinting for stable anonymous identification
    */
-  generateUserId() {
-    // For MVP: use a simple constant user ID
-    // In production, this should be based on actual user identity
-    const userId = 'anonymous-user'
+  async generateUserId() {
+    try {
+      // Import privacy-compliant ID generator
+      const { getPrivacyCompliantUserId } = await import('../../utils/privacy-id.js')
+      const userId = await getPrivacyCompliantUserId()
 
-    // Validate the generated ID
-    if (!userId || typeof userId !== 'string') {
-      throw new Error('Failed to generate valid user ID')
+      // Validate the generated ID
+      if (!userId || typeof userId !== 'string') {
+        throw new Error('Failed to generate valid privacy-compliant user ID')
+      }
+
+      return userId
+    } catch (error) {
+      console.error('Error generating privacy-compliant user ID:', error)
+
+      // Fallback to session-based ID
+      let fallbackId = sessionStorage.getItem('legal_fallback_user_id')
+      if (!fallbackId) {
+        fallbackId = `fallback_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+        sessionStorage.setItem('legal_fallback_user_id', fallbackId)
+      }
+
+      return fallbackId
     }
-
-    return userId
   }
 
   /**

@@ -7,7 +7,10 @@
   <meta name="theme-color" content="#007bff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  
+
+  <!-- Content Security Policy for XSS Protection -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://fantasy-oauth-proxy.wellington-granja.workers.dev https://fantasy-legal-docs.wellington-granja.workers.dev; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+
   <title>Fantasy Editor</title>
   
   <link rel="icon" href="/favicon.ico">

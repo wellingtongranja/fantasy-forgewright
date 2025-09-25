@@ -212,7 +212,7 @@ class FantasyEditorApp {
       const hasAccepted = await this.legalManager.hasUserAcceptedAll()
       if (!hasAccepted) {
         // Show legal splash modal with required parameters
-        const userId = this.legalManager.generateUserId()
+        const userId = await this.legalManager.generateUserId()
         const requiredDocuments = ['privacy-policy', 'eula', 'license'] // Required documents for app usage
 
         const onAcceptance = async () => {
