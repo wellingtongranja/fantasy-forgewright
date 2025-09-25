@@ -52,14 +52,23 @@ export class GitHubProvider extends BaseProvider {
    * @returns {Object} Token parameters
    */
   buildTokenParams(code, codeVerifier = null) {
+    // Debug logging to see exactly what credentials are being used
+    console.log('DEBUG: GitHub OAuth credentials being used:', {
+      client_id: this.clientId?.substring(0, 8) + '...' + this.clientId?.substring(-4),
+      client_secret_length: this.clientSecret?.length,
+      client_secret_start: this.clientSecret?.substring(0, 8) + '...',
+      code_length: code?.length
+    })
+
     const params = {
       client_id: this.clientId,
       client_secret: this.clientSecret,
-      code: code
+      code: code,
+      redirect_uri: this.redirectUri
     }
 
-    // GitHub OAuth Apps don't use redirect_uri in token exchange
-    // Only GitHub Apps require it, and we're using OAuth Apps
+    // GitHub OAuth Apps DO require redirect_uri in token exchange if used in authorization
+    // This was the root cause of the "incorrect client_id/client_secret" error
     
     // Add PKCE code verifier if provided
     if (codeVerifier) {
