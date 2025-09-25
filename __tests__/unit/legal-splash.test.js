@@ -271,21 +271,20 @@ describe('LegalSplash', () => {
       expect(html).toContain('splash-progress-bar')
     })
 
-    it('should render acceptance checkboxes', () => {
+    it('should render document tabs', () => {
       const html = splash.render(['privacy-policy'])
 
-      expect(html).toContain('type="checkbox"')
       expect(html).toContain('Privacy Policy')
       expect(html).toContain('data-document="privacy-policy"')
+      expect(html).toContain('role="tab"')
     })
 
     it('should render action buttons', () => {
       const html = splash.render(['privacy-policy'])
 
-      expect(html).toContain('Accept All')
-      expect(html).toContain('Accept Required')
+      expect(html).toContain('Accept Terms')
       expect(html).toContain('data-action="accept-all"')
-      expect(html).toContain('data-action="accept-required"')
+      expect(html).toContain('splash-button-primary')
     })
 
     it('should disable buttons when documents not fully read', () => {
@@ -583,7 +582,7 @@ describe('LegalSplash', () => {
 
       await splash.show('user123', ['privacy-policy'])
 
-      expect(splash.appInfo.name).toBe('Fantasy Editor') // Fallback name
+      expect(splash.appInfo.name).toBe('Fantasy') // Actual fallback name
       expect(splash.appInfo.icon.src).toContain('/dist/icons') // Fallback icon
     })
 

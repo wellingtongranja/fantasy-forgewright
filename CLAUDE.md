@@ -71,16 +71,714 @@
 - **Document Export System** - Multi-format export capabilities (Markdown, HTML, PDF, Text) with streamlined commands
 - **Legal Documents Management System** - Complete legal compliance workflow with responsive modal splash screen, secure Cloudflare Worker for document serving, IndexedDB acceptance tracking, automatic release notes display after legal acceptance, and hash consistency fixes for persistent user acceptance records
 
-## 🛠️ Development Standards
+## 🛠️ Development Principles & Standards
 
-### Core Principles
+Fantasy Editor follows strict development principles to ensure maintainable, secure, and performant code. Every developer MUST adhere to these standards without exception.
 
-- **TDD**: RED → GREEN → REFACTOR cycle
-- **KISS**: Vanilla JS, minimal dependencies (< 10)
-- **Clean Code**: Max 20 lines/function, 200 lines/file
-- **Defensive**: Input validation, graceful error handling
-- **Security**: Never commit secrets, validate all inputs
-- **License Compliance**: AGPL-3.0 - Ensure network service compliance
+### Code Clean (MANDATORY)
+
+#### Function Standards
+- **Max 20 lines per function** - If longer, break into smaller functions
+- **Single Responsibility** - Each function does exactly one thing
+- **Pure functions preferred** - Avoid side effects when possible
+- **Descriptive names** - No abbreviations, clear intent
+
+```javascript
+// ✅ CORRECT: Clean, focused, testable
+export function validateDocumentTitle(title) {
+  if (!title?.trim()) {
+    throw new ValidationError('Title is required', 'title')
+  }
+
+  if (title.length > 100) {
+    throw new ValidationError('Title must be less than 100 characters', 'title')
+  }
+
+  return title.trim()
+}
+
+// ❌ INCORRECT: Complex, multiple responsibilities
+export function processDoc(d) {
+  // 50+ lines mixing validation, transformation, saving, syncing, etc.
+}
+```
+
+#### File Standards
+- **Max 200 lines per file** - If longer, split into multiple files
+- **Focused purpose** - Each file handles one domain/concern
+- **Clear imports** - Explicit imports, avoid barrel exports
+- **Consistent structure** - Exports at bottom, imports at top
+
+#### Variable & Naming Standards
+```javascript
+// ✅ CORRECT: Descriptive, clear intent
+const documentValidationResult = await validateDocumentContent(content)
+const isUserAuthenticated = await authManager.checkAuthStatus()
+const syncStatusIndicator = document.querySelector('[data-testid=sync-status]')
+
+// ❌ INCORRECT: Abbreviated, unclear
+const dvr = await validate(c)
+const auth = await check()
+const el = document.querySelector('.sync')
+```
+
+#### Comments Policy
+- **NO implementation comments** - Code should be self-explaining
+- **Business logic comments ONLY** - Why, not what or how
+- **JSDoc for public APIs** - Complete parameter and return documentation
+
+```javascript
+// ✅ CORRECT: Business context comment
+// GitHub API has 5000 req/hour limit, so we batch document uploads
+const batchSize = 10
+
+// ❌ INCORRECT: Implementation comment
+// Loop through documents and save each one
+for (const doc of documents) { ... }
+```
+
+### Test-Driven Development (TDD)
+
+#### RED → GREEN → REFACTOR Cycle
+Every feature MUST follow this exact cycle:
+
+```javascript
+// 1. RED: Write failing test first
+describe('DocumentValidator', () => {
+  it('should reject empty titles', () => {
+    expect(() => validateDocumentTitle('')).toThrow('Title is required')
+  })
+
+  it('should reject titles over 100 characters', () => {
+    const longTitle = 'a'.repeat(101)
+    expect(() => validateDocumentTitle(longTitle)).toThrow('must be less than 100')
+  })
+
+  it('should trim whitespace from valid titles', () => {
+    const result = validateDocumentTitle('  My Document  ')
+    expect(result).toBe('My Document')
+  })
+})
+
+// 2. GREEN: Implement minimal passing code
+export function validateDocumentTitle(title) {
+  if (!title?.trim()) {
+    throw new ValidationError('Title is required', 'title')
+  }
+
+  if (title.length > 100) {
+    throw new ValidationError('Title must be less than 100 characters', 'title')
+  }
+
+  return title.trim()
+}
+
+// 3. REFACTOR: Improve while keeping tests green
+export function validateDocumentTitle(title) {
+  const trimmedTitle = title?.trim() ?? ''
+
+  if (!trimmedTitle) {
+    throw new ValidationError('Title is required', 'title')
+  }
+
+  if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+    throw new ValidationError(`Title must be less than ${MAX_TITLE_LENGTH} characters`, 'title')
+  }
+
+  return trimmedTitle
+}
+```
+
+#### Coverage Requirements
+- **>90% test coverage** for all business logic
+- **100% coverage** for critical paths (auth, sync, commands)
+- **Integration tests** for component interactions
+- **E2E tests** for complete user workflows
+
+#### Testing Principles
+```javascript
+// ✅ CORRECT: Test behavior, not implementation
+it('should save document when user runs save command', async () => {
+  const doc = { title: 'Test', content: 'Content' }
+  await commandSystem.execute('save', [doc])
+
+  const saved = await storage.getDocument(doc.id)
+  expect(saved.content).toBe('Content')
+})
+
+// ❌ INCORRECT: Testing implementation details
+it('should call storage.save with correct parameters', async () => {
+  const spy = jest.spyOn(storage, 'save')
+  // ... test implementation instead of behavior
+})
+```
+
+### Defensive Programming
+
+#### Input Validation (MANDATORY)
+All boundary functions MUST validate inputs:
+
+```javascript
+// ✅ CORRECT: Comprehensive input validation
+export async function saveDocument(document, options = {}) {
+  // Validate document structure
+  if (!document || typeof document !== 'object') {
+    throw new ValidationError('Document must be an object')
+  }
+
+  // Validate required fields
+  if (!document.id) {
+    throw new ValidationError('Document ID is required')
+  }
+
+  if (!document.title?.trim()) {
+    throw new ValidationError('Document title is required')
+  }
+
+  // Validate content
+  if (typeof document.content !== 'string') {
+    throw new ValidationError('Document content must be a string')
+  }
+
+  // Sanitize inputs
+  const sanitizedDocument = {
+    ...document,
+    title: sanitizeInput(document.title.trim()),
+    content: sanitizeMarkdown(document.content)
+  }
+
+  return await storage.save(sanitizedDocument, options)
+}
+
+// ❌ INCORRECT: No validation, assumes valid input
+export async function saveDocument(document, options) {
+  return await storage.save(document, options)  // Will fail with bad input
+}
+```
+
+#### Error Handling
+```javascript
+// ✅ CORRECT: Graceful error handling with user feedback
+export async function syncDocument(documentId) {
+  try {
+    const localDoc = await storage.getDocument(documentId)
+    const remoteDoc = await github.fetchDocument(documentId)
+
+    return await mergeDocs(localDoc, remoteDoc)
+
+  } catch (error) {
+    if (error instanceof NetworkError) {
+      // Graceful degradation for network issues
+      logger.warn('Sync failed due to network issue', { documentId, error })
+      return { status: 'offline', document: localDoc }
+    }
+
+    if (error instanceof AuthenticationError) {
+      // Clear invalid auth and prompt user
+      await authManager.clearAuth()
+      throw new UserActionRequiredError('Please sign in again', 'REAUTHENTICATION_REQUIRED')
+    }
+
+    // Log unexpected errors but don't expose internals to user
+    logger.error('Unexpected sync error', { documentId, error })
+    throw new UserError('Unable to sync document. Please try again.')
+  }
+}
+```
+
+#### Never Trust External Data
+```javascript
+// ✅ CORRECT: Validate all external data
+export async function handleGitHubResponse(response) {
+  if (!response || typeof response !== 'object') {
+    throw new Error('Invalid GitHub API response format')
+  }
+
+  // Validate required fields exist
+  const requiredFields = ['content', 'sha', 'path']
+  for (const field of requiredFields) {
+    if (!(field in response)) {
+      throw new Error(`Missing required field: ${field}`)
+    }
+  }
+
+  // Sanitize content before processing
+  return {
+    content: sanitizeMarkdown(response.content),
+    sha: validateSha(response.sha),
+    path: validatePath(response.path)
+  }
+}
+```
+
+### KISS (Keep It Simple, Stupid)
+
+#### Dependency Management
+- **Vanilla JavaScript only** - No frameworks except CodeMirror 6
+- **Current dependencies <10** - Every new dependency must be justified
+- **Standard Web APIs first** - Prefer native browser APIs over libraries
+- **Bundle size monitoring** - Target <5MB, track with every change
+
+```javascript
+// ✅ CORRECT: Use native APIs
+const searchWorker = new Worker('/js/search-worker.js')
+const docs = await fetch('/api/documents').then(r => r.json())
+const element = document.querySelector('[data-testid=command-bar]')
+
+// ❌ INCORRECT: Adding unnecessary dependencies
+import _ from 'lodash'  // For simple operations
+import axios from 'axios'  // Instead of fetch
+import jQuery from 'jquery'  // For DOM manipulation
+```
+
+#### Architecture Simplicity
+```javascript
+// ✅ CORRECT: Simple, direct approach
+export class CommandSystem {
+  constructor() {
+    this.commands = new Map()
+  }
+
+  register(name, handler) {
+    this.commands.set(name, handler)
+  }
+
+  async execute(name, args) {
+    const handler = this.commands.get(name)
+    if (!handler) throw new Error(`Unknown command: ${name}`)
+    return await handler(args)
+  }
+}
+
+// ❌ INCORRECT: Over-engineered with unnecessary abstractions
+export class CommandSystemFactory extends BaseFactory {
+  createCommandSystem() {
+    return new Proxy(new CommandSystemImpl(), {
+      // Complex proxy logic for no real benefit
+    })
+  }
+}
+```
+
+### PWA Excellence
+
+#### Offline-First Architecture
+All features MUST work offline:
+
+```javascript
+// ✅ CORRECT: Offline-first data access
+export async function getDocument(id) {
+  try {
+    // Always try local storage first
+    const localDoc = await indexedDB.getDocument(id)
+
+    if (navigator.onLine && shouldSync(localDoc)) {
+      // Sync in background if online
+      syncDocumentInBackground(id)
+    }
+
+    return localDoc
+
+  } catch (localError) {
+    // Fallback to remote only if local fails
+    if (navigator.onLine) {
+      const remoteDoc = await github.fetchDocument(id)
+      await indexedDB.saveDocument(remoteDoc)  // Cache for offline
+      return remoteDoc
+    }
+
+    throw new Error('Document not available offline')
+  }
+}
+```
+
+#### Service Worker Implementation
+```javascript
+// ✅ CORRECT: Comprehensive caching strategy
+const CACHE_STRATEGIES = {
+  appShell: {
+    strategy: 'CacheFirst',
+    maxAge: 7 * 24 * 60 * 60 * 1000,  // 7 days
+    files: ['/', '/index.html', '/manifest.json']
+  },
+
+  staticAssets: {
+    strategy: 'CacheFirst',
+    maxAge: 30 * 24 * 60 * 60 * 1000,  // 30 days
+    pattern: /\.(js|css|woff2|png|svg)$/
+  },
+
+  documents: {
+    strategy: 'NetworkFirst',
+    maxAge: 24 * 60 * 60 * 1000,  // 24 hours
+    syncBackground: true
+  }
+}
+```
+
+#### Performance Standards
+- **First Paint**: <1.5s on 3G
+- **Time to Interactive**: <3s on 3G
+- **Lighthouse Score**: >90 in all categories
+- **Bundle Size**: <5MB gzipped (currently >1MB, working to optimize)
+
+```javascript
+// ✅ CORRECT: Performance-conscious loading
+export async function loadEditor() {
+  // Critical path: Load editor immediately
+  const { CodeMirror } = await import('@codemirror/view')
+
+  // Non-critical: Load features lazily
+  setTimeout(async () => {
+    const { SearchEngine } = await import('./search/search-engine.js')
+    const { ExportManager } = await import('./export/export-manager.js')
+  }, 100)
+}
+```
+
+### Security-First Development
+
+#### Input Sanitization (ALWAYS)
+```javascript
+// ✅ CORRECT: Sanitize all inputs
+import DOMPurify from 'dompurify'
+
+export function processUserContent(content) {
+  // Sanitize HTML content
+  const cleanHTML = DOMPurify.sanitize(content)
+
+  // Validate markdown
+  const safeMarkdown = sanitizeMarkdown(cleanHTML)
+
+  return safeMarkdown
+}
+```
+
+#### Secret Management
+- **NEVER commit secrets** - Use environment variables
+- **Client-side encryption** - Encrypt sensitive data before storage
+- **Token rotation** - Implement automatic token refresh
+
+#### AGPL-3.0 Compliance
+- **Network service compliance** - Users can request source code
+- **Copyleft requirements** - Derivative works must be AGPL
+- **Attribution** - Maintain license notices
+
+### Error Handling & Logging
+
+#### Structured Error Types
+```javascript
+export class ValidationError extends Error {
+  constructor(message, field, code) {
+    super(message)
+    this.name = 'ValidationError'
+    this.field = field
+    this.code = code
+    this.userFacing = true
+  }
+}
+
+export class SystemError extends Error {
+  constructor(message, originalError) {
+    super(message)
+    this.name = 'SystemError'
+    this.originalError = originalError
+    this.userFacing = false
+  }
+}
+```
+
+#### Logging Standards
+```javascript
+// ✅ CORRECT: Structured logging
+logger.info('Document saved', {
+  documentId: doc.id,
+  titleLength: doc.title.length,
+  contentLength: doc.content.length,
+  tags: doc.tags.length
+})
+
+logger.error('Sync failed', {
+  documentId: doc.id,
+  error: error.message,
+  syncAttempt: attemptNumber
+})
+
+// ❌ INCORRECT: Unstructured logging
+console.log('Document saved: ' + doc.title)
+console.log('Error: ' + error.toString())
+```
+
+### Development Workflow
+
+#### Git Workflow
+```bash
+# 1. Create feature branch
+git checkout -b feature/document-validation
+
+# 2. Write tests first (TDD RED)
+git add test/document-validator.test.js
+git commit -m "test: add document validation test cases"
+
+# 3. Implement feature (TDD GREEN)
+git add src/core/validation/document-validator.js
+git commit -m "feat: implement document validation"
+
+# 4. Refactor if needed (TDD REFACTOR)
+git add src/core/validation/document-validator.js
+git commit -m "refactor: optimize validation performance"
+
+# 5. Integration
+git checkout main
+git merge feature/document-validation
+```
+
+#### Code Review Checklist
+- [ ] Follows all development principles above
+- [ ] Tests written first (TDD)
+- [ ] Functions <20 lines, files <200 lines
+- [ ] Input validation for all boundary functions
+- [ ] Error handling with user-friendly messages
+- [ ] No new dependencies without justification
+- [ ] Performance impact considered
+- [ ] Security implications reviewed
+
+This comprehensive set of development principles ensures Fantasy Editor maintains its high quality standards while remaining maintainable and secure.
+
+## 🏗️ Technical Architecture
+
+### High-Level System Architecture
+
+Fantasy Editor is built as a Progressive Web Application (PWA) with a client-side first architecture, emphasizing offline-first functionality, conflict-free keyboard shortcuts, and seamless Git provider integration.
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   User Device   │    │   Cloudflare     │    │   GitHub API    │
+│                 │    │   (Edge + CDN)   │    │                 │
+│  ┌───────────┐  │    │                  │    │  ┌───────────┐  │
+│  │ PWA Shell │◄─┼────┤  Security Headers│    │  │Repository │  │
+│  │           │  │    │  WAF Protection  │    │  │ Storage   │  │
+│  │ IndexedDB │  │    │  Static Assets   │    │  └───────────┘  │
+│  └───────────┘  │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+        │                        │                        │
+        └────── Offline Mode ────┘                        │
+                                                           │
+        ┌─────────────────┐    ┌──────────────────┐      │
+        │ Service Worker  │    │   Project        │      │
+        │                 │    │   Gutenberg API  │      │
+        │ Background Sync │    │   (Future)       │      │
+        │ Cache Strategy  │    │  ┌───────────┐   │      │
+        └─────────────────┘    │  │Book Data  │   │      │
+                               │  │& Quotes   │   │      │
+                               │  └───────────┘   │      │
+                               └──────────────────┘      │
+                                                         │
+                               ┌──────────────────┐      │
+                               │   Sync Manager   │◄─────┘
+                               │                  │
+                               │ Conflict         │
+                               │ Resolution       │
+                               └──────────────────┘
+```
+
+### Core Design Principles
+
+#### 1. Offline-First Architecture
+- **Local Storage Priority**: IndexedDB stores all documents locally first
+- **Background Sync**: Service Worker handles sync when connectivity returns
+- **Conflict Resolution**: Three-way merge algorithm for conflicting changes
+- **Graceful Degradation**: Full functionality available offline
+
+#### 2. Command-Centric Interface
+- **Single Entry Point**: Ctrl+Space is the only keyboard shortcut
+- **Zero Browser Conflicts**: No interference with browser shortcuts
+- **Fuzzy Search**: Real-time command filtering and execution
+- **Extensible Registry**: Easy addition of new commands
+
+#### 3. Theme-Aware Design
+- **CSS Custom Properties**: Dynamic theming system
+- **Component Consistency**: All UI elements respect current theme
+- **Performance Optimized**: Minimal reflow on theme switches
+- **Accessibility First**: High contrast and readable themes
+
+### Data Flow Architecture
+
+#### Document Lifecycle
+```
+User Input → Command System → Storage Manager → IndexedDB
+    ↓              ↓               ↓              ↓
+Theme Aware → Validation → Encryption → Local Storage
+    ↓              ↓               ↓              ↓
+UI Update → Search Index → Sync Queue → Background Sync
+    ↓              ↓               ↓              ↓
+Real-time → Full-text → GitHub API → Conflict Resolution
+```
+
+#### Command Flow
+```
+Ctrl+Space → Command Bar → Fuzzy Search → Command Registry
+     ↓             ↓            ↓              ↓
+  Show UI → Filter Results → Match Commands → Execute
+     ↓             ↓            ↓              ↓
+Theme Apply → Real-time → Parameter Parse → Action
+     ↓             ↓            ↓              ↓
+Update UI → Hide Command → Validation → Success/Error
+```
+
+#### Multi-Layer Storage Strategy
+```
+┌─────────────────────┐
+│   Application UI    │
+└─────────────────────┘
+          │
+┌─────────────────────┐
+│  Storage Manager    │  ← Unified Interface
+└─────────────────────┘
+          │
+    ┌─────┴─────┐
+    │           │
+┌───▼───┐   ┌───▼───┐
+│Local  │   │Remote │
+│Store  │   │Store  │
+└───────┘   └───────┘
+    │           │
+┌───▼───┐   ┌───▼───┐
+│Index  │   │GitHub │
+│DB     │   │API    │
+└───────┘   └───────┘
+```
+
+### Document Data Structure
+
+Documents use a comprehensive metadata structure for sync, search, and organization:
+
+```javascript
+{
+  uid: 'doc_1648125632_a1b2c3d4',    // Unique identifier
+  title: 'My Fantasy Novel',          // Human-readable title
+  content: '# Chapter 1\n...',        // Markdown content
+  tags: ['fantasy', 'novel'],         // Organization tags
+  metadata: {
+    created: '2024-01-15T10:30:00Z',  // Creation timestamp
+    modified: '2024-01-15T14:45:00Z', // Last modification
+    words: 1250,                      // Word count
+    characters: 7830,                 // Character count
+    readingTime: 5                    // Estimated reading time (minutes)
+  },
+  sync: {
+    status: 'synced',                 // sync status: synced|pending|conflict
+    lastSync: '2024-01-15T14:45:00Z', // Last successful sync
+    remoteSha: 'abc123def456',        // GitHub commit SHA
+    checksum: 'sha256:...'            // Content integrity hash
+  },
+  conflict: {                         // Present only during conflicts
+    local: { content: '...', timestamp: '...' },
+    remote: { content: '...', timestamp: '...' },
+    base: { content: '...', timestamp: '...' }
+  }
+}
+```
+
+### Security Architecture
+
+#### Defense in Depth
+```
+┌─────────────────────┐
+│   User Input        │
+└─────────────────────┘
+          │
+┌─────────────────────┐
+│  Client Validation  │  ← Input sanitization, DOMPurify
+└─────────────────────┘
+          │
+┌─────────────────────┐
+│  CSP Headers        │  ← Content Security Policy
+└─────────────────────┘
+          │
+┌─────────────────────┐
+│  WAF Protection     │  ← Cloudflare WAF rules
+└─────────────────────┘
+          │
+┌─────────────────────┐
+│  Encryption Layer   │  ← Client-side encryption
+└─────────────────────┘
+          │
+┌─────────────────────┐
+│  Secure Transport   │  ← HTTPS/TLS 1.3
+└─────────────────────┘
+```
+
+### Performance Architecture
+
+#### Bundle Splitting Strategy
+```javascript
+// vite.config.js - Optimized chunk strategy
+{
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core application shell
+          'app': ['./src/app.js'],
+
+          // Heavy dependencies
+          'vendor-editor': ['@codemirror/state', '@codemirror/view'],
+          'vendor-search': ['lunr'],
+          'vendor-utils': ['dompurify', 'date-fns'],
+
+          // Feature-based chunks
+          'commands': ['./src/core/commands'],
+          'themes': ['./src/core/themes'],
+          'sync': ['./src/core/storage/sync-manager.js'],
+
+          // UI components
+          'ui-components': ['./src/components/ui'],
+          'editor-components': ['./src/components/editor-panel'],
+          'command-components': ['./src/components/command-bar']
+        }
+      }
+    }
+  }
+}
+```
+
+#### Service Worker Cache Strategy
+```javascript
+const CACHE_STRATEGY = {
+  // App shell - Cache first, update in background
+  appShell: {
+    strategy: 'CacheFirst',
+    cacheName: 'app-shell-v1',
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+    files: ['/', '/index.html', '/manifest.json']
+  },
+
+  // Static assets - Cache first, long expiry
+  staticAssets: {
+    strategy: 'CacheFirst',
+    cacheName: 'static-assets-v1',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    pattern: /\.(js|css|woff2|png|svg)$/
+  },
+
+  // API calls - Network first, cache fallback
+  apiCalls: {
+    strategy: 'NetworkFirst',
+    cacheName: 'api-cache-v1',
+    maxAge: 5 * 60, // 5 minutes
+    pattern: /^https:\/\/api\.github\.com/
+  },
+
+  // Documents - Cache first for offline support
+  documents: {
+    strategy: 'CacheFirst',
+    cacheName: 'documents-v1',
+    maxAge: 24 * 60 * 60, // 24 hours
+    syncBackground: true
+  }
+}
+```
 
 ## 📁 Key Structure
 

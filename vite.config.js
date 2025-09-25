@@ -60,7 +60,7 @@ export default defineConfig(({ command, mode }) => {
           },
           {
             urlPattern: /^https:\/\/gutendex\.com\/.*/i,
-            handler: "CacheFirst", 
+            handler: "CacheFirst",
             options: {
               cacheName: "gutenberg-api",
               expiration: {
@@ -99,6 +99,25 @@ export default defineConfig(({ command, mode }) => {
             return `assets/css/[name]-[hash].${ext}`
           }
           return `assets/[name]-[hash].${ext}`
+        },
+        manualChunks: {
+          // PDF export functionality - loaded only when needed
+          'pdf-export': ['jspdf', 'html2canvas'],
+          // CodeMirror core - essential for editor
+          'codemirror': [
+            '@codemirror/state',
+            '@codemirror/view',
+            '@codemirror/commands',
+            '@codemirror/lang-markdown',
+            '@codemirror/search',
+            '@codemirror/autocomplete',
+            '@codemirror/language',
+            '@codemirror/merge'
+          ],
+          // Search functionality - loaded when needed
+          'search-utils': ['lunr'],
+          // Security utilities
+          'security': ['dompurify']
         }
       },
       external: isProduction ? [] : []

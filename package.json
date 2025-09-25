@@ -13,6 +13,8 @@
     "test:integration": "jest --testPathPattern=__tests__/integration",
     "test:e2e": "playwright test __tests__/e2e",
     "test:coverage": "jest --coverage",
+    "test:coverage:open": "jest --coverage && open coverage/lcov-report/index.html",
+    "test:coverage:watch": "jest --coverage --watch",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
@@ -40,7 +42,7 @@
     "gutenberg"
   ],
   "author": "Fantasy Forgewright",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "dependencies": {
     "@codemirror/autocomplete": "^6.11.1",
     "@codemirror/commands": "^6.3.3",
@@ -78,6 +80,7 @@
     "js-yaml": "^4.1.0",
     "license-checker": "^25.0.1",
     "prettier": "^3.1.0",
+    "rollup-plugin-visualizer": "^6.0.3",
     "vite-bundle-analyzer": "^0.7.0"
   },
   "browserslist": [

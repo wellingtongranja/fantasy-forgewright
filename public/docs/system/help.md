@@ -2,11 +2,15 @@
 
 **Version 0.0.1 (Alpha)**
 
-Welcome to Fantasy Editor - a distraction-free markdown editor for fantasy writers.
+Welcome to Fantasy Editor - a distraction-free, keyboard-first markdown editor for writers.
 
-## Getting Started
+## 🚀 Getting Started
 
-Fantasy Editor uses a command-based interface. Press `Ctrl+Space` to open the command palette and start exploring!
+Fantasy Editor uses a revolutionary command-based interface:
+1. Press `Ctrl+Space` to open the command palette
+2. Type colon commands like `:n My Story` to create a new document
+3. Use `:glo` to connect GitHub, `:t dark` for dark theme
+4. The magic key `Ctrl+Space` is your gateway to everything!
 
 ## Key Features
 
@@ -48,10 +52,10 @@ Fantasy Editor uses a command-based interface. Press `Ctrl+Space` to open the co
 ### Width Control
 | Command | Shortcut | Description |
 |---------|----------|-------------|
-| Width 65ch | `:w65` | Set editor width to 65 characters |
-| Width 80ch | `:w80` | Set editor width to 80 characters |
-| Width 90ch | `:w90` | Set editor width to 90 characters |
-| Width Full | `:wf` | Set editor to full width |
+| Width 65ch | `:65` | Set editor width to 65 characters (optimal) |
+| Width 80ch | `:80` | Set editor width to 80 characters |
+| Width 90ch | `:90` | Set editor width to 90 characters |
+| Editor Info | `:ei` | Show current width and zoom settings |
 
 ### Themes
 | Command | Shortcut | Description |
@@ -104,12 +108,44 @@ Fantasy Editor uses a command-based interface. Press `Ctrl+Space` to open the co
 
 All commands are accessed through `Ctrl+Space` followed by the command shortcut. This design avoids conflicts with browser shortcuts and provides a consistent interface.
 
-## Support
+## 📖 More Help & Documentation
 
-Fantasy Editor is currently in **Alpha (v0.0.1)**. All features are free during the alpha period. 
+For detailed guides and technical information:
+- **Complete User Guide** - Comprehensive feature documentation
+- **Developer Guide** - Technical development and architecture
+- **Workers Guide** - Cloudflare Workers and OAuth setup
+- **Security Guide** - Security implementation details
+- **Legal Documentation** - Full license, privacy, and legal terms
 
-For bug reports and feature requests, please visit our GitHub repository.
+Access the complete documentation through the project repository.
+
+## 💡 Writing Tips
+
+1. **Start Simple** - Try `:n My First Story` to create your first document
+2. **Use Optimal Width** - `:65` provides the most comfortable reading experience
+3. **Organize with Tags** - `:tag add fantasy adventure` to organize your work
+4. **GitHub Backup** - `:glo` then `:gcf username repo` for cloud sync
+5. **Quick Navigation** - `:d` to jump between documents, `:f` to search
+
+## 🆘 Troubleshooting
+
+**Command palette not working?**
+- Ensure you're pressing `Ctrl+Space` (not other shortcuts)
+- Click in the editor area first to ensure proper focus
+
+**GitHub sync issues?**
+- Try `:gou` then `:glo` to re-authenticate
+- Use `:gst` to check current connection and sync status
+
+## 📞 Support
+
+**Fantasy Editor v0.0.1 (Alpha)**
+- All features free during alpha period
+- Report issues via project repository
+- Community support available
 
 ---
 
 *Fantasy Editor - Write your epic tales with focus and clarity*
+
+**Remember**: `Ctrl+Space` is your magic key to everything!
