@@ -1,3 +1,31 @@
+// Core CSS imports - loaded first
+import './styles/base.css'
+import './styles/variables.css'
+
+// Component CSS imports
+import './components/navigator/navigator.css'
+import './components/sidebar/file-tree.css'
+import './components/search/search-results.css'
+import './components/auth/github-auth-button.css'
+import './components/auth/github-user-menu.css'
+import './styles/components/auth-button.css'
+import './styles/components/provider-selector.css'
+import './styles/components/command-bar-trigger.css'
+import './components/status-bar/status-bar.css'
+
+// Theme CSS imports - loaded last to override component defaults
+import './styles/themes/light.css'
+import './styles/themes/dark.css'
+import './styles/themes/fantasy.css'
+import './styles/themes/custom.css'
+
+// Specific component CSS
+import './components/command-bar-v2/styles/command-bar.css'
+import './components/dialogs/settings-dialog.css'
+import './components/legal-splash/legal-splash.css'
+import './styles/diff-mode.css'
+
+// JavaScript imports
 import { EditorManager } from './core/editor/editor.js'
 import { ThemeManager } from './core/themes/theme-manager.js'
 import { StorageManager } from './core/storage/storage-manager.js'
@@ -5,8 +33,6 @@ import { SettingsManager } from './core/settings/settings-manager.js'
 import { SearchEngine } from './core/search/search-engine.js'
 import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar-v2/components/CommandBar.js'
-import './components/command-bar-v2/styles/command-bar.css'
-import './components/dialogs/settings-dialog.css'
 import { Navigator } from './components/navigator/navigator.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
@@ -24,9 +50,7 @@ import { WidthManager } from './core/editor/width-manager.js'
 import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
 import { LegalManager } from './core/legal/legal-manager.js'
 import { LegalSplash } from './components/legal-splash/legal-splash.js'
-import './components/legal-splash/legal-splash.css'
 import { DiffManager } from './core/diff/diff-manager.js'
-import './styles/diff-mode.css'
 
 class FantasyEditorApp {
   constructor() {

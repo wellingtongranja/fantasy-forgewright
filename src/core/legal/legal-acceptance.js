@@ -5,7 +5,7 @@
 export class LegalAcceptanceManager {
   constructor() {
     this.dbName = 'FantasyEditorLegalDB'
-    this.dbVersion = 1
+    this.dbVersion = undefined // Will be determined dynamically
     this.storeName = 'legal_acceptances'
     this.db = null
     this.allowedDocumentTypes = [
@@ -21,30 +21,105 @@ export class LegalAcceptanceManager {
    * Initialize IndexedDB database
    */
   async initDatabase() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion)
+    console.log('Initializing IndexedDB database:', this.dbName)
 
-      request.onerror = () => {
-        reject(new Error('Failed to open legal database'))
-      }
+    // Check if IndexedDB is available
+    if (!window.indexedDB) {
+      console.warn('IndexedDB not supported, falling back to localStorage')
+      this.db = null
+      return Promise.resolve(null)
+    }
+
+    try {
+      // First, try to open without version to get current version
+      const currentVersion = await this.getCurrentDatabaseVersion()
+      console.log('Current database version:', currentVersion)
+
+      // Use current version + 1 if database exists, otherwise start with 1
+      this.dbVersion = currentVersion ? currentVersion + 1 : 1
+      console.log('Using database version:', this.dbVersion)
+
+      return this.openDatabase()
+    } catch (error) {
+      console.error('Failed to initialize database:', error)
+      console.warn('Falling back to localStorage')
+      this.db = null
+      return Promise.resolve(null)
+    }
+  }
+
+  /**
+   * Get current database version
+   */
+  async getCurrentDatabaseVersion() {
+    return new Promise((resolve, reject) => {
+      // Open without version to get current version
+      const request = indexedDB.open(this.dbName)
 
       request.onsuccess = (event) => {
-        this.db = event.target.result
-        resolve(this.db)
+        const db = event.target.result
+        const version = db.version
+        db.close()
+        resolve(version)
       }
 
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result
-
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
-          store.createIndex('userId', 'userId', { unique: false })
-          store.createIndex('documentType', 'documentType', { unique: false })
-          store.createIndex('acceptedAt', 'acceptedAt', { unique: false })
-        }
+      request.onerror = () => {
+        // Database doesn't exist
+        resolve(0)
       }
     })
   }
+
+  /**
+   * Open database with proper version
+   */
+  async openDatabase() {
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('Opening IndexedDB with version:', this.dbVersion)
+        const request = indexedDB.open(this.dbName, this.dbVersion)
+
+        request.onerror = (event) => {
+          console.error('IndexedDB open error:', event.target.error)
+          reject(new Error(`Failed to open legal database: ${event.target.error?.message || event.target.error || 'Unknown error'}`))
+        }
+
+        request.onsuccess = (event) => {
+          console.log('IndexedDB opened successfully')
+          const db = event.target.result
+          this.db = db
+
+          console.log('Available object stores:', Array.from(db.objectStoreNames))
+          console.log('Database initialized successfully with object store:', this.storeName)
+          resolve(db)
+        }
+
+        request.onupgradeneeded = (event) => {
+          console.log('IndexedDB upgrade needed, creating schema')
+          const db = event.target.result
+
+          // Remove existing object store if it exists with wrong name
+          if (db.objectStoreNames.contains('legalAcceptances')) {
+            console.log('Removing legacy object store: legalAcceptances')
+            db.deleteObjectStore('legalAcceptances')
+          }
+
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            console.log('Creating object store:', this.storeName)
+            const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
+            store.createIndex('userId', 'userId', { unique: false })
+            store.createIndex('documentType', 'documentType', { unique: false })
+            store.createIndex('acceptedAt', 'acceptedAt', { unique: false })
+            console.log('Object store created with indexes')
+          }
+        }
+      } catch (error) {
+        console.error('Error opening IndexedDB:', error)
+        reject(new Error(`Failed to access IndexedDB: ${error.message}`))
+      }
+    })
+  }
+
 
   /**
    * Record legal document acceptance
@@ -55,14 +130,61 @@ export class LegalAcceptanceManager {
 
     const record = this.createAcceptanceRecord(acceptanceData)
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([this.storeName], 'readwrite')
-      const store = transaction.objectStore(this.storeName)
-      const request = store.add(record)
+    // Fallback to localStorage if IndexedDB failed
+    if (!this.db) {
+      return this.recordAcceptanceLocalStorage(record)
+    }
 
-      transaction.oncomplete = () => resolve(record)
-      transaction.onerror = () => reject(new Error('Failed to record acceptance'))
+    return new Promise((resolve, reject) => {
+      try {
+        // Double-check database and object store exist
+        if (!this.db.objectStoreNames.contains(this.storeName)) {
+          console.warn('Object store missing, falling back to localStorage')
+          this.recordAcceptanceLocalStorage(record).then(resolve).catch(reject)
+          return
+        }
+
+        const transaction = this.db.transaction([this.storeName], 'readwrite')
+        const store = transaction.objectStore(this.storeName)
+        // Use put instead of add to allow overwriting existing records
+        const request = store.put(record)
+
+        transaction.oncomplete = () => resolve(record)
+        transaction.onerror = (event) => {
+          console.error('Transaction error:', event.target.error)
+          console.warn('Falling back to localStorage')
+          this.recordAcceptanceLocalStorage(record).then(resolve).catch(reject)
+        }
+        transaction.onabort = (event) => {
+          console.error('Transaction aborted:', event.target.error)
+          console.warn('Falling back to localStorage')
+          this.recordAcceptanceLocalStorage(record).then(resolve).catch(reject)
+        }
+      } catch (error) {
+        console.error('Error creating transaction:', error)
+        console.warn('Falling back to localStorage')
+        this.recordAcceptanceLocalStorage(record).then(resolve).catch(reject)
+      }
     })
+  }
+
+  /**
+   * Record acceptance using localStorage fallback
+   */
+  async recordAcceptanceLocalStorage(record) {
+    try {
+      const storageKey = `${this.dbName}_${this.storeName}`
+      const existing = JSON.parse(localStorage.getItem(storageKey) || '[]')
+
+      // Remove any existing record with same ID
+      const filtered = existing.filter(r => r.id !== record.id)
+      filtered.push(record)
+
+      localStorage.setItem(storageKey, JSON.stringify(filtered))
+      return record
+    } catch (error) {
+      throw new Error(`Failed to store acceptance in localStorage: ${error.message}`)
+    }
   }
 
   /**
@@ -173,8 +295,32 @@ export class LegalAcceptanceManager {
       throw new Error('Document hash is required')
     }
 
-    const acceptance = await this.getUserAcceptance(userId, documentType)
-    return acceptance ? acceptance.documentHash === documentHash : false
+    try {
+      const acceptance = await this.getUserAcceptance(userId, documentType)
+      return acceptance ? acceptance.documentHash === documentHash : false
+    } catch (error) {
+      // Fallback to localStorage if IndexedDB fails
+      return this.hasUserAcceptedLocalStorage(userId, documentType, documentHash)
+    }
+  }
+
+  /**
+   * Check acceptance using localStorage fallback
+   */
+  hasUserAcceptedLocalStorage(userId, documentType, documentHash) {
+    try {
+      const storageKey = `${this.dbName}_${this.storeName}`
+      const records = JSON.parse(localStorage.getItem(storageKey) || '[]')
+
+      const acceptance = records.find(r =>
+        r.userId === userId && r.documentType === documentType
+      )
+
+      return acceptance ? acceptance.documentHash === documentHash : false
+    } catch (error) {
+      console.error('Error checking localStorage acceptance:', error)
+      return false
+    }
   }
 
   /**

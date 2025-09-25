@@ -5,7 +5,7 @@
 
 // Worker URLs for different environments
 export const LEGAL_WORKER_URLS = {
-  development: 'http://localhost:8788',
+  development: 'http://localhost:64667',
   staging: 'https://fantasy-legal-docs-staging.wellington-granja.workers.dev',
   production: 'https://fantasy-legal-docs.wellington-granja.workers.dev'
 }

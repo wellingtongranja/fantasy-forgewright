@@ -10,68 +10,71 @@ export default defineConfig(({ command, mode }) => {
   publicDir: 'public',
   base: env.VITE_BASE_PATH || '/',
   plugins: [
-    VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png"],
-      filename: "sw.js",
-      strategies: "generateSW",
-      manifest: {
-        name: "Fantasy Editor",
-        short_name: "Fantasy",
-        description: "A distraction-free markdown editor for fantasy writers",
-        theme_color: "#2c3e50",
-        background_color: "#ffffff",
-        display: "standalone",
-        orientation: "portrait",
-        scope: "/",
-        start_url: "/",
-        icons: [
-          {
-            src: "icons/icon-192.png",
-            sizes: "192x192",
-            type: "image/png"
-          },
-          {
-            src: "icons/icon-512.png",
-            sizes: "512x512",
-            type: "image/png"
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        cleanupOutdatedCaches: true,
-        skipWaiting: isProduction,
-        clientsClaim: isProduction,
-        navigateFallback: null,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.github\.com\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "github-api",
-              networkTimeoutSeconds: 10,
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 24 * 60 * 60
+    // Disable PWA in development to prevent service worker HTTPS upgrade issues
+    ...(isProduction ? [
+      VitePWA({
+        registerType: "autoUpdate",
+        includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+        filename: "sw.js",
+        strategies: "generateSW",
+        manifest: {
+          name: "Fantasy Editor",
+          short_name: "Fantasy",
+          description: "A distraction-free markdown editor for fantasy writers",
+          theme_color: "#2c3e50",
+          background_color: "#ffffff",
+          display: "standalone",
+          orientation: "portrait",
+          scope: "/",
+          start_url: "/",
+          icons: [
+            {
+              src: "icons/icon-192.png",
+              sizes: "192x192",
+              type: "image/png"
+            },
+            {
+              src: "icons/icon-512.png",
+              sizes: "512x512",
+              type: "image/png"
+            }
+          ]
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+          cleanupOutdatedCaches: true,
+          skipWaiting: isProduction,
+          clientsClaim: isProduction,
+          navigateFallback: null,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/api\.github\.com\/.*/i,
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "github-api",
+                networkTimeoutSeconds: 10,
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 24 * 60 * 60
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/gutendex\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "gutenberg-api",
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 7 * 24 * 60 * 60
+                }
               }
             }
-          },
-          {
-            urlPattern: /^https:\/\/gutendex\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "gutenberg-api",
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 7 * 24 * 60 * 60
-              }
-            }
-          }
-        ]
-      }
-    })
+          ]
+        }
+      })
+    ] : [])
   ],
   build: {
     target: "es2020",
