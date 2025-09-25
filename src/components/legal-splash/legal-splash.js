@@ -3,6 +3,7 @@
  * Follows Fantasy Editor standards: clean code, defensive programming, KISS principle
  */
 import { manifestLoader } from '../../utils/manifest-loader.js'
+import { safeHTML } from '../../utils/security.js'
 
 export class LegalSplash {
   constructor(legalManager, manifestLoaderInstance = manifestLoader, options = {}) {
@@ -667,13 +668,25 @@ export class LegalSplash {
       }
 
       if (document.error) {
-        contentArea.innerHTML = `<div class="splash-error">Error loading document: ${document.error}</div>`
+        // Safely display error message to prevent XSS
+        const errorDiv = document.createElement('div')
+        errorDiv.className = 'splash-error'
+        errorDiv.textContent = `Error loading document: ${document.error}`
+        contentArea.innerHTML = ''
+        contentArea.appendChild(errorDiv)
         return
       }
 
-      // Direct content rendering - no regex extraction needed
+      // Safely render markdown content with HTML sanitization
       const content = this.renderMarkdown(document.content)
-      contentArea.innerHTML = content
+      safeHTML(content, ['p', 'br', 'strong', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a'], ['href', 'title'])
+        .then(sanitizedContent => {
+          contentArea.innerHTML = sanitizedContent
+        })
+        .catch(error => {
+          console.error('Error sanitizing legal document content:', error)
+          contentArea.textContent = document.content // Fallback to plain text
+        })
     }
   }
 

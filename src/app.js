@@ -929,9 +929,18 @@ class FantasyEditorApp {
     const notification = document.createElement('div')
     notification.className = `notification notification-${type}`
 
-    // Handle multiline messages by converting newlines to <br> tags
+    // Handle multiline messages by converting newlines to <br> tags safely
     if (message.includes('\n')) {
-      notification.innerHTML = message.replace(/\n/g, '<br>')
+      // Use safe text with line breaks - escape HTML and convert newlines
+      const escaped = message
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;')
+        .replace(/\n/g, '<br>')
+      notification.innerHTML = escaped
     } else {
       notification.textContent = message
     }

@@ -216,11 +216,12 @@ export class StatusBarManager {
     
     // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
-      // Use eval to dynamically access import.meta to avoid syntax errors in Jest
+      // Safely access import.meta without eval to prevent code injection
       try {
-        const importMetaAccess = eval('import.meta')
-        env = importMetaAccess?.env || {}
+        // Use try-catch to safely access import.meta
+        env = import.meta?.env || {}
       } catch (error) {
+        // import.meta not available (likely in test environment)
         env = {}
       }
     } else if (typeof global !== 'undefined' && global.import?.meta?.env) {

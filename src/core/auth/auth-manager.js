@@ -241,8 +241,8 @@ export class AuthManager {
       // Fetch user information
       await this.fetchUserInfo()
 
-      // Store authentication
-      this.storeAuth()
+      // Store authentication securely
+      await this.storeAuth()
 
       // Emit auth state change event
       this.emitAuthStateChange()
@@ -260,12 +260,12 @@ export class AuthManager {
   /**
    * Logout and clear authentication
    */
-  logout() {
+  async logout() {
     this.currentProvider = null
     this.providerConfig = null
     this.accessToken = null
     this.user = null
-    this.clearStoredAuth()
+    await this.clearStoredAuth()
     this.cleanupOAuthSession()
 
     // Emit auth state change event
@@ -477,16 +477,25 @@ export class AuthManager {
   }
 
   /**
-   * Store authentication data
+   * Store authentication data securely with encryption
    */
-  storeAuth() {
-    const authData = {
-      provider: this.currentProvider,
-      accessToken: this.accessToken,
-      user: this.user,
-      timestamp: Date.now()
+  async storeAuth() {
+    try {
+      // Import security utilities for secure token storage
+      const { storeSecureAuth } = await import('../../utils/security.js')
+
+      const authData = {
+        provider: this.currentProvider,
+        accessToken: this.accessToken,
+        user: this.user,
+        timestamp: Date.now()
+      }
+
+      await storeSecureAuth(authData)
+    } catch (error) {
+      console.error('Failed to store authentication data:', error)
+      throw new Error('Failed to store authentication data securely')
     }
-    localStorage.setItem('auth_data', JSON.stringify(authData))
   }
 
   /**
@@ -494,17 +503,12 @@ export class AuthManager {
    * @returns {Promise<boolean>} True if auth was loaded and validated
    */
   async loadStoredAuth() {
-    const authData = localStorage.getItem('auth_data')
-    if (!authData) {
-      return false
-    }
-
     try {
-      const data = JSON.parse(authData)
-      
-      // Check if auth is not too old (24 hours)
-      if (Date.now() - data.timestamp > 24 * 60 * 60 * 1000) {
-        this.clearStoredAuth()
+      // Import security utilities for secure token loading
+      const { loadSecureAuth } = await import('../../utils/security.js')
+
+      const data = await loadSecureAuth()
+      if (!data) {
         return false
       }
 
@@ -522,7 +526,7 @@ export class AuthManager {
       return true
     } catch (error) {
       console.warn('Stored auth validation failed:', error.message)
-      this.clearStoredAuth()
+      await this.clearStoredAuth()
       this.currentProvider = null
       this.providerConfig = null
       this.accessToken = null
@@ -532,10 +536,22 @@ export class AuthManager {
   }
 
   /**
-   * Clear stored authentication data
+   * Clear stored authentication data securely
    */
-  clearStoredAuth() {
-    localStorage.removeItem('auth_data')
+  async clearStoredAuth() {
+    try {
+      // Import security utilities for secure clearing
+      const { clearSecureAuth } = await import('../../utils/security.js')
+      clearSecureAuth()
+
+      // Also clear any legacy localStorage data for backward compatibility
+      localStorage.removeItem('auth_data')
+    } catch (error) {
+      console.error('Error clearing authentication data:', error)
+      // Fallback to basic clearing
+      localStorage.removeItem('auth_data')
+      sessionStorage.removeItem('auth_data')
+    }
   }
 
   /**

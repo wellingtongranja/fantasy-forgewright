@@ -17,6 +17,8 @@
  * documentsTab.applyFilter('search term')
  * documentsTab.setSortBy('modified')
  */
+
+import { safeHTML } from '../../../utils/security.js'
 export class DocumentsTab {
   /**
    * Create a DocumentsTab instance
@@ -212,7 +214,15 @@ export class DocumentsTab {
     }
 
     html += '</div>'
-    content.innerHTML = html
+    // Safely set HTML content to prevent XSS attacks
+    safeHTML(html, ['div', 'span', 'a', 'strong', 'em', 'br', 'p'], ['class', 'data-doc-id', 'data-action', 'title', 'href'])
+      .then(sanitizedHtml => {
+        content.innerHTML = sanitizedHtml
+      })
+      .catch(error => {
+        console.error('Error sanitizing documents HTML:', error)
+        content.textContent = 'Error rendering documents'
+      })
   }
 
   renderDocumentsVirtual() {
@@ -247,7 +257,15 @@ export class DocumentsTab {
       </div>
     `
 
-    content.innerHTML = html
+    // Safely set HTML content to prevent XSS attacks in virtual scrolling
+    safeHTML(html, ['div', 'span', 'a', 'strong', 'em', 'br', 'p'], ['class', 'data-doc-id', 'data-action', 'title', 'href'])
+      .then(sanitizedHtml => {
+        content.innerHTML = sanitizedHtml
+      })
+      .catch(error => {
+        console.error('Error sanitizing virtual documents HTML:', error)
+        content.textContent = 'Error rendering documents'
+      })
 
     // Add scroll listener for virtual scrolling
     if (!content.dataset.virtualScrollingAttached) {
