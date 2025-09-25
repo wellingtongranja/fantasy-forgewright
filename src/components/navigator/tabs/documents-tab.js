@@ -825,7 +825,7 @@ export class DocumentsTab {
   }
 
   async viewDocumentDiff(docId) {
-    console.log('🔄 Navigator.viewDocumentDiff called with docId:', docId)
+    // Viewing document diff - debug logging removed for production security
 
     if (!this.app.gitService || !this.app.diffManager) {
       console.error('❌ Services not available:', {
@@ -838,7 +838,7 @@ export class DocumentsTab {
 
     // Check if already in diff mode - if so, toggle off
     if (this.app.editor && this.app.editor.isInDiffMode()) {
-      console.log('📤 Already in diff mode, exiting...')
+      // Already in diff mode - exiting to prevent conflicts
       const success = await this.app.editor.exitDiffMode(true) // Keep current changes
       if (success) {
         this.app.showNotification?.('Diff mode closed - changes preserved', 'success')
@@ -848,7 +848,7 @@ export class DocumentsTab {
       return
     }
 
-    console.log('✅ Services available, proceeding with diff...')
+    // Services available - proceeding with diff operation
 
     try {
       // Check if document is out-of-sync (has Git metadata and local changes)
@@ -889,14 +889,11 @@ export class DocumentsTab {
 
       // Enter diff mode
       if (this.app.editor && this.app.diffManager) {
-        console.log('🚀 Calling editor.enterDiffMode with:', {
-          localContentLength: document.content.length,
-          remoteContentLength: remoteResult.content.length
-        })
+        // Calling editor.enterDiffMode - content analysis removed for security
 
         try {
           const success = await this.app.editor.enterDiffMode(document.content, remoteResult.content)
-          console.log('📊 enterDiffMode result:', success)
+          // Diff mode result processed - debug output removed for security
 
           if (success) {
             this.app.showNotification?.('Diff mode activated - review changes and accept or cancel', 'success')
@@ -924,12 +921,12 @@ export class DocumentsTab {
   showDocumentContextMenu(x, y, menuItems) {
     // This would show a context menu at the specified coordinates
     // For now, just log the menu items
-    console.log('Context menu at', x, y, 'with items:', menuItems)
+    // Context menu created - position and items data removed for security
   }
 
   async renameDocument(docId) {
     // This would show a rename dialog
-    console.log('Rename document:', docId)
+    // Rename document operation - debug output removed for security
     this.app.showNotification?.('Rename functionality not yet implemented', 'info')
   }
 
@@ -1198,7 +1195,7 @@ export class DocumentsTab {
 
   enableVirtualScrolling() {
     this.virtualScrolling.enabled = true
-    console.log('Virtual scrolling enabled for', this.documents.length, 'documents')
+    // Virtual scrolling enabled - document count removed for security
   }
 
   disableVirtualScrolling() {
@@ -1394,7 +1391,7 @@ export class DocumentsTab {
     let startHeight = 0
 
     this.separatorMouseDown = (e) => {
-      console.log('Separator mousedown triggered') // Debug
+      // Separator mousedown triggered - debug output removed
       isResizing = true
       startY = e.clientY
       startHeight = this.recentSectionHeight

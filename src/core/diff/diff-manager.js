@@ -20,10 +20,7 @@ export class DiffManager {
     this.originalContent = null
     this.contentChangeTimeout = null
 
-    // Debug: Check if unifiedMergeView is available
-    console.log('DiffManager constructor - unifiedMergeView available:', typeof unifiedMergeView)
-    console.log('DiffManager constructor - acceptChunk available:', typeof acceptChunk)
-    console.log('DiffManager constructor - rejectChunk available:', typeof rejectChunk)
+    // Dependencies initialized - debug logging removed for production security
 
     // Test basic import
     this.testUnifiedMergeViewImport()
@@ -34,15 +31,10 @@ export class DiffManager {
    */
   testUnifiedMergeViewImport() {
     try {
-      console.log('Testing unifiedMergeView import...')
-      console.log('unifiedMergeView type:', typeof unifiedMergeView)
-      console.log('acceptChunk type:', typeof acceptChunk)
-      console.log('rejectChunk type:', typeof rejectChunk)
-
-      // Test markdown import
-      console.log('markdown function:', typeof markdown, markdown)
-
-      console.log('✅ Unified merge view imports test completed')
+      // Validate dependencies are available
+      if (typeof unifiedMergeView === 'undefined' || typeof acceptChunk === 'undefined' || typeof rejectChunk === 'undefined') {
+        throw new Error('Required diff dependencies not available')
+      }
     } catch (error) {
       console.error('❌ Unified merge view import test failed:', error)
     }
@@ -55,10 +47,7 @@ export class DiffManager {
    * @returns {Promise<boolean>} Success status
    */
   async enterDiffMode(localDoc, remoteContent) {
-    console.log('DiffManager.enterDiffMode (unified) called with:', {
-      localDoc: localDoc ? { id: localDoc.id, title: localDoc.title, contentLength: localDoc.content?.length } : null,
-      remoteContentLength: remoteContent?.length
-    })
+    // Entering unified diff mode - debug logging removed for production security
 
     // Step 1: Validate inputs
     if (!localDoc || typeof remoteContent !== 'string') {
@@ -91,11 +80,7 @@ export class DiffManager {
       // Store remote content for reject all functionality
       this.remoteContent = testRemoteContent
 
-      console.log('Creating unified diff with content:', {
-        remoteLength: testRemoteContent.length,
-        localLength: testLocalContent.length,
-        areIdentical: testRemoteContent === testLocalContent
-      })
+      // Creating unified diff view - content analysis removed for security
 
       // Step 5: Create unified merge view extensions
       this.diffExtensions = unifiedMergeView({
@@ -134,9 +119,7 @@ export class DiffManager {
       // Create and add close button
       this.createCloseButton()
 
-      console.log('✅ Unified diff mode active - use inline accept/reject controls, close button, or :gdf to exit')
-
-      console.log('Unified diff mode entered successfully')
+      // Unified diff mode active - UI controls ready
       return true
     } catch (error) {
       console.error('Failed to enter unified diff mode:', error)
@@ -214,9 +197,7 @@ export class DiffManager {
       // Remove close button
       this.removeCloseButton()
 
-      console.log('✅ Unified diff mode exited - changes preserved')
-
-      console.log('Unified diff mode exited successfully')
+      // Unified diff mode exited - changes preserved
       return true
     } catch (error) {
       console.error('Failed to exit unified diff mode:', error)
@@ -379,7 +360,7 @@ export class DiffManager {
         this.contentChangeTimeout = setTimeout(() => {
           if (this.app?.handleContentChange && typeof this.app.handleContentChange === 'function') {
             const newContent = update.state.doc.toString()
-            console.log('DiffManager: Content changed during diff mode, updating Navigator outline')
+            // Content changed during diff mode - updating Navigator outline
             this.app.handleContentChange(newContent)
           }
         }, 300)

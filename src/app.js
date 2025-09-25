@@ -217,7 +217,7 @@ class FantasyEditorApp {
 
         const onAcceptance = async () => {
           // Auto-open release notes after legal acceptance (first-time only)
-          console.log('🎉 Legal documents accepted - opening release notes')
+          // Legal documents accepted - opening release notes
           await this.openReleaseNotesAfterAcceptance()
         }
 
@@ -237,23 +237,23 @@ class FantasyEditorApp {
    */
   async openReleaseNotesAfterAcceptance() {
     try {
-      console.log('📋 Attempting to open release notes after legal acceptance')
+      // Attempting to open release notes after legal acceptance
 
       // Initialize system documents manager if needed
       if (!this.systemDocumentsManager) {
-        console.log('📋 Initializing system documents manager')
+        // Initializing system documents manager
         const { SystemDocumentsManager } = await import('./core/storage/system-documents.js')
         this.systemDocumentsManager = new SystemDocumentsManager(this.storageManager)
       }
 
       // Load release notes using same pattern as :release command
-      console.log('📋 Loading release notes document')
+      // Loading release notes document
       const releaseDoc = await this.systemDocumentsManager.getSystemDocument('release-notes')
       if (releaseDoc) {
-        console.log('📋 Release notes found, loading with delay')
+        // Release notes found, loading with delay
         // Small delay to ensure legal splash has finished closing
         setTimeout(() => {
-          console.log('📋 Loading release notes document into editor')
+          // Loading release notes document into editor
           this.loadDocument(releaseDoc)
           this.showNotification('Welcome to Fantasy Editor! Here\'s what\'s new in this version.', 'info')
         }, 500)
@@ -358,7 +358,7 @@ class FantasyEditorApp {
   async setupDefaultRepository(user) {
     try {
       if (!this.githubStorage) {
-        console.log('Git repository storage not initialized, skipping repository setup')
+        // Git repository storage not initialized, skipping repository setup
         return
       }
 

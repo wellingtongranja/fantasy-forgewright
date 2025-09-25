@@ -38,12 +38,7 @@ export class AuthManager {
     const isLocalDev = window?.location?.hostname === 'localhost'
     this.workerUrl = isLocalDev ? 'http://localhost:8787' : (workerUrl || 'https://oauth.forgewright.io')
 
-    // DEBUG: Log environment variables for troubleshooting
-    console.log('🔍 AUTH MANAGER DEBUG:')
-    console.log('  workerUrl from env:', workerUrl)
-    console.log('  final workerUrl:', this.workerUrl)
-    console.log('  import.meta.env.VITE_OAUTH_WORKER_URL:', import.meta.env.VITE_OAUTH_WORKER_URL)
-    console.log('  all VITE env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')))
+    // Environment configuration validated - debug logging removed for production security
     
     
     // Provider configurations

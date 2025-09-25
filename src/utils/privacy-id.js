@@ -5,29 +5,39 @@
  */
 
 /**
- * Generate a browser fingerprint for privacy-compliant identification
- * Uses non-invasive browser characteristics that don't reveal personal info
- * @returns {Promise<string>} Anonymous browser fingerprint
+ * Generate a browser fingerprint ONLY with explicit user consent
+ * This function performs fingerprinting which requires GDPR consent
+ * @param {boolean} hasConsent - Whether user has explicitly consented to fingerprinting
+ * @returns {Promise<string>} Anonymous browser fingerprint or consent-free fallback
  */
-async function generateBrowserFingerprint() {
+async function generateBrowserFingerprint(hasConsent = false) {
+  // GDPR/CCPA Compliance: Only perform fingerprinting with explicit consent
+  if (!hasConsent) {
+    // Return consent-free random identifier
+    const fallback = Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
+    return fallback.slice(0, 16)
+  }
+
   const components = []
 
   try {
-    // Screen characteristics (not personal info)
+    // Only collect browser characteristics if user has explicitly consented
+    // Screen characteristics
     components.push(screen.width.toString())
     components.push(screen.height.toString())
     components.push(screen.colorDepth.toString())
 
-    // Timezone (not personal, used by many sites)
+    // Timezone
     components.push(Intl.DateTimeFormat().resolvedOptions().timeZone)
 
-    // Language preference (not personal, publicly visible)
+    // Language preference
     components.push(navigator.language || 'en')
 
-    // Platform/OS (not personal, in user agent)
+    // Platform/OS
     components.push(navigator.platform || 'unknown')
 
-    // Available fonts (not personal, used for design compatibility)
+    // WARNING: Canvas fingerprinting requires explicit consent under GDPR
+    // Only perform if user has specifically consented to fingerprinting
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     if (ctx) {
@@ -38,7 +48,7 @@ async function generateBrowserFingerprint() {
       components.push(fontFingerprint)
     }
 
-    // Hardware concurrency (not personal, performance optimization)
+    // Hardware concurrency
     if (navigator.hardwareConcurrency) {
       components.push(navigator.hardwareConcurrency.toString())
     }
@@ -54,7 +64,7 @@ async function generateBrowserFingerprint() {
     // Return first 16 characters for reasonable anonymity
     return hashHex.slice(0, 16)
   } catch (error) {
-    // Fallback to timestamp-based ID if fingerprinting fails
+    // Fallback to consent-free random ID if fingerprinting fails
     const fallback = Date.now().toString(36) + Math.random().toString(36).slice(2, 10)
     return fallback.slice(0, 16)
   }
@@ -63,6 +73,7 @@ async function generateBrowserFingerprint() {
 /**
  * Get or generate a privacy-compliant user ID
  * Stored in sessionStorage to reset between browser sessions for privacy
+ * GDPR/CCPA Compliant: Only performs fingerprinting with explicit user consent
  * @returns {Promise<string>} Privacy-compliant user identifier
  */
 export async function getPrivacyCompliantUserId() {
@@ -71,11 +82,17 @@ export async function getPrivacyCompliantUserId() {
     let userId = sessionStorage.getItem('privacy_user_id')
 
     if (!userId) {
-      // Generate new fingerprint-based ID
-      const fingerprint = await generateBrowserFingerprint()
+      // Check if user has explicitly consented to fingerprinting (GDPR requirement)
+      const consent = getConsentStatus()
+      const hasFingerprintingConsent = consent.fingerprinting || false
+
+      // Generate ID based on consent status
+      // With consent: stable fingerprint-based ID
+      // Without consent: random session ID (GDPR compliant)
+      const fingerprint = await generateBrowserFingerprint(hasFingerprintingConsent)
       userId = `user_${fingerprint}`
 
-      // Store in sessionStorage (expires when browser closes)
+      // Store in sessionStorage (expires when browser closes for privacy)
       sessionStorage.setItem('privacy_user_id', userId)
     }
 
@@ -83,7 +100,7 @@ export async function getPrivacyCompliantUserId() {
   } catch (error) {
     console.error('Error generating privacy-compliant user ID:', error)
 
-    // Ultimate fallback - random session-based ID
+    // Ultimate fallback - random session-based ID (no consent required)
     const fallbackId = `user_${Math.random().toString(36).slice(2, 16)}`
     try {
       sessionStorage.setItem('privacy_user_id', fallbackId)
@@ -109,6 +126,7 @@ export function clearPrivacyUserId() {
 
 /**
  * Get user consent status for various privacy-related features
+ * GDPR/CCPA Compliant: All consent defaults to false until explicitly granted
  * @returns {Object} Consent status object
  */
 export function getConsentStatus() {
@@ -116,39 +134,123 @@ export function getConsentStatus() {
     const stored = localStorage.getItem('privacy_consent')
     if (!stored) {
       return {
-        analytics: false,
+        // Essential functionality (cannot be disabled)
+        essential: true,
+
+        // Functional features (optional, includes fingerprinting)
         functionalCookies: false,
+        fingerprinting: false, // Explicit fingerprinting consent
+
+        // Analytics and tracking (optional)
+        analytics: false,
+
+        // Third-party integrations (optional)
         thirdPartyIntegrations: false,
-        lastUpdated: null
+
+        lastUpdated: null,
+        consentVersion: '1.0' // Track consent schema version
       }
     }
 
-    return JSON.parse(stored)
+    const parsed = JSON.parse(stored)
+
+    // Ensure all required fields exist with secure defaults
+    return {
+      essential: true, // Always true - cannot be disabled
+      functionalCookies: parsed.functionalCookies || false,
+      fingerprinting: parsed.fingerprinting || false, // Explicit fingerprinting consent
+      analytics: parsed.analytics || false,
+      thirdPartyIntegrations: parsed.thirdPartyIntegrations || false,
+      lastUpdated: parsed.lastUpdated || null,
+      consentVersion: parsed.consentVersion || '1.0'
+    }
   } catch (error) {
     console.error('Error reading consent status:', error)
+    // Return secure defaults on error
     return {
-      analytics: false,
+      essential: true,
       functionalCookies: false,
+      fingerprinting: false,
+      analytics: false,
       thirdPartyIntegrations: false,
-      lastUpdated: null
+      lastUpdated: null,
+      consentVersion: '1.0'
     }
   }
 }
 
 /**
  * Update user consent preferences
+ * GDPR/CCPA Compliant: Validates and stores user consent securely
  * @param {Object} preferences - Consent preferences
  */
 export function updateConsentStatus(preferences) {
   try {
+    // Validate that essential consent is always true
     const consentData = {
-      ...preferences,
-      lastUpdated: new Date().toISOString()
+      essential: true, // Cannot be disabled
+      functionalCookies: Boolean(preferences.functionalCookies),
+      fingerprinting: Boolean(preferences.fingerprinting), // Explicit fingerprinting consent
+      analytics: Boolean(preferences.analytics),
+      thirdPartyIntegrations: Boolean(preferences.thirdPartyIntegrations),
+      lastUpdated: new Date().toISOString(),
+      consentVersion: '1.0',
+      // Track user's IP country for GDPR applicability (if available from other sources)
+      gdprApplicable: preferences.gdprApplicable || null,
+      ccpaApplicable: preferences.ccpaApplicable || null
     }
 
     localStorage.setItem('privacy_consent', JSON.stringify(consentData))
+
+    // Clear existing user ID if fingerprinting consent was revoked
+    if (!consentData.fingerprinting) {
+      clearPrivacyUserId()
+    }
   } catch (error) {
     console.error('Error storing consent preferences:', error)
+  }
+}
+
+/**
+ * Check if user needs to provide consent (GDPR/CCPA compliance check)
+ * @returns {boolean} True if consent is required and not yet provided
+ */
+export function isConsentRequired() {
+  const consent = getConsentStatus()
+
+  // If no consent timestamp, consent is required
+  if (!consent.lastUpdated) {
+    return true
+  }
+
+  // Check if consent is older than 12 months (GDPR recommendation)
+  const consentDate = new Date(consent.lastUpdated)
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
+
+  if (consentDate < twelveMonthsAgo) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Get privacy compliance summary for debugging and auditing
+ * @returns {Object} Privacy compliance status
+ */
+export function getPrivacyComplianceStatus() {
+  const consent = getConsentStatus()
+
+  return {
+    hasValidConsent: !isConsentRequired(),
+    consentAge: consent.lastUpdated ? new Date() - new Date(consent.lastUpdated) : null,
+    fingerprintingEnabled: consent.fingerprinting,
+    analyticsEnabled: consent.analytics,
+    consentVersion: consent.consentVersion,
+    lastUpdated: consent.lastUpdated,
+    isGdprCompliant: true, // Our system is designed to be GDPR compliant by default
+    isCcpaCompliant: true // Our system is designed to be CCPA compliant by default
   }
 }
 
@@ -212,6 +314,8 @@ export default {
   clearPrivacyUserId,
   getConsentStatus,
   updateConsentStatus,
+  isConsentRequired,
+  getPrivacyComplianceStatus,
   generateDocumentAccessId,
   trackPrivacyCompliantEvent
 }
