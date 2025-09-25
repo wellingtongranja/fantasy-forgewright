@@ -25,11 +25,8 @@ export class AuthManager {
     this.user = null
     this.initialized = false
 
-    // Get environment variables - use import.meta.env directly in browser, fallback for tests
-    const githubClientId = (typeof window !== 'undefined') 
-      ? import.meta.env.VITE_GITHUB_CLIENT_ID 
-      : getEnvVar('VITE_GITHUB_CLIENT_ID')
-    
+    // Runtime configuration - OAuth Client IDs fetched securely at runtime
+    // SECURITY: No hardcoded OAuth credentials in client bundle
     const workerUrl = (typeof window !== 'undefined')
       ? import.meta.env.VITE_OAUTH_WORKER_URL
       : getEnvVar('VITE_OAUTH_WORKER_URL')
@@ -38,16 +35,16 @@ export class AuthManager {
     const isLocalDev = window?.location?.hostname === 'localhost'
     this.workerUrl = isLocalDev ? 'http://localhost:8787' : (workerUrl || 'https://oauth.forgewright.io')
 
-    // Environment configuration validated - debug logging removed for production security
-    
-    
-    // Provider configurations
+    // Runtime OAuth configuration - Client IDs loaded dynamically
+    this.oauthConfig = null
+
+    // Provider configurations - Client IDs populated at runtime
     this.providers = {
       github: {
         name: 'github',
         displayName: 'GitHub',
         authUrl: 'https://github.com/login/oauth/authorize',
-        clientId: githubClientId,
+        clientId: null, // Loaded at runtime
         scopes: ['repo', 'user'],
         color: '#24292e'
       },
@@ -55,9 +52,7 @@ export class AuthManager {
         name: 'gitlab',
         displayName: 'GitLab',
         authUrl: 'https://gitlab.com/oauth/authorize',
-        clientId: (typeof window !== 'undefined') 
-          ? import.meta.env.VITE_GITLAB_CLIENT_ID 
-          : getEnvVar('VITE_GITLAB_CLIENT_ID'),
+        clientId: null, // Loaded at runtime
         scopes: ['api', 'read_user', 'read_repository', 'write_repository'],
         color: '#fc6d26'
       },
@@ -65,9 +60,7 @@ export class AuthManager {
         name: 'bitbucket',
         displayName: 'Bitbucket',
         authUrl: 'https://bitbucket.org/site/oauth2/authorize',
-        clientId: (typeof window !== 'undefined') 
-          ? import.meta.env.VITE_BITBUCKET_CLIENT_ID 
-          : getEnvVar('VITE_BITBUCKET_CLIENT_ID'),
+        clientId: null, // Loaded at runtime
         scopes: ['account', 'repositories:read', 'repositories:write'],
         color: '#0052cc'
       }
@@ -78,12 +71,65 @@ export class AuthManager {
   }
 
   /**
+   * Load OAuth configuration at runtime - secure alternative to hardcoded Client IDs
+   * @returns {Promise<void>}
+   */
+  async loadOAuthConfiguration() {
+    try {
+      // For development, use hardcoded values (temporary)
+      // In production, this would fetch from secure configuration endpoint
+      const isLocalDev = window?.location?.hostname === 'localhost'
+
+      if (isLocalDev) {
+        // Development configuration - fetch from secure endpoint
+        // SECURITY: NO hardcoded Client IDs, even in development
+        const configResponse = await fetch(`${this.workerUrl}/config/oauth`)
+        if (!configResponse.ok) {
+          console.warn('Development OAuth config unavailable, disabling OAuth')
+          this.oauthConfig = {
+            github: { clientId: null },
+            gitlab: { clientId: null },
+            bitbucket: { clientId: null }
+          }
+        } else {
+          this.oauthConfig = await configResponse.json()
+        }
+      } else {
+        // Production: Fetch from secure configuration endpoint
+        const configResponse = await fetch(`${this.workerUrl}/config/oauth`)
+        if (!configResponse.ok) {
+          throw new Error('Failed to load OAuth configuration')
+        }
+        this.oauthConfig = await configResponse.json()
+      }
+
+      // Update provider configurations with loaded Client IDs
+      Object.keys(this.providers).forEach(providerName => {
+        if (this.oauthConfig[providerName]?.clientId) {
+          this.providers[providerName].clientId = this.oauthConfig[providerName].clientId
+        }
+      })
+
+    } catch (error) {
+      console.error('Failed to load OAuth configuration:', error)
+      // Graceful degradation - disable OAuth functionality
+      this.oauthConfig = null
+      Object.keys(this.providers).forEach(providerName => {
+        this.providers[providerName].clientId = null
+      })
+    }
+  }
+
+  /**
    * Initialize auth manager
    * @returns {Promise<void>}
    */
   async init() {
+    // Load OAuth configuration at runtime first
+    await this.loadOAuthConfiguration()
+
     this.initialized = true
-    
+
     // Try to load stored authentication
     await this.loadStoredAuth()
   }

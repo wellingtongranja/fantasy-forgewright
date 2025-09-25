@@ -2,7 +2,8 @@ import { defineConfig, loadEnv } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
 export default defineConfig(({ command, mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  // SECURITY: Only load safe environment variables, prevent OAuth secrets in bundle
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
   const isProduction = mode === 'production'
   const isDevelopment = mode === 'development'
   
@@ -178,6 +179,10 @@ export default defineConfig(({ command, mode }) => {
     __PROD__: isProduction,
     __ENABLE_DEVTOOLS__: isDevelopment || env.VITE_ENABLE_DEVTOOLS === 'true'
   },
+
+  // SECURITY: Explicitly prevent any OAuth/secret environment variables from being bundled
+  envPrefix: ['VITE_'],
+  envDir: process.cwd(),
   
   css: {
     devSourcemap: isDevelopment,
