@@ -57,14 +57,8 @@ export class BaseProvider {
     const headers = this.getTokenHeaders()
     const body = this.formatTokenRequest(tokenParams)
 
-    // Comprehensive debugging for token exchange request
-    console.log('DEBUG: Token Exchange Request Details:', {
-      url: this.tokenUrl,
-      method: 'POST',
-      headers: headers,
-      body_length: body?.length,
-      body_preview: body?.substring(0, 100) + '...' // Show first 100 chars only
-    })
+    // Minimal secure logging
+    console.log(`Token exchange initiated for ${this.name} provider`)
 
     try {
       const response = await fetch(this.tokenUrl, {
@@ -73,26 +67,13 @@ export class BaseProvider {
         body: body
       })
 
-      console.log('DEBUG: Token Exchange Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        url: response.url
-      })
+      console.log(`Token exchange response: ${response.status} ${response.statusText}`)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('DEBUG: Token Exchange Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-          provider: this.name,
-          rateLimit: {
-            remaining: response.headers.get('X-RateLimit-Remaining'),
-            reset: response.headers.get('X-RateLimit-Reset'),
-            limit: response.headers.get('X-RateLimit-Limit')
-          }
-        })
+        const rateLimitReset = response.headers.get('X-RateLimit-Reset')
+        const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining')
+        console.error(`Token exchange failed: ${response.status} ${response.statusText}${rateLimitReset ? `, Rate limit resets: ${new Date(parseInt(rateLimitReset) * 1000).toLocaleString()}` : ''}`)
 
         // Handle rate limiting specifically
         if (response.status === 429 || response.status === 403) {
@@ -105,25 +86,16 @@ export class BaseProvider {
       }
 
       const data = await response.json()
-      console.log('DEBUG: Token Exchange Success Response:', {
-        has_access_token: !!data.access_token,
-        token_type: data.token_type,
-        scope: data.scope,
-        provider: this.name
-      })
+      console.log(`Token exchange successful for ${this.name} provider`)
 
       if (data.error) {
-        console.error('DEBUG: OAuth Error in Response:', data)
+        console.error(`OAuth error: ${data.error}`)
         throw new Error(`OAuth error: ${data.error_description || data.error}`)
       }
 
       return this.processTokenResponse(data)
     } catch (error) {
-      console.error('DEBUG: Token Exchange Exception:', {
-        error: error.message,
-        stack: error.stack,
-        provider: this.name
-      })
+      console.error(`Token exchange error for ${this.name}: ${error.message}`)
       throw new Error(`Token exchange failed: ${error.message}`)
     }
   }

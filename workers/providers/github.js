@@ -52,18 +52,7 @@ export class GitHubProvider extends BaseProvider {
    * @returns {Object} Token parameters
    */
   buildTokenParams(code, codeVerifier = null) {
-    // Comprehensive debugging to trace token exchange issues
-    console.log('DEBUG: GitHub OAuth Token Exchange Parameters:', {
-      client_id: this.clientId?.substring(0, 8) + '***' + this.clientId?.slice(-4),
-      client_secret_present: !!this.clientSecret,
-      client_secret_length: this.clientSecret?.length,
-      client_secret_start: this.clientSecret?.substring(0, 8) + '***',
-      redirect_uri: this.redirectUri,
-      code_present: !!code,
-      code_length: code?.length,
-      code_start: code?.substring(0, 8) + '***',
-      pkce_used: !!codeVerifier
-    })
+    // Secure token parameter validation
 
     // Validate required credentials
     if (!this.clientId) {
@@ -94,11 +83,7 @@ export class GitHubProvider extends BaseProvider {
       params.code_verifier = codeVerifier
     }
 
-    console.log('DEBUG: Final token params (censored):', {
-      ...params,
-      client_secret: '***HIDDEN***',
-      code: code?.substring(0, 8) + '***'
-    })
+    // Token parameters prepared for GitHub OAuth exchange
 
     return params
   }

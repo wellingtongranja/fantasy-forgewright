@@ -82,13 +82,7 @@ async function handleTokenExchange(request, env) {
   try {
     const { provider, code, codeVerifier, providerConfig } = await request.json()
 
-    console.log('DEBUG: Token Exchange Request:', {
-      provider,
-      code_present: !!code,
-      code_length: code?.length,
-      codeVerifier_present: !!codeVerifier,
-      providerConfig_provided: !!providerConfig
-    })
+    console.log(`OAuth token exchange initiated for ${provider} provider`)
 
     if (!provider || !code) {
       return new Response('Missing required parameters', { status: 400 })
@@ -99,14 +93,7 @@ async function handleTokenExchange(request, env) {
       ? { ...getProviderConfig(provider, env), ...providerConfig }
       : getProviderConfig(provider, env)
 
-    console.log('DEBUG: Final Provider Configuration:', {
-      provider,
-      clientId: config.clientId?.substring(0, 8) + '***',
-      clientSecret_present: !!config.clientSecret,
-      redirectUri: config.redirectUri,
-      env_cors_origin: env.CORS_ORIGIN,
-      env_redirect_uri: env.OAUTH_REDIRECT_URI
-    })
+    console.log(`OAuth provider configured: ${provider}`)
 
     // Create provider instance
     const providerInstance = createProvider(provider, config)
@@ -307,6 +294,55 @@ async function handleRepositoryOps(request, env) {
 }
 
 /**
+ * Handle OAuth configuration request
+ * @param {Request} request - Incoming request
+ * @param {Object} env - Environment variables
+ * @returns {Response} OAuth configuration response
+ */
+async function handleOAuthConfig(request, env) {
+  if (request.method !== 'GET') {
+    return new Response('Method not allowed', { status: 405 })
+  }
+
+  try {
+    // Return OAuth Client IDs (public information)
+    const config = {
+      github: {
+        clientId: env.GITHUB_CLIENT_ID || null
+      },
+      gitlab: {
+        clientId: env.GITLAB_CLIENT_ID || null
+      },
+      bitbucket: {
+        clientId: env.BITBUCKET_CLIENT_ID || null
+      }
+    }
+
+    return new Response(JSON.stringify(config), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': env.CORS_ORIGIN || 'https://forgewright.io',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    })
+
+  } catch (error) {
+    console.error('OAuth config error:', error)
+    return new Response(JSON.stringify({
+      error: 'Configuration unavailable',
+      details: 'OAuth configuration could not be loaded'
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': env.CORS_ORIGIN || 'https://forgewright.io'
+      }
+    })
+  }
+}
+
+/**
  * Handle CORS preflight requests
  * @param {Object} env - Environment variables
  * @returns {Response} CORS response
@@ -315,7 +351,7 @@ function handleCORS(env, origin) {
   return new Response(null, {
     headers: {
       'Access-Control-Allow-Origin': origin, // Use validated origin
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Allow-Credentials': 'false',
       'Access-Control-Max-Age': '86400',
@@ -347,18 +383,11 @@ export default {
       allowedOrigins.push('http://127.0.0.1:3000')
     }
 
-    console.log('DEBUG: Origin Validation:', {
-      request_origin: origin,
-      allowed_origins: allowedOrigins,
-      cors_origin_env: env.CORS_ORIGIN
-    })
+    console.log(`Origin validation: ${origin ? 'valid' : 'missing'}`)
 
     // Block requests without proper origin
     if (!origin || !allowedOrigins.includes(origin)) {
-      console.error('DEBUG: Origin Validation Failed:', {
-        request_origin: origin,
-        allowed_origins: allowedOrigins
-      })
+      console.error(`Origin validation failed for: ${origin}`)
       return new Response('Forbidden - Invalid Origin', {
         status: 403,
         headers: {
@@ -396,15 +425,18 @@ export default {
     switch (url.pathname) {
       case '/oauth/token':
         return handleTokenExchange(request, env)
-      
+
       case '/oauth/user':
         return handleUserInfo(request, env)
-      
+
       case '/oauth/repos':
         return handleRepositoryOps(request, env)
-      
+
+      case '/config/oauth':
+        return handleOAuthConfig(request, env)
+
       case '/health':
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           status: 'healthy',
           timestamp: new Date().toISOString(),
           providers: ['github', 'gitlab', 'bitbucket', 'generic']
