@@ -1,6 +1,7 @@
 // Core CSS imports - loaded first
 import './styles/base.css'
 import './styles/variables.css'
+import './styles/codemirror-overrides.css'
 
 // Component CSS imports
 import './components/navigator/navigator.css'

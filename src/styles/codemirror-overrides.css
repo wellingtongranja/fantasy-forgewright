@@ -1,0 +1,114 @@
+/**
+ * CodeMirror Search Panel Overrides
+ * Fixes black button backgrounds in find/replace dialog
+ */
+
+/* High specificity selectors for CodeMirror search panel */
+.cm-editor .cm-search,
+.cm-search-panel,
+[class*='cm-search'] {
+  background-color: var(--color-bg-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--border-radius-md) !important;
+  padding: 8px !important;
+}
+
+/* Button styling with maximum specificity */
+.cm-editor .cm-search button,
+.cm-search-panel button,
+[class*='cm-search'] button,
+.cm-search button[type='button'],
+button[class*='cm-search'] {
+  background-color: var(--color-bg-tertiary) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--border-radius-sm) !important;
+  padding: 4px 8px !important;
+  margin: 0 2px !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  transition: all var(--transition-fast) !important;
+  min-height: 24px !important;
+  min-width: 30px !important;
+}
+
+/* Button hover states */
+.cm-editor .cm-search button:hover,
+.cm-search-panel button:hover,
+[class*='cm-search'] button:hover,
+.cm-search button[type='button']:hover,
+button[class*='cm-search']:hover {
+  background-color: var(--color-bg-secondary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text) !important;
+}
+
+/* Button focus states */
+.cm-editor .cm-search button:focus,
+.cm-search-panel button:focus,
+[class*='cm-search'] button:focus,
+.cm-search button[type='button']:focus,
+button[class*='cm-search']:focus {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 1px !important;
+  background-color: var(--color-bg-secondary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* Input field styling */
+.cm-editor .cm-search input,
+.cm-search-panel input,
+[class*='cm-search'] input,
+.cm-search input[type='text'] {
+  background-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--border-radius-sm) !important;
+  padding: 4px 6px !important;
+  margin: 0 4px !important;
+  font-size: 13px !important;
+}
+
+/* Input focus states */
+.cm-editor .cm-search input:focus,
+.cm-search-panel input:focus,
+[class*='cm-search'] input:focus,
+.cm-search input[type='text']:focus {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1) !important;
+}
+
+/* Additional fallback for stubborn buttons */
+[data-theme] .cm-search button,
+[data-theme] .cm-search-panel button,
+[data-theme] [class*='cm-search'] button {
+  background: var(--color-bg-tertiary) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Dark theme specific overrides */
+[data-theme='dark'] .cm-search button,
+[data-theme='dark'] .cm-search-panel button {
+  background-color: #3a3a3a !important;
+  color: #e0e0e0 !important;
+  border-color: #404040 !important;
+}
+
+/* Light theme specific overrides */
+[data-theme='light'] .cm-search button,
+[data-theme='light'] .cm-search-panel button {
+  background-color: #f8f9fa !important;
+  color: #212529 !important;
+  border-color: #dee2e6 !important;
+}
+
+/* Fantasy theme specific overrides */
+[data-theme='fantasy'] .cm-search button,
+[data-theme='fantasy'] .cm-search-panel button {
+  background-color: var(--color-bg-tertiary) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
