@@ -8,8 +8,8 @@ compatibility_flags = ["nodejs_compat"]
 
 # Environment variables (secrets managed separately via Wrangler CLI)
 [vars]
-OAUTH_REDIRECT_URI = "https://forgewright.io/"
-CORS_ORIGIN = "https://forgewright.io"
+OAUTH_REDIRECT_URI = "https://fantasy.forgewright.io/"
+CORS_ORIGIN = "https://fantasy.forgewright.io"
 
 # Development environment
 [env.dev]
