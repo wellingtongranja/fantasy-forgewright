@@ -52,7 +52,7 @@ export class SystemDocumentsManager {
         systemId: 'help',
         title: 'Fantasy Editor Help',
         content:
-          '# Fantasy Editor Help\n\nVersion 0.0.1 (Alpha)\n\nPress Ctrl+Space to open the command palette.',
+          '# Fantasy Editor Help\n\nVersion 0.0.2 (Alpha)\n\nPress Ctrl+Space to open the command palette.',
         type: 'system',
         readonly: true,
         tags: ['help', 'documentation', 'commands']

@@ -47,11 +47,11 @@
 - Worker deployment and monitoring procedures
 
 ### Legal & Compliance
-**[→ Legal Documentation](legal.md)** - All legal documents and licensing
-- AGPL-3.0 license and commercial licensing options
-- Privacy policy and data handling practices
-- End User License Agreement (EULA)
-- Release notes and version history
+All legal documents are accessible in-app via system commands (`:license`, `:eula`, `:privacy`):
+- MIT license with commercial licensing options available
+- Privacy-first policy with local storage and optional Git sync
+- End User License Agreement with alpha period terms
+- Comprehensive legal documentation served via secure Cloudflare Worker
 
 ## 🏗️ Project Architecture
 
@@ -95,8 +95,8 @@ Access all functionality via `Ctrl+Space` command palette:
 
 ## 📊 Project Status
 
-**Current Version**: v0.0.1 (Alpha)
-**License**: AGPL-3.0 (with commercial licensing available)
+**Current Version**: v0.0.2 (Alpha)
+**License**: MIT (with commercial licensing available)
 **Bundle Size**: >1MB (target: <5MB)
 **Test Coverage**: Working toward >90%
 
@@ -149,6 +149,6 @@ See **[CLAUDE.md](../CLAUDE.md)** for complete development guidelines and archit
 
 ---
 
-*Fantasy Editor v0.0.1 (Alpha) - Write your epic tales with focus and clarity*
+*Fantasy Editor v0.0.2 (Alpha) - Write your epic tales with focus and clarity*
 
 **Documentation last updated**: September 2025

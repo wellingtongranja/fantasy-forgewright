@@ -13,7 +13,7 @@ By installing, accessing, or using the Software, you agree to be bound by the te
 ## 1. Grant of License
 
 ### 1.1 Alpha Version
-During the alpha period (v0.0.1), the Software is provided free of charge for evaluation and testing purposes.
+During the alpha period (v0.0.2), the Software is provided free of charge for evaluation and testing purposes.
 
 ### 1.2 License Type
 Fantasy Editor is licensed under the MIT License, providing maximum freedom for personal and commercial use. Fantasy Editor Forge premium features are available through a separate SaaS subscription.

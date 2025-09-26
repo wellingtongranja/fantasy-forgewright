@@ -340,6 +340,6 @@ Remember: **Only `Ctrl+Space` is used**
 
 ---
 
-*Fantasy Editor v0.0.1 (Alpha) - Write your epic tales with focus and clarity*
+*Fantasy Editor v0.0.2 (Alpha) - Write your epic tales with focus and clarity*
 
 **Remember**: `Ctrl+Space` is your gateway to everything. When in doubt, press it and explore!

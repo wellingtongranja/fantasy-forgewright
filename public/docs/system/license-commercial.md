@@ -1,12 +1,12 @@
 # Commercial License Terms
 
 ## Fantasy Editor Commercial License
-**Version 0.0.1 (Alpha)**  
+**Version 0.0.2 (Alpha)**  
 **Effective Date**: January 2025
 
 ### IMPORTANT NOTICE
 
-**During the Alpha period (v0.0.1), all features of Fantasy Editor are available free of charge. This commercial license will become available when we release version 1.0.**
+**During the Alpha period (v0.0.2), all features of Fantasy Editor are available free of charge. This commercial license will become available when we release version 1.0.**
 
 ---
 

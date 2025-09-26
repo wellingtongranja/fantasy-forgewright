@@ -301,4 +301,4 @@ git push origin main
 
 ---
 
-*This guide covers Fantasy Editor v0.0.1 deployment. For updates, see release notes.*
+*This guide covers Fantasy Editor v0.0.2 deployment. For updates, see release notes.*

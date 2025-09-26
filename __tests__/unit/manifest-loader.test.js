@@ -274,8 +274,8 @@ describe('ManifestLoader', () => {
   describe('getAppName', () => {
     it('should return name from manifest', async () => {
       const mockManifest = {
-        name: 'Fantasy Writer Pro',
-        short_name: 'Fantasy Pro'
+        name: 'Fantasy Editor Forge',
+        short_name: 'Fantasy Forge'
       }
 
       fetch.mockResolvedValueOnce({
@@ -284,11 +284,11 @@ describe('ManifestLoader', () => {
       })
 
       const name = await loader.getAppName()
-      expect(name).toBe('Fantasy Writer Pro')
+      expect(name).toBe('Fantasy Editor Forge')
     })
 
     it('should fallback to short_name', async () => {
-      const mockManifest = { short_name: 'Fantasy Pro' }
+      const mockManifest = { short_name: 'Fantasy Forge' }
 
       fetch.mockResolvedValueOnce({
         ok: true,
@@ -296,7 +296,7 @@ describe('ManifestLoader', () => {
       })
 
       const name = await loader.getAppName()
-      expect(name).toBe('Fantasy Pro')
+      expect(name).toBe('Fantasy Forge')
     })
 
     it('should fallback to default name', async () => {
