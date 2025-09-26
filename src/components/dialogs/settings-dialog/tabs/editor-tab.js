@@ -35,7 +35,7 @@ export class EditorTab {
   renderWidthPresets(currentWidth) {
     const presets = [
       { value: 65, label: '65ch', description: 'Optimal reading' },
-      { value: 80, label: '80ch', description: 'Standard coding' },
+      { value: 80, label: '80ch', description: 'Standard writing' },
       { value: 90, label: '90ch', description: 'Wide editing' }
     ]
 
