@@ -16,14 +16,9 @@ export class SystemDocumentsLoader {
     const documents = [
       { id: 'help', filename: 'help.md', title: 'Fantasy Editor Help' },
       {
-        id: 'license-agpl',
-        filename: 'license-agpl.md',
-        title: 'AGPL v3 License (Community Edition)'
-      },
-      {
-        id: 'license-commercial',
-        filename: 'license-commercial.md',
-        title: 'Commercial License Terms'
+        id: 'license-mit',
+        filename: 'license-mit.md',
+        title: 'MIT License'
       },
       { id: 'eula', filename: 'eula.md', title: 'End User License Agreement' },
       { id: 'privacy', filename: 'privacy-policy.md', title: 'Privacy Policy' },

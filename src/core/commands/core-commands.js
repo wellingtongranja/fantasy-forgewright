@@ -1264,7 +1264,7 @@ export function registerCoreCommands(registry, app) {
 
     {
       name: 'license',
-      description: 'view AGPL v3 license (Community Edition)',
+      description: 'view MIT license',
       category: 'about',
       icon: '⚖️',
       aliases: [':license'],
@@ -1275,10 +1275,10 @@ export function registerCoreCommands(registry, app) {
             app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
 
-          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license-agpl')
+          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license-mit')
           if (licenseDoc) {
             app.loadDocument(licenseDoc)
-            return { success: true, message: 'AGPL v3 license loaded' }
+            return { success: true, message: 'MIT license loaded' }
           } else {
             return { success: false, message: 'License document not available' }
           }
@@ -1566,8 +1566,8 @@ export function registerCoreCommands(registry, app) {
             'Commands:',
             '• Type ":help" for all available commands',
             '• Press Ctrl+Space to open command palette',
-            '• Use ":license" for license information',
-            '• Use ":edition" to see current edition features',
+            '• Use ":license" for MIT license information',
+            '• Upgrade to Fantasy Editor Forge for AI-powered writing',
             '',
             'Created with ❤️ for fantasy writers'
           ]

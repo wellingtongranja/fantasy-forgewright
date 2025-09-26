@@ -106,11 +106,11 @@ export class AboutTab {
             <div class="legal-info">
               <div class="license-info">
                 <h5>Open Source License</h5>
-                <p>Fantasy Editor is licensed under the <strong>GNU Affero General Public License v3 (AGPL-3.0)</strong>.</p>
-                <p><small>This is free software: you are free to change and redistribute it under certain conditions.</small></p>
-                
+                <p>Fantasy Editor is licensed under the <strong>MIT License</strong>.</p>
+                <p><small>This is free and open source software: you are free to use, modify, and distribute it without restrictions.</small></p>
+
                 <div class="license-actions">
-                  <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" class="license-link">
+                  <a href="https://opensource.org/licenses/MIT" target="_blank" class="license-link">
                     View Full License
                   </a>
                 </div>
@@ -125,14 +125,20 @@ export class AboutTab {
                   <li>Web Workers - Background processing</li>
                   <li>Progressive Web App - Offline capability</li>
                 </ul>
-                <p><small>Source code available for network users under AGPL-3.0 terms.</small></p>
+                <p><small>Source code available under MIT License terms.</small></p>
               </div>
               
               <div class="commercial-info">
-                <h5>Commercial Licensing</h5>
-                <p>For proprietary use cases, commercial licenses are available.</p>
-                <a href="mailto:licensing@forgewright.io" class="license-link">
-                  Contact for Commercial License
+                <h5>Fantasy Editor Forge</h5>
+                <p>Get AI-powered writing assistance with our premium tier:</p>
+                <ul class="forge-features">
+                  <li>AI writing assistance and content generation</li>
+                  <li>AI grammar and style guidance</li>
+                  <li>Smart auto-completion with context awareness</li>
+                  <li>AI document insights and structure analysis</li>
+                </ul>
+                <a href="https://fantasy.forgewright.io/forge" class="license-link">
+                  Learn About Fantasy Editor Forge
                 </a>
               </div>
             </div>

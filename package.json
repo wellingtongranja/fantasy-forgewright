@@ -42,7 +42,7 @@
     "gutenberg"
   ],
   "author": "Fantasy Forgewright",
-  "license": "AGPL-3.0",
+  "license": "MIT",
   "dependencies": {
     "@codemirror/autocomplete": "^6.11.1",
     "@codemirror/commands": "^6.3.3",

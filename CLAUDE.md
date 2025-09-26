@@ -6,7 +6,7 @@
 
 **Architecture**: Client-side PWA with Git storage (GitHub integrated, GitLab/Bitbucket/others planned), CodeMirror 6 editor, VS Code-style command palette
 
-**License**: GNU Affero General Public License v3 (AGPL-3.0)
+**License**: MIT License with Fantasy Editor Forge Premium Tier
 
 ## 🎯 Core Requirements
 
@@ -459,10 +459,10 @@ export function processUserContent(content) {
 - **Client-side encryption** - Encrypt sensitive data before storage
 - **Token rotation** - Implement automatic token refresh
 
-#### AGPL-3.0 Compliance
-- **Network service compliance** - Users can request source code
-- **Copyleft requirements** - Derivative works must be AGPL
-- **Attribution** - Maintain license notices
+#### MIT License Compliance
+- **Open source** - Maximum freedom for personal and commercial use
+- **Fantasy Editor Forge** - Premium AI features available via subscription
+- **Attribution** - Maintain copyright notices
 
 ### Error Handling & Logging
 
@@ -1061,8 +1061,7 @@ docs/                      # Documentation (simplified structure)
 ├── dev-helpers.md       # Development utilities
 ├── release-notes.md     # Version history
 ├── privacy-policy.md    # Privacy policy
-├── license-agpl.md      # AGPL-3.0 license
-├── license-commercial.md # Commercial license option
+├── license-mit.md       # MIT License
 └── eula.md              # End User License Agreement
 ```
 
@@ -1722,27 +1721,36 @@ Fantasy Editor features a comprehensive Navigator component that replaces the tr
 
 ## 📄 License Information
 
-**Fantasy Editor** is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
+**Fantasy Editor** is licensed under the MIT License with Fantasy Editor Forge premium tier.
 
 ### Key License Points
 
-- **Source Code**: Must be made available to users of the network service
-- **Copyleft**: Derivative works must also be licensed under AGPL-3.0
-- **Network Use**: Users accessing Fantasy Editor over a network have the right to receive the complete source code
-- **Commercial Use**: Separate commercial license available (see `docs/license-commercial.md`)
+- **Open Source**: MIT License provides maximum freedom for personal and commercial use
+- **Free Core**: Fantasy Editor core features remain free forever
+- **Premium AI**: Fantasy Editor Forge adds AI-powered writing assistance via subscription
+- **No Restrictions**: Modify, distribute, and use commercially without limitations
 
 ### License Files
 
-- **Primary License**: `docs/license-agpl.md` - Full AGPL-3.0 text
-- **Commercial Option**: `docs/license-commercial.md` - Commercial licensing terms
+- **Primary License**: `docs/license-mit.md` - Full MIT License text
 - **EULA**: `docs/eula.md` - End User License Agreement
+
+### Fantasy Editor Forge
+
+**Premium AI-Powered Features:**
+- AI writing assistance and content generation
+- AI grammar and style guidance
+- Smart auto-completion with context awareness
+- AI document insights and structure analysis
+- AI-powered semantic document search
+- Priority support from the Forgewright team
 
 ### Important Notes
 
-- Fantasy Editor is NOT under MIT license
-- Network deployment requires AGPL compliance
-- Users have the right to request source code
-- See `docs/license-agpl.md` for complete terms
+- Fantasy Editor core is completely free and open source under MIT License
+- Fantasy Editor Forge premium features require subscription
+- No copyleft restrictions - use and modify freely
+- See `docs/license-mit.md` for complete terms
 
 ---
 

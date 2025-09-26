@@ -136,7 +136,7 @@ export class DataPrivacyTab {
                   <summary>View Terms of Service</summary>
                   <div class="privacy-full-text">
                     <h6>License</h6>
-                    <p>Fantasy Editor is licensed under the GNU Affero General Public License v3 (AGPL-3.0).</p>
+                    <p>Fantasy Editor is licensed under the MIT License.</p>
                     
                     <h6>Permitted Use</h6>
                     <ul>

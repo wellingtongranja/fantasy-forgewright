@@ -16,17 +16,16 @@ By installing, accessing, or using the Software, you agree to be bound by the te
 During the alpha period (v0.0.1), the Software is provided free of charge for evaluation and testing purposes.
 
 ### 1.2 License Type
-The Software is dual-licensed:
-- Under the GNU Affero General Public License v3 (AGPL) for open-source use
-- Under a Commercial License for proprietary use (available from v1.0)
+Fantasy Editor is licensed under the MIT License, providing maximum freedom for personal and commercial use. Fantasy Editor Forge premium features are available through a separate SaaS subscription.
 
 ## 2. Permitted Uses
 
 You may:
-- Install and use the Software on multiple devices you own
+- Install and use Fantasy Editor on multiple devices you own
 - Create and edit documents for personal or commercial use
 - Export and share documents created with the Software
-- Sync documents with GitHub repositories
+- Sync documents with multiple Git providers (GitHub, GitLab, Bitbucket, others)
+- Modify, distribute, and sublicense Fantasy Editor under MIT License terms
 
 ## 3. Restrictions
 
@@ -50,11 +49,14 @@ You retain all rights to documents and content you create using the Software.
 ### 5.1 Local Storage
 Documents are stored locally on your device using browser storage technologies.
 
-### 5.2 GitHub Integration
-If you choose to use GitHub integration, your documents will be subject to GitHub's terms of service and privacy policy.
+### 5.2 Git Provider Integration
+If you choose to use Git provider integration (GitHub, GitLab, Bitbucket, or others), your documents will be subject to the respective provider's terms of service and privacy policy.
 
 ### 5.3 Analytics
-We may collect anonymous usage statistics to improve the Software. No personal content is collected.
+We may collect anonymous usage statistics to improve Fantasy Editor. No personal content is collected.
+
+### 5.4 Fantasy Editor Forge
+If you subscribe to Fantasy Editor Forge, AI-powered features will process your content to provide writing assistance, grammar checking, and document insights. This processing is done securely and your content is not stored or used for training.
 
 ## 6. Alpha Software Disclaimer
 
@@ -62,7 +64,7 @@ THE ALPHA VERSION IS PROVIDED FOR TESTING PURPOSES ONLY. IT MAY CONTAIN BUGS, ER
 
 ## 7. Disclaimer of Warranties
 
-THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+FANTASY EDITOR IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. FANTASY EDITOR FORGE PREMIUM FEATURES ARE PROVIDED ON A SUBSCRIPTION BASIS WITH SERVICE LEVEL COMMITMENTS AS OUTLINED IN THE SUBSCRIPTION TERMS.
 
 ## 8. Limitation of Liability
 
