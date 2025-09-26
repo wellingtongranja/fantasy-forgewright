@@ -413,6 +413,116 @@ export class DevHelpers {
   }
 
   /**
+   * Clear browser and service worker cache only
+   */
+  async clearCache() {
+    try {
+      console.log('🗃️ Clearing cache...')
+
+      // Clear service worker cache if available
+      if ('caches' in window) {
+        const cacheNames = await caches.keys()
+        console.log(`🗃️ Found ${cacheNames.length} cache storages:`, cacheNames)
+
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName)
+          console.log(`🗑️ Deleted cache: ${cacheName}`)
+        }
+      }
+
+      console.log('✅ Cache cleared successfully!')
+
+      return {
+        success: true,
+        message: 'Cache cleared successfully',
+        clearedCaches: true
+      }
+    } catch (error) {
+      console.error('❌ Failed to clear cache:', error)
+      return {
+        success: false,
+        message: `Failed to clear cache: ${error.message}`,
+        error
+      }
+    }
+  }
+
+  /**
+   * Reset settings to defaults
+   */
+  async resetSettings() {
+    try {
+      console.log('⚙️ Resetting settings...')
+
+      // Clear settings-related localStorage keys
+      const settingsKeys = Object.keys(localStorage).filter(
+        (key) => key.includes('settings') || key.includes('theme') || key.includes('config')
+      )
+
+      console.log(`📦 Clearing ${settingsKeys.length} settings keys:`, settingsKeys)
+
+      settingsKeys.forEach((key) => {
+        localStorage.removeItem(key)
+        console.log(`🗑️ Removed setting: ${key}`)
+      })
+
+      console.log('✅ Settings reset successfully!')
+
+      return {
+        success: true,
+        message: 'Settings reset successfully',
+        clearedSettings: settingsKeys.length
+      }
+    } catch (error) {
+      console.error('❌ Failed to reset settings:', error)
+      return {
+        success: false,
+        message: `Failed to reset settings: ${error.message}`,
+        error
+      }
+    }
+  }
+
+  /**
+   * Clear all documents but preserve settings
+   */
+  async clearDocuments() {
+    if (!this.app) {
+      console.error('❌ App not initialized. Use devHelpers.init(app) first.')
+      return { success: false, message: 'App not initialized' }
+    }
+
+    try {
+      console.log('📄 Clearing documents...')
+
+      // Get all documents first for logging
+      const documents = await this.app.storageManager.getAllDocuments()
+      console.log(`📄 Found ${documents.length} documents to delete`)
+
+      // Delete each document
+      for (const doc of documents) {
+        await this.app.storageManager.deleteDocument(doc.id)
+        console.log(`🗑️ Deleted document: ${doc.title}`)
+      }
+
+      console.log('✅ Documents cleared successfully!')
+
+      return {
+        success: true,
+        message: `Cleared ${documents.length} documents successfully`,
+        deletedDocuments: documents.length
+      }
+    } catch (error) {
+      console.error('❌ Failed to clear documents:', error)
+      return {
+        success: false,
+        message: `Failed to clear documents: ${error.message}`,
+        error
+      }
+    }
+  }
+
+  /**
    * Show help for dev helpers
    */
   help() {
@@ -422,6 +532,9 @@ export class DevHelpers {
 Available Methods:
 ┌──────────────────────────────────────────────────────────────┐
 │ devHelpers.cleanStorage()        - Clean all storage        │
+│ devHelpers.clearCache()          - Clear cache only         │
+│ devHelpers.resetSettings()       - Reset settings to default│
+│ devHelpers.clearDocuments()      - Clear documents only     │
 │ devHelpers.freshStart()          - Clean storage & reload   │
 │ devHelpers.generateTestDocuments(5) - Create test docs      │
 │ devHelpers.showStorageInfo()     - Show storage stats       │
@@ -432,6 +545,9 @@ Available Methods:
 
 Usage Examples:
   devHelpers.cleanStorage()           // Clean all data
+  devHelpers.clearCache()             // Clear cache only
+  devHelpers.resetSettings()          // Reset settings to defaults
+  devHelpers.clearDocuments()         // Clear documents only
   devHelpers.freshStart()             // Clean and reload
   devHelpers.generateTestDocuments(3) // Create 3 test docs
   devHelpers.showStorageInfo()        // Show current state
@@ -444,10 +560,14 @@ Note: Make sure to call devHelpers.init(fantasyEditor) first
       message: 'Help displayed',
       methods: [
         'cleanStorage()',
+        'clearCache()',
+        'resetSettings()',
+        'clearDocuments()',
         'freshStart()',
         'generateTestDocuments(count)',
         'showStorageInfo()',
         'testDocumentOperations()',
+        'testReadonlyFeatures()',
         'help()'
       ]
     }

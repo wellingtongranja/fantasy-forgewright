@@ -1,6 +1,6 @@
 /**
  * About Settings Tab
- * Application information, version details, and help resources
+ * Simple application information
  */
 
 export class AboutTab {
@@ -13,28 +13,19 @@ export class AboutTab {
    * @returns {Object} Version info
    */
   getVersionInfo() {
-    // Use dynamic access to avoid Jest syntax errors with import.meta
     let env = {}
-    
-    // Check if we're in a browser environment
+
     if (typeof window !== 'undefined') {
-      // Safely access import.meta without eval to prevent code injection
       try {
-        // Use try-catch to safely access import.meta
         env = import.meta?.env || {}
       } catch (error) {
-        // import.meta not available (likely in test environment)
         env = {}
       }
-    } else if (typeof global !== 'undefined' && global.import?.meta?.env) {
-      // Jest environment with mocked import.meta
-      env = global.import.meta.env
     }
-    
+
     return {
       version: env.VITE_APP_VERSION || '0.0.2-alpha',
-      buildDate: env.VITE_BUILD_DATE || new Date().toISOString().split('T')[0],
-      environment: env.MODE || 'development'
+      buildDate: env.VITE_BUILD_DATE || new Date().toISOString().split('T')[0]
     }
   }
 
@@ -51,139 +42,45 @@ export class AboutTab {
       return `
         <div class="settings-sections">
           <div class="settings-section">
-            <h4>ℹ️ About Fantasy Editor</h4>
-            
-            <div class="about-info">
-              <div class="app-info">
-                <div class="app-logo">
-                  <span class="app-icon">📝</span>
-                  <div class="app-details">
-                    <h3>Fantasy Editor</h3>
-                    <p class="app-tagline">A distraction-free markdown editor for writers</p>
-                  </div>
-                </div>
-                
-                <div class="version-info">
-                  <div class="version-item">
-                    <span class="version-label">Version:</span>
-                    <span class="version-value">${versionInfo.version}</span>
-                  </div>
-                  <div class="version-item">
-                    <span class="version-label">Build Date:</span>
-                    <span class="version-value">${versionInfo.buildDate}</span>
-                  </div>
-                  <div class="version-item">
-                    <span class="version-label">Environment:</span>
-                    <span class="version-value">${versionInfo.environment}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="settings-section">
-            <h4>🚀 Quick Links</h4>
-            
-            <div class="app-links">
-              <a href="https://fantasy.forgewright.io" target="_blank" class="app-link">
-                <span>🌐</span> Visit Website
-              </a>
-              <button class="settings-button secondary" data-action="show-shortcuts">
-                <span>⌨️</span> Keyboard Shortcuts
-              </button>
-              <button class="settings-button secondary" data-action="show-changelog">
-                <span>📋</span> Release Notes
-              </button>
-              <button class="settings-button secondary" data-action="show-documentation">
-                <span>📚</span> Documentation
-              </button>
-            </div>
-          </div>
-          
-          <div class="settings-section">
-            <h4>📜 License Information</h4>
-            
-            <div class="legal-info">
-              <div class="license-info">
-                <h5>Open Source License</h5>
-                <p>Fantasy Editor is licensed under the <strong>MIT License</strong>.</p>
-                <p><small>This is free and open source software: you are free to use, modify, and distribute it without restrictions.</small></p>
+            <h3>Fantasy Editor</h3>
+            <p>A distraction-free markdown editor for writers</p>
 
-                <div class="license-actions">
-                  <a href="https://opensource.org/licenses/MIT" target="_blank" class="license-link">
-                    View Full License
-                  </a>
-                </div>
+            <div class="version-info">
+              <div class="version-item">
+                <span class="version-label">Version:</span>
+                <span class="version-value">${versionInfo.version}</span>
               </div>
-              
-              <div class="attribution">
-                <h5>Built With</h5>
-                <p>Fantasy Editor is built with modern web technologies and powered by open source components:</p>
-                <ul class="tech-stack">
-                  <li>CodeMirror 6 - Advanced text editor</li>
-                  <li>IndexedDB - Local document storage</li>
-                  <li>Web Workers - Background processing</li>
-                  <li>Progressive Web App - Offline capability</li>
-                </ul>
-                <p><small>Source code available under MIT License terms.</small></p>
-              </div>
-              
-              <div class="commercial-info">
-                <h5>Fantasy Editor Forge</h5>
-                <p>Get AI-powered writing assistance with our premium tier:</p>
-                <ul class="forge-features">
-                  <li>AI writing assistance and content generation</li>
-                  <li>AI grammar and style guidance</li>
-                  <li>Smart auto-completion with context awareness</li>
-                  <li>AI document insights and structure analysis</li>
-                </ul>
-                <a href="https://fantasy.forgewright.io/forge" class="license-link">
-                  Learn About Fantasy Editor Forge
-                </a>
+              <div class="version-item">
+                <span class="version-label">Build Date:</span>
+                <span class="version-value">${versionInfo.buildDate}</span>
               </div>
             </div>
           </div>
-          
+
           <div class="settings-section">
-            <h4>💬 Support & Community</h4>
-            
-            <div class="support-info">
-              <div class="support-item">
-                <h5>Get Help</h5>
-                <p>Need assistance? Check our documentation or reach out:</p>
-                <div class="support-actions">
-                  <a href="https://fantasy.forgewright.io/docs" target="_blank" class="support-link">
-                    <span>📖</span> Read Documentation
-                  </a>
-                  <a href="https://github.com/fantasy-editor/fantasy-editor/issues" target="_blank" class="support-link">
-                    <span>🐛</span> Report Issue
-                  </a>
-                </div>
-              </div>
-              
-              <div class="support-item">
-                <h5>Connect</h5>
-                <p>Join our community and stay updated:</p>
-                <div class="support-actions">
-                  <a href="https://github.com/fantasy-editor" target="_blank" class="support-link">
-                    <span>🐙</span> GitHub
-                  </a>
-                  <a href="mailto:hello@forgewright.io" class="support-link">
-                    <span>✉️</span> Email Us
-                  </a>
-                </div>
-              </div>
+            <div class="license-info">
+              <p>Licensed under the <strong>MIT License</strong></p>
+              <p><small>Free and open source software</small></p>
             </div>
           </div>
-          
+
           <div class="settings-section">
-            <div class="about-footer">
-              <p class="about-copyright">
-                © ${new Date().getFullYear()} Forgewright, Inc. All rights reserved.
-              </p>
-              <p class="about-motto">
-                <em>Write freely with Fantasy Editor.</em>
-              </p>
+            <div class="git-action-buttons">
+              <button class="settings-button secondary" data-action="show-license">
+                License
+              </button>
+              <button class="settings-button secondary" data-action="show-release">
+                Release Notes
+              </button>
+              <button class="settings-button secondary" data-action="show-privacy">
+                Privacy Policy
+              </button>
+              <button class="settings-button secondary" data-action="show-help">
+                Help
+              </button>
+              <button class="settings-button secondary" data-action="show-guide">
+                User Guide
+              </button>
             </div>
           </div>
         </div>
@@ -193,7 +90,7 @@ export class AboutTab {
       return `
         <div class="settings-error">
           <h4>Error Loading About Information</h4>
-          <p>There was an error loading the about information. Please try refreshing the page.</p>
+          <p>There was an error loading the about information.</p>
         </div>
       `
     }
@@ -208,99 +105,111 @@ export class AboutTab {
     if (!container) return
 
     try {
-      // Action buttons
       const actionButtons = container.querySelectorAll('[data-action]')
       actionButtons.forEach(button => {
         button.addEventListener('click', (e) => {
           e.preventDefault()
-          this.handleAboutAction(e.target.closest('[data-action]').dataset.action)
+          const action = e.target.dataset.action
+          this.handleAboutAction(action)
         })
       })
-
-      // External links - ensure they open properly
-      const externalLinks = container.querySelectorAll('a[href]')
-      externalLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          e.stopPropagation()
-        })
-      })
-
     } catch (error) {
       console.error('Error attaching About tab event listeners:', error)
     }
   }
 
   /**
-   * Handle about-specific actions
+   * Handle About tab action buttons
    * @param {string} action - Action to perform
    */
-  async handleAboutAction(action) {
+  handleAboutAction(action) {
+    const app = window.fantasyEditor || window.app
+
     try {
-      switch (action) {
-        case 'show-shortcuts':
-          this.showKeyboardShortcuts()
-          break
-        case 'show-changelog':
-          this.showChangelog()
-          break
-        case 'show-documentation':
-          this.showDocumentation()
-          break
-        default:
-          console.warn('Unknown about action:', action)
+      // Close settings dialog first for all commands
+      this.closeSettingsDialog()
+
+      // Small delay to ensure dialog closes before executing command
+      setTimeout(() => {
+        switch (action) {
+          case 'show-license':
+            if (app && app.executeCommand) {
+              app.executeCommand(':license')
+            }
+            break
+          case 'show-release':
+            if (app && app.executeCommand) {
+              app.executeCommand(':release')
+            }
+            break
+          case 'show-privacy':
+            if (app && app.executeCommand) {
+              app.executeCommand(':privacy')
+            }
+            break
+          case 'show-help':
+            if (app && app.executeCommand) {
+              app.executeCommand(':help')
+            }
+            break
+          case 'show-guide':
+            if (app && app.executeCommand) {
+              app.executeCommand(':guide')
+            }
+            break
+          default:
+            console.warn('Unknown About action:', action)
+        }
+      }, 100)
+    } catch (error) {
+      console.error('Error executing About action:', error)
+    }
+  }
+
+  /**
+   * Close the settings dialog
+   */
+  closeSettingsDialog() {
+    try {
+      // Try multiple approaches to close the settings dialog
+      const settingsDialog = document.querySelector('.settings-dialog-overlay') ||
+                            document.querySelector('.modal-overlay') ||
+                            document.querySelector('[data-modal="settings"]')
+
+      if (settingsDialog) {
+        // Method 1: Click close button
+        const closeButton = settingsDialog.querySelector('.settings-close-button') ||
+                          settingsDialog.querySelector('.close-button') ||
+                          settingsDialog.querySelector('[data-action="close"]') ||
+                          settingsDialog.querySelector('button[aria-label="Close"]')
+
+        if (closeButton) {
+          closeButton.click()
+          return
+        }
+
+        // Method 2: Trigger ESC key event
+        const escEvent = new KeyboardEvent('keydown', {
+          key: 'Escape',
+          code: 'Escape',
+          keyCode: 27,
+          bubbles: true
+        })
+        settingsDialog.dispatchEvent(escEvent)
+
+        // Method 3: Check if settingsManager exists and has close method
+        const app = window.fantasyEditor || window.app
+        if (app && app.settingsManager && typeof app.settingsManager.hide === 'function') {
+          app.settingsManager.hide()
+          return
+        }
+
+        // Method 4: Direct removal/hiding as last resort
+        settingsDialog.remove()
       }
     } catch (error) {
-      console.error('Error executing about action:', error)
+      console.error('Error closing settings dialog:', error)
     }
-  }
-
-  /**
-   * Show keyboard shortcuts help
-   */
-  showKeyboardShortcuts() {
-    const commandBar = window.app?.commandBar
-    if (commandBar) {
-      // Use command bar to show help
-      commandBar.executeCommand(':h')
-    } else {
-      // Fallback to alert
-      alert(`Keyboard Shortcuts:
-
-Essential Commands:
-• Ctrl+Space - Open command palette
-• :n - New document
-• :s - Save document
-• :o - Open document
-• :f - Search documents
-• :h - Show all shortcuts
-
-Editor Controls:
-• :65, :80, :90 - Set editor width
-• :zi, :zo, :zr - Zoom in/out/reset
-• :t - Change theme
-• :tt - Toggle theme
-
-Git Integration:
-• :glo - Git login
-• :gsy - Git sync
-• :gst - Git status
-
-View complete list with :h command`)
-    }
-  }
-
-  /**
-   * Show changelog/release notes
-   */
-  showChangelog() {
-    window.open('https://fantasy.forgewright.io/changelog', '_blank')
-  }
-
-  /**
-   * Show documentation
-   */
-  showDocumentation() {
-    window.open('https://fantasy.forgewright.io/docs', '_blank')
   }
 
   /**
@@ -324,7 +233,7 @@ View complete list with :h command`)
       id: 'about',
       name: 'ℹ️ About',
       label: 'About',
-      keywords: ['about', 'version', 'license', 'help', 'shortcuts', 'changelog', 'support', 'documentation']
+      keywords: ['about', 'version', 'license', 'help', 'shortcuts']
     }
   }
 }

@@ -39,20 +39,6 @@ export class GitIntegrationTab {
     ]
   }
 
-  /**
-   * Get sync frequency options
-   * @returns {Array} Sync frequency options
-   */
-  getSyncFrequencyOptions() {
-    return [
-      { value: 'manual', label: 'Manual sync only' },
-      { value: 30000, label: 'Every 30 seconds' },
-      { value: 60000, label: 'Every minute' },
-      { value: 300000, label: 'Every 5 minutes' },
-      { value: 900000, label: 'Every 15 minutes' },
-      { value: 1800000, label: 'Every 30 minutes' }
-    ]
-  }
 
   /**
    * Render the Git Integration settings tab
@@ -126,47 +112,6 @@ export class GitIntegrationTab {
         description: 'Choose your Git hosting provider'
       })
 
-      // Auto-sync settings
-      const autoSyncField = new SettingField({
-        label: 'Auto-sync documents',
-        type: 'checkbox',
-        setting: 'gitIntegration.autoSync',
-        value: settings.autoSync,
-        description: 'Automatically sync documents to remote repository'
-      })
-
-      const syncFrequencyField = new SettingField({
-        label: 'Sync frequency',
-        type: 'select',
-        setting: 'gitIntegration.syncFrequency',
-        value: settings.syncFrequency || 300000,
-        options: this.getSyncFrequencyOptions(),
-        description: 'How often to sync when auto-sync is enabled'
-      })
-
-      // Sync on save
-      const syncOnSaveField = new SettingField({
-        label: 'Sync on save',
-        type: 'checkbox',
-        setting: 'gitIntegration.syncOnSave',
-        value: settings.syncOnSave,
-        description: 'Automatically sync document when saving'
-      })
-
-      // Conflict resolution
-      const conflictResolutionField = new SettingField({
-        label: 'Conflict resolution',
-        type: 'select',
-        setting: 'gitIntegration.conflictResolution',
-        value: settings.conflictResolution || 'prompt',
-        options: [
-          { value: 'prompt', label: 'Always ask user' },
-          { value: 'local', label: 'Prefer local changes' },
-          { value: 'remote', label: 'Prefer remote changes' },
-          { value: 'merge', label: 'Attempt automatic merge' }
-        ],
-        description: 'How to handle conflicts during sync'
-      })
 
       return `
         <div class="settings-sections">
@@ -188,14 +133,6 @@ export class GitIntegrationTab {
             </div>
           </div>
           
-          <div class="settings-section">
-            <h4>Synchronization Settings</h4>
-            
-            ${autoSyncField.render()}
-            ${syncFrequencyField.render()}
-            ${syncOnSaveField.render()}
-            ${conflictResolutionField.render()}
-          </div>
         </div>
       `
     } catch (error) {
