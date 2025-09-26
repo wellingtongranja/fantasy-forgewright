@@ -368,6 +368,22 @@ export class LegalAcceptanceManager {
   }
 
   /**
+   * Check if user has any acceptance records at all
+   * Used to determine if user has previously accepted legal documents
+   */
+  async hasAnyAcceptanceRecords(userId) {
+    this.validateUserId(userId)
+
+    try {
+      const userAcceptances = await this.getAcceptancesByUser(userId)
+      return userAcceptances.length > 0
+    } catch (error) {
+      console.warn('Error checking acceptance records:', error)
+      return false
+    }
+  }
+
+  /**
    * Get complete acceptance history for user
    */
   async getUserAcceptanceHistory(userId) {

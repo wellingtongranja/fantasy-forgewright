@@ -149,8 +149,23 @@ export class LegalManager {
       const metadata = await this.checkForUpdates()
 
       // If worker is unavailable, we can't verify current document versions
-      // In this case, assume user needs to accept (safer approach)
+      // Check if this is a worker unavailable scenario vs no documents
       if (!metadata || !metadata.documents || Object.keys(metadata.documents).length === 0) {
+        // If we have the error field, this means worker is unavailable (not just no documents)
+        // In this case, check if user has any existing acceptances stored locally
+        if (metadata && metadata.error) {
+          try {
+            const existingAcceptances = await this.acceptance.hasAnyAcceptanceRecords(userId)
+            if (existingAcceptances) {
+              // User has accepted documents previously, even though we can't verify versions
+              // This prevents legal splash from showing on every refresh in development
+              return true
+            }
+          } catch (error) {
+            console.warn('Could not check existing acceptance records:', error)
+          }
+        }
+        // No existing acceptances or other failure - show legal splash
         return false
       }
 
