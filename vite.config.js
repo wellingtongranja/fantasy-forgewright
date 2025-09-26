@@ -2,7 +2,8 @@ import { defineConfig, loadEnv } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
 export default defineConfig(({ command, mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
+  // SECURITY: Only load safe environment variables, prevent OAuth secrets in bundle
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
   const isProduction = mode === 'production'
   const isDevelopment = mode === 'development'
   
@@ -10,68 +11,71 @@ export default defineConfig(({ command, mode }) => {
   publicDir: 'public',
   base: env.VITE_BASE_PATH || '/',
   plugins: [
-    VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png"],
-      filename: "sw.js",
-      strategies: "generateSW",
-      manifest: {
-        name: "Fantasy Editor",
-        short_name: "Fantasy",
-        description: "A distraction-free markdown editor for fantasy writers",
-        theme_color: "#2c3e50",
-        background_color: "#ffffff",
-        display: "standalone",
-        orientation: "portrait",
-        scope: "/",
-        start_url: "/",
-        icons: [
-          {
-            src: "icons/icon-192.png",
-            sizes: "192x192",
-            type: "image/png"
-          },
-          {
-            src: "icons/icon-512.png",
-            sizes: "512x512",
-            type: "image/png"
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        cleanupOutdatedCaches: true,
-        skipWaiting: isProduction,
-        clientsClaim: isProduction,
-        navigateFallback: null,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.github\.com\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "github-api",
-              networkTimeoutSeconds: 10,
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 24 * 60 * 60
+    // Disable PWA in development to prevent service worker HTTPS upgrade issues
+    ...(isProduction ? [
+      VitePWA({
+        registerType: "autoUpdate",
+        includeAssets: ["favicon.ico", "apple-touch-icon.png"],
+        filename: "sw.js",
+        strategies: "generateSW",
+        manifest: {
+          name: "Fantasy Editor",
+          short_name: "Fantasy",
+          description: "A distraction-free markdown editor for fantasy writers",
+          theme_color: "#2c3e50",
+          background_color: "#ffffff",
+          display: "standalone",
+          orientation: "portrait",
+          scope: "/",
+          start_url: "/",
+          icons: [
+            {
+              src: "icons/icon-192.png",
+              sizes: "192x192",
+              type: "image/png"
+            },
+            {
+              src: "icons/icon-512.png",
+              sizes: "512x512",
+              type: "image/png"
+            }
+          ]
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+          cleanupOutdatedCaches: true,
+          skipWaiting: isProduction,
+          clientsClaim: isProduction,
+          navigateFallback: null,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/api\.github\.com\/.*/i,
+              handler: "NetworkFirst",
+              options: {
+                cacheName: "github-api",
+                networkTimeoutSeconds: 10,
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 24 * 60 * 60
+                }
+              }
+            },
+            {
+              urlPattern: /^https:\/\/gutendex\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "gutenberg-api",
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 7 * 24 * 60 * 60
+                }
               }
             }
-          },
-          {
-            urlPattern: /^https:\/\/gutendex\.com\/.*/i,
-            handler: "CacheFirst", 
-            options: {
-              cacheName: "gutenberg-api",
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 7 * 24 * 60 * 60
-              }
-            }
-          }
-        ]
-      }
-    })
+          ]
+        }
+      })
+    ] : [])
   ],
   build: {
     target: "es2020",
@@ -99,6 +103,25 @@ export default defineConfig(({ command, mode }) => {
             return `assets/css/[name]-[hash].${ext}`
           }
           return `assets/[name]-[hash].${ext}`
+        },
+        manualChunks: {
+          // PDF export functionality - loaded only when needed
+          'pdf-export': ['jspdf', 'html2canvas'],
+          // CodeMirror core - essential for editor
+          'codemirror': [
+            '@codemirror/state',
+            '@codemirror/view',
+            '@codemirror/commands',
+            '@codemirror/lang-markdown',
+            '@codemirror/search',
+            '@codemirror/autocomplete',
+            '@codemirror/language',
+            '@codemirror/merge'
+          ],
+          // Search functionality - loaded when needed
+          'search-utils': ['lunr'],
+          // Security utilities
+          'security': ['dompurify']
         }
       },
       external: isProduction ? [] : []
@@ -156,6 +179,10 @@ export default defineConfig(({ command, mode }) => {
     __PROD__: isProduction,
     __ENABLE_DEVTOOLS__: isDevelopment || env.VITE_ENABLE_DEVTOOLS === 'true'
   },
+
+  // SECURITY: Explicitly prevent any OAuth/secret environment variables from being bundled
+  envPrefix: ['VITE_'],
+  envDir: process.cwd(),
   
   css: {
     devSourcemap: isDevelopment,

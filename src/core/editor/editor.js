@@ -6,12 +6,14 @@ import { foldAll, unfoldAll, foldCode, unfoldCode } from '@codemirror/language'
 import { openSearchPanel } from '@codemirror/search'
 
 export class EditorManager {
-  constructor(element, themeManager = null, notificationCallback = null) {
+  constructor(element, themeManager = null, notificationCallback = null, settingsManager = null, onContentChange = null) {
     this.element = element
     this.view = null
     this.state = null
     this.themeManager = themeManager
-    this.editorExtensions = new EditorExtensions(themeManager)
+    this.settingsManager = settingsManager
+    this.onContentChange = onContentChange
+    this.editorExtensions = new EditorExtensions(themeManager, settingsManager, onContentChange)
     this.readonlyExtensions = new ReadonlyExtensions(notificationCallback)
     this.extensionCompartment = new Compartment()
     this.isReadonly = false
@@ -84,6 +86,13 @@ export class EditorManager {
     if (this.themeManager) {
       this.themeManager.applyTheme(theme)
     }
+  }
+
+  /**
+   * Reload editor extensions (call when settings change)
+   */
+  reloadExtensions() {
+    this.reconfigure()
   }
 
   /**
@@ -190,27 +199,30 @@ export class EditorManager {
   }
 
   /**
-   * Reconfigure editor with updated extensions
+   * Reconfigure editor with updated extensions including readonly state
    */
   reconfigure() {
     if (this.view && this.editorExtensions) {
+      const newExtensions = [
+        ...this.editorExtensions.getExtensions(),
+        ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
+        ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
+      ]
       this.view.dispatch({
-        effects: this.extensionCompartment.reconfigure([
-          ...this.editorExtensions.getExtensions(),
-          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
-        ])
+        effects: this.extensionCompartment.reconfigure(newExtensions)
       })
     }
   }
 
   /**
-   * Reconfigure editor with specific font size
+   * Reconfigure editor with specific font size including readonly state
    */
   reconfigureWithFontSize(fontSize) {
     if (this.view && this.editorExtensions && this.themeManager) {
       this.view.dispatch({
         effects: this.extensionCompartment.reconfigure([
           ...this.editorExtensions.getExtensions(),
+          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
           ...this.themeManager.getCodeMirrorTheme(this.themeManager.currentTheme, { fontSize })
         ])
       })
@@ -356,32 +368,72 @@ export class EditorManager {
   }
 
   /**
-   * Reconfigure editor with readonly state
+   * Enter diff mode for comparing local and remote content
+   * @param {string} localContent - Local document content
+   * @param {string} remoteContent - Remote document content
+   * @returns {boolean} Success status
    */
-  reconfigure() {
-    if (this.view && this.editorExtensions) {
-      this.view.dispatch({
-        effects: this.extensionCompartment.reconfigure([
-          ...this.editorExtensions.getExtensions(),
-          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
-          ...(this.themeManager ? this.themeManager.getCodeMirrorTheme() : [])
-        ])
-      })
+  async enterDiffMode(localContent, remoteContent) {
+    console.log('EditorManager.enterDiffMode called with:', {
+      localLength: localContent?.length,
+      remoteLength: remoteContent?.length,
+      hasView: !!this.view,
+      hasFantasyEditor: !!window.fantasyEditor,
+      hasDiffManager: !!window.fantasyEditor?.diffManager
+    })
+
+    if (!this.view) {
+      console.error('❌ No editor view available')
+      return false
+    }
+
+    if (!window.fantasyEditor?.diffManager) {
+      console.error('❌ No diffManager available on window.fantasyEditor')
+      return false
+    }
+
+    try {
+      // Create a temporary document object for diff manager
+      const tempDoc = {
+        content: localContent,
+        title: 'Current Document'
+      }
+
+      console.log('🔥 Calling diffManager.enterDiffMode...')
+      // Use the DiffManager to enter diff mode
+      const result = await window.fantasyEditor.diffManager.enterDiffMode(tempDoc, remoteContent)
+      console.log('🔥 diffManager.enterDiffMode returned:', result)
+      return result
+    } catch (error) {
+      console.error('❌ EditorManager.enterDiffMode failed:', error)
+      return false
     }
   }
 
   /**
-   * Reconfigure editor with specific font size and readonly state
+   * Exit diff mode and return to normal editing
+   * @param {boolean} saveChanges - Whether to save changes from diff mode
+   * @returns {boolean} Success status
    */
-  reconfigureWithFontSize(fontSize) {
-    if (this.view && this.editorExtensions && this.themeManager) {
-      this.view.dispatch({
-        effects: this.extensionCompartment.reconfigure([
-          ...this.editorExtensions.getExtensions(),
-          ...this.readonlyExtensions.getReadonlyExtensions(this.isReadonly),
-          ...this.themeManager.getCodeMirrorTheme(this.themeManager.currentTheme, { fontSize })
-        ])
-      })
+  async exitDiffMode(saveChanges = false) {
+    if (!window.fantasyEditor?.diffManager) {
+      return false
+    }
+
+    try {
+      return await window.fantasyEditor.diffManager.exitDiffMode(saveChanges)
+    } catch (error) {
+      console.error('Failed to exit diff mode:', error)
+      return false
     }
   }
+
+  /**
+   * Check if currently in diff mode
+   * @returns {boolean} True if in diff mode
+   */
+  isInDiffMode() {
+    return window.fantasyEditor?.diffManager?.isInDiff() || false
+  }
+
 }

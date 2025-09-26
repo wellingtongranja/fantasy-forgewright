@@ -24,7 +24,7 @@ describe('Settings Schema', () => {
       expect(DEFAULT_SETTINGS).toHaveProperty('editor')
       expect(DEFAULT_SETTINGS).toHaveProperty('codemirror')
       expect(DEFAULT_SETTINGS).toHaveProperty('ui')
-      expect(DEFAULT_SETTINGS).toHaveProperty('sync')
+      expect(DEFAULT_SETTINGS).toHaveProperty('gitIntegration')
       expect(DEFAULT_SETTINGS).toHaveProperty('privacy')
     })
 

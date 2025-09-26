@@ -64,6 +64,32 @@ export class StatusBarManager {
         this.cycleEditorZoom()
       })
     }
+
+    // Sync status double-click for diff mode
+    if (this.elements.syncStatus) {
+      this.elements.syncStatus.addEventListener('dblclick', () => {
+        this.handleSyncStatusDoubleClick()
+      })
+    }
+  }
+
+  /**
+   * Handle double-click on sync status to enter diff mode
+   */
+  handleSyncStatusDoubleClick() {
+    // Only trigger diff mode if document is out-of-sync
+    if (this.elements.syncStatus && this.elements.syncStatus.classList.contains('out-of-sync')) {
+      // Check if currently in diff mode - if so, toggle off
+      if (this.app.editor && this.app.editor.isInDiffMode()) {
+        this.app.editor.exitDiffMode(true) // Keep current changes
+        this.app.showNotification?.('Diff mode closed - changes preserved', 'info')
+      } else {
+        // Enter diff mode using the Git diff command
+        if (this.app.commandRegistry) {
+          this.app.commandRegistry.executeCommand('git diff', [])
+        }
+      }
+    }
   }
 
   /**
@@ -149,12 +175,13 @@ export class StatusBarManager {
         this.elements.syncStatusIcon.textContent = icon
       }
       
-      // Add appropriate class based on status
-      if (status.toLowerCase().includes('sync') || (icon && icon.includes('🟢'))) {
+      // Add appropriate class based on status - exact matching for consistency
+      const statusLower = status.toLowerCase()
+      if (statusLower === 'synced' || (icon && icon.includes('🟢'))) {
         this.elements.syncStatus.classList.add('synced')
-      } else if (status.toLowerCase().includes('out') || (icon && icon.includes('🟡'))) {
+      } else if (statusLower === 'out-of-sync' || (icon && icon.includes('🟡'))) {
         this.elements.syncStatus.classList.add('out-of-sync')
-      } else if (status.toLowerCase().includes('local') || (icon && icon.includes('🔴'))) {
+      } else if (statusLower === 'local' || (icon && icon.includes('🔴'))) {
         this.elements.syncStatus.classList.add('local-only')
       }
     }
@@ -183,8 +210,26 @@ export class StatusBarManager {
    * Get app version
    */
   getAppVersion() {
-    // This could be injected during build or read from a config
-    return '0.0.1'
+    // Get version from Vite environment variable or fallback to package.json version
+    // Use dynamic access to avoid Jest syntax errors with import.meta
+    let env = {}
+    
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Safely access import.meta without eval to prevent code injection
+      try {
+        // Use try-catch to safely access import.meta
+        env = import.meta?.env || {}
+      } catch (error) {
+        // import.meta not available (likely in test environment)
+        env = {}
+      }
+    } else if (typeof global !== 'undefined' && global.import?.meta?.env) {
+      // Jest environment with mocked import.meta
+      env = global.import.meta.env
+    }
+    
+    return env.VITE_APP_VERSION || '0.0.2-alpha'
   }
 
   /**

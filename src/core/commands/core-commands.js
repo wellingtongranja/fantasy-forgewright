@@ -6,6 +6,19 @@ import { registerGitCommands } from './git-commands.js'
 import { SettingsDialog } from '../../components/dialogs/settings-dialog.js'
 import { SettingsManager } from '../settings/settings-manager.js'
 
+// Helper function to initialize settings dialog with proper callbacks
+function initializeSettingsDialog(app) {
+  if (!app.settingsDialog) {
+    app.settingsDialog = new SettingsDialog(app.settingsManager)
+    // Set up callback to reload editor extensions when settings change
+    app.settingsDialog.onSave = () => {
+      if (app.editor && typeof app.editor.reloadExtensions === 'function') {
+        app.editor.reloadExtensions()
+      }
+    }
+  }
+}
+
 export function registerCoreCommands(registry, app) {
   const commands = [
     // Document Management Commands
@@ -182,12 +195,12 @@ export function registerCoreCommands(registry, app) {
           name: 'theme',
           required: false,
           type: 'string',
-          description: 'Theme name (light, dark)'
+          description: 'Theme name (light, dark, fantasy, custom)'
         }
       ],
       handler: async (args) => {
         const themeName = args[0]
-        const availableThemes = ['light', 'dark']
+        const availableThemes = ['light', 'dark', 'fantasy', 'custom']
 
         if (!themeName) {
           return {
@@ -218,14 +231,28 @@ export function registerCoreCommands(registry, app) {
       handler: async () => {
         // Get current theme and cycle to next
         const currentTheme = app.settingsManager.get('editor.theme') || 'light'
-        const themes = ['light', 'dark']
+        const themes = ['light', 'dark', 'fantasy', 'custom']
         const currentIndex = themes.indexOf(currentTheme)
-        const nextTheme = themes[(currentIndex + 1) % themes.length]
+        
+        // Handle unknown theme (fallback to light)
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % themes.length
+        const nextTheme = themes[nextIndex]
         
         // Update via Settings Manager (will notify Theme Manager automatically)
         app.settingsManager.set('editor.theme', nextTheme)
         
-        return { success: true, message: `Switched to ${nextTheme} theme` }
+        // Return appropriate icon and message
+        const themeIcons = {
+          light: '☀️',
+          dark: '🌙',
+          fantasy: '⚔️',
+          custom: '🎨'
+        }
+        
+        return { 
+          success: true, 
+          message: `${themeIcons[nextTheme]} Switched to ${nextTheme} theme` 
+        }
       }
     },
 
@@ -736,29 +763,27 @@ export function registerCoreCommands(registry, app) {
         }
       ],
       handler: async (args) => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
-        const format = args[0]
-        if (!format) {
-          const formats = app.exportManager.getSupportedFormats()
-          return {
-            success: true,
-            message: 'Available export formats:',
-            data: formats.map((f) => f.toUpperCase())
-          }
-        }
-
-        if (!app.exportManager.isFormatSupported(format)) {
-          return {
-            success: false,
-            message: `Unsupported format: ${format}. Available formats: ${app.exportManager.getSupportedFormats().join(', ')}`
-          }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument(format)
+          const exportManager = await app.getExportManager()
+
+          const format = args[0]
+          if (!format) {
+            const formats = exportManager.getSupportedFormats()
+            return {
+              success: true,
+              message: 'Available export formats:',
+              data: formats.map((f) => f.toUpperCase())
+            }
+          }
+
+          if (!exportManager.isFormatSupported(format)) {
+            return {
+              success: false,
+              message: `Unsupported format: ${format}. Available formats: ${exportManager.getSupportedFormats().join(', ')}`
+            }
+          }
+
+          const result = await exportManager.exportDocument(format)
           return result
         } catch (error) {
           return { success: false, message: `Export failed: ${error.message}` }
@@ -773,12 +798,9 @@ export function registerCoreCommands(registry, app) {
       icon: '📝',
       aliases: [':em'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('md')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('md')
           return result
         } catch (error) {
           return { success: false, message: `Markdown export failed: ${error.message}` }
@@ -793,12 +815,9 @@ export function registerCoreCommands(registry, app) {
       icon: '📄',
       aliases: [':et'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('txt')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('txt')
           return result
         } catch (error) {
           return { success: false, message: `Text export failed: ${error.message}` }
@@ -813,12 +832,9 @@ export function registerCoreCommands(registry, app) {
       icon: '🌐',
       aliases: [':eh'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('html')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('html')
           return result
         } catch (error) {
           return { success: false, message: `HTML export failed: ${error.message}` }
@@ -833,12 +849,9 @@ export function registerCoreCommands(registry, app) {
       icon: '📑',
       aliases: [':ep'],
       handler: async () => {
-        if (!app.exportManager) {
-          return { success: false, message: 'Export functionality not available' }
-        }
-
         try {
-          const result = await app.exportManager.exportDocument('pdf')
+          const exportManager = await app.getExportManager()
+          const result = await exportManager.exportDocument('pdf')
           return result
         } catch (error) {
           return { success: false, message: `PDF export failed: ${error.message}` }
@@ -1251,7 +1264,7 @@ export function registerCoreCommands(registry, app) {
 
     {
       name: 'license',
-      description: 'view AGPL v3 license (Community Edition)',
+      description: 'view MIT license',
       category: 'about',
       icon: '⚖️',
       aliases: [':license'],
@@ -1262,10 +1275,10 @@ export function registerCoreCommands(registry, app) {
             app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
 
-          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license-agpl')
+          const licenseDoc = await app.systemDocumentsManager.getSystemDocument('license-mit')
           if (licenseDoc) {
             app.loadDocument(licenseDoc)
-            return { success: true, message: 'AGPL v3 license loaded' }
+            return { success: true, message: 'MIT license loaded' }
           } else {
             return { success: false, message: 'License document not available' }
           }
@@ -1450,16 +1463,42 @@ export function registerCoreCommands(registry, app) {
 
     {
       name: 'version',
-      description: 'show version',
+      description: 'show version info or open release notes',
       category: 'about',
       icon: '🏷️',
       aliases: [':v'],
-      handler: async () => {
+      parameters: [
+        { name: 'action', required: false, type: 'string', description: 'Use "notes" to open release notes' }
+      ],
+      handler: async (args) => {
+        const action = args?.action?.toLowerCase()
+
+        // If "notes" is specified, open release notes document
+        if (action === 'notes' || action === 'release') {
+          try {
+            if (!app.systemDocumentsManager) {
+              const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+              app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+            }
+
+            const releaseDoc = await app.systemDocumentsManager.getSystemDocument('release-notes')
+            if (releaseDoc) {
+              app.loadDocument(releaseDoc)
+              return { success: true, message: 'Release notes loaded' }
+            } else {
+              return { success: false, message: 'Release notes not available' }
+            }
+          } catch (error) {
+            return { success: false, message: `Failed to load release notes: ${error.message}` }
+          }
+        }
+
+        // Default: show version information
         return {
           success: true,
-          message: 'Fantasy Editor v0.0.1-alpha',
+          message: 'Fantasy Editor v0.0.2-alpha - Use ":v notes" to open release notes',
           data: {
-            version: '0.0.1-alpha',
+            version: '0.0.2-alpha',
             build: 'development',
             features: [
               'PWA',
@@ -1467,7 +1506,8 @@ export function registerCoreCommands(registry, app) {
               'Multi-theme',
               'Command Palette',
               'GUID System',
-              'Readonly Documents'
+              'Legal Documents Management',
+              'Release Notes Auto-Open'
             ]
           }
         }
@@ -1482,28 +1522,47 @@ export function registerCoreCommands(registry, app) {
       icon: '❓',
       aliases: [':help', ':?'],
       handler: async () => {
-        const allCommands = registry.getAllCommands()
-        const categories = {}
-        
-        allCommands.forEach(cmd => {
-          const category = cmd.category || 'general'
-          if (!categories[category]) {
-            categories[category] = []
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
-          const alias = cmd.aliases?.[0] || cmd.name
-          categories[category].push(`${alias}: ${cmd.description}`)
-        })
 
-        const categoryOrder = ['document', 'git', 'search', 'export', 'preferences', 'about', 'general']
-        const orderedCategories = categoryOrder.filter(cat => categories[cat])
-        
-        return {
-          success: true,
-          message: 'Available Commands:',
-          data: orderedCategories.flatMap(cat => [
-            `\n${cat.toUpperCase()}:`,
-            ...categories[cat].sort()
-          ])
+          const helpDoc = await app.systemDocumentsManager.getSystemDocument('help')
+          if (helpDoc) {
+            app.loadDocument(helpDoc)
+            return { success: true, message: 'Help document loaded' }
+          } else {
+            return { success: false, message: 'Help document not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load help: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'guide',
+      description: 'open comprehensive user guide',
+      category: 'about',
+      icon: '📚',
+      aliases: [':guide'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const guideDoc = await app.systemDocumentsManager.getSystemDocument('user-guide')
+          if (guideDoc) {
+            app.loadDocument(guideDoc)
+            return { success: true, message: 'User guide loaded' }
+          } else {
+            return { success: false, message: 'User guide not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load user guide: ${error.message}` }
         }
       }
     },
@@ -1519,15 +1578,15 @@ export function registerCoreCommands(registry, app) {
           success: true,
           message: 'Fantasy Editor - A distraction-free markdown editor for fantasy writers',
           data: [
-            'Version: v0.0.1-alpha (Community Edition)',
-            'License: AGPL v3 (Open Source)',
+            'Version: v0.0.2-alpha (Free MIT Edition)',
+            'License: MIT (Open Source)',
             'Features: PWA, Offline Storage, Multi-theme, Command Palette',
             '',
             'Commands:',
             '• Type ":help" for all available commands',
             '• Press Ctrl+Space to open command palette',
-            '• Use ":license" for license information',
-            '• Use ":edition" to see current edition features',
+            '• Use ":license" for MIT license information',
+            '• Upgrade to Fantasy Editor Forge for AI-powered writing',
             '',
             'Created with ❤️ for fantasy writers'
           ]
@@ -1557,9 +1616,7 @@ export function registerCoreCommands(registry, app) {
         }
         
         // Initialize settings dialog if not exists
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         const tab = args[0] || 'editor'
         const validTabs = ['editor', 'themes', 'codemirror', 'sync', 'privacy']
@@ -1590,9 +1647,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('editor')
         return { success: true, message: 'Editor settings opened' }
@@ -1609,9 +1664,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('themes')
         return { success: true, message: 'Theme customization opened' }
@@ -1628,9 +1681,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('codemirror')
         return { success: true, message: 'CodeMirror settings opened' }
@@ -1647,9 +1698,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('sync')
         return { success: true, message: 'Sync settings opened' }
@@ -1666,9 +1715,7 @@ export function registerCoreCommands(registry, app) {
         if (!app.settingsManager) {
           app.settingsManager = new SettingsManager()
         }
-        if (!app.settingsDialog) {
-          app.settingsDialog = new SettingsDialog(app.settingsManager)
-        }
+        initializeSettingsDialog(app)
 
         app.settingsDialog.show('privacy')
         return { success: true, message: 'Privacy settings opened' }

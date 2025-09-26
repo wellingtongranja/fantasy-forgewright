@@ -1,115 +1,106 @@
-# Fantasy Editor Help
+# Fantasy Editor Quick Reference
 
-**Version 0.0.1 (Alpha)**
+**Version 0.0.2 (Alpha)**
 
-Welcome to Fantasy Editor - a distraction-free markdown editor for fantasy writers.
+Fantasy Editor - Distraction-free markdown editor for writers.
 
-## Getting Started
+## 🚀 Getting Started
 
-Fantasy Editor uses a command-based interface. Press `Ctrl+Space` to open the command palette and start exploring!
+**The Magic Key**: `Ctrl+Space` opens the command palette - your gateway to everything!
 
-## Key Features
+1. Press `Ctrl+Space` → Type `:n My Story` to create a document
+2. Use `:glo` to connect your Git provider (GitHub, GitLab, etc.)
+3. Try `:t dark` for dark theme, `:65` for optimal width
 
-- **Markdown Editing** - Full markdown support with live preview
-- **Command Palette** - Access all features through `Ctrl+Space`
-- **Multiple Themes** - Light, Dark, and Fantasy themes
-- **GitHub Integration** - Sync your documents with GitHub
-- **Offline Support** - Works without internet connection
-- **Full-text Search** - Search across all your documents
+## ⚡ Core Features
 
-## Essential Commands
+- **Command-Driven** - Everything through `Ctrl+Space`
+- **Git Integration** - Sync with GitHub, GitLab, Bitbucket, and more
+- **Writer-Focused** - Distraction-free editing with optimal 65ch width
+- **Offline-First** - Full functionality without internet
+- **Multiple Themes** - Light, Dark, Fantasy modes
+
+## 🎯 Essential Commands
 
 ### File Operations
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| New | `:n` | Create a new document |
-| Save | `:s` | Save current document |
-| Open | `:o` | Open a document |
-| Delete | `:del` | Delete current document |
+| Shortcut | Description |
+|----------|-------------|
+| `:n [title]` | Create new document |
+| `:s` | Save current document |
+| `:o [search]` | Open document |
+| `:f [query]` | Search all documents |
 
-### Editing
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Undo | `:u` | Undo last change |
-| Redo | `:r` | Redo last change |
-| Find | `:f` | Search in documents |
-| Find & Replace | `:fr` | Find and replace text |
+### Navigation & View
+| Shortcut | Description |
+|----------|-------------|
+| `:d` | Documents list |
+| `:l` | Document outline |
+| `:ts` | Toggle Navigator |
+| `:65` `:80` `:90` | Width presets |
+| `:zi` `:zo` `:zr` | Zoom in/out/reset |
 
-### View & Navigation
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Documents | `:d` | Show documents list |
-| Outline | `:l` | Show document outline |
-| Toggle Navigator | `:ts` | Toggle sidebar |
-| Zoom In | `:zi` | Increase editor font size |
-| Zoom Out | `:zo` | Decrease editor font size |
-| Zoom Reset | `:zr` | Reset to default size |
+### Themes & Export
+| Shortcut | Description |
+|----------|-------------|
+| `:t [theme]` | Change theme |
+| `:tt` | Toggle theme |
+| `:ex [format]` | Export (md/txt/html/pdf) |
 
-### Width Control
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Width 65ch | `:w65` | Set editor width to 65 characters |
-| Width 80ch | `:w80` | Set editor width to 80 characters |
-| Width 90ch | `:w90` | Set editor width to 90 characters |
-| Width Full | `:wf` | Set editor to full width |
+### Git Provider Integration
+*Works with GitHub, GitLab, Bitbucket, and more*
 
-### Themes
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Theme | `:t` | Change theme |
-| Toggle Theme | `:tt` | Toggle between themes |
-
-### Export Options
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Export Text | `:et` | Export as plain text |
-| Export HTML | `:eh` | Export as HTML |
-| Export PDF | `:ep` | Export as PDF |
-
-### Document Management
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Tag | `:tag` | Manage document tags |
-| Readonly | `:ro` | Make document readonly |
-| Read-write | `:rw` | Make document editable |
-
-### GitHub Integration
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| GitHub Login | `:glo` | Login to GitHub |
-| GitHub Logout | `:gou` | Logout from GitHub |
-| GitHub Config | `:gcf` | Configure repository |
-| GitHub Push | `:gpu` | Push changes to GitHub |
-| GitHub Sync | `:gsy` | Sync with GitHub |
-| GitHub Status | `:gst` | Check sync status |
+| Shortcut | Description |
+|----------|-------------|
+| `:glo` | Login to Git provider |
+| `:gcf owner repo` | Configure repository |
+| `:gsy` | Sync documents |
+| `:gst` | Check sync status |
+| `:gpu` | Push changes |
+| `:gou` | Logout |
 
 ### System Documents
-| Command | Shortcut | Description |
-|---------|----------|-------------|
-| Help | `:help` | Open this help document |
-| License | `:license` | View AGPL v3 license |
-| Privacy | `:privacy` | View privacy policy |
-| EULA | `:eula` | View end user license agreement |
-| Release Notes | `:release` | View release notes |
+| Shortcut | Description |
+|----------|-------------|
+| `:help` | This quick reference |
+| `:guide` | Complete user guide |
+| `:license` | AGPL v3 license |
+| `:privacy` | Privacy policy |
+| `:eula` | User agreement |
 
-## Tips & Tricks
+## 💡 Quick Tips
 
-1. **Quick Navigation** - Use `:d` to quickly jump between documents
-2. **Fast Search** - Use `:f` followed by your search term
-3. **Tag Organization** - Use `:tag add <name>` to organize documents
-4. **Auto-save** - Documents save automatically as you type
-5. **Offline First** - All documents stored locally, sync when online
+**Getting Started:**
+- `:n My Story` - Create your first document
+- `:65` - Set optimal reading width
+- `:glo` - Connect Git provider for backup
 
-## Keyboard Shortcuts
+**Navigation:**
+- `:d` - Jump between documents
+- `:f dragons` - Search all content
+- `:tag add fantasy` - Organize documents
 
-All commands are accessed through `Ctrl+Space` followed by the command shortcut. This design avoids conflicts with browser shortcuts and provides a consistent interface.
+**Writing Flow:**
+- Auto-save works as you type
+- Offline-first design
+- `Ctrl+Space` - Your only shortcut to remember!
 
-## Support
+## 🆘 Quick Troubleshooting
 
-Fantasy Editor is currently in **Alpha (v0.0.1)**. All features are free during the alpha period. 
+**Command palette not working?**
+- Press `Ctrl+Space` exactly (not other shortcuts)
+- Click in editor first to ensure focus
 
-For bug reports and feature requests, please visit our GitHub repository.
+**Git sync issues?**
+- `:gou` → `:glo` to re-authenticate
+- `:gst` to check sync status
+
+## 📚 More Help
+
+- `:guide` - Complete user manual
+- `:help` - This quick reference
 
 ---
 
-*Fantasy Editor - Write your epic tales with focus and clarity*
+**Fantasy Editor v0.0.2 (Alpha)** - Write with focus and clarity
+
+*Remember: `Ctrl+Space` is your magic key!*

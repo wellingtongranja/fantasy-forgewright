@@ -42,17 +42,27 @@ const mockLocalStorage = {
 }
 Object.defineProperty(global, 'localStorage', { value: mockLocalStorage })
 
-// Mock document
-Object.defineProperty(global, 'document', {
-  value: {
-    createElement: jest.fn(() => new HTMLElement()),
-    getElementById: jest.fn(() => new HTMLElement()),
-    querySelector: jest.fn(() => new HTMLElement()),
-    querySelectorAll: jest.fn(() => []),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn()
-  }
-})
+// Mock document conditionally  
+if (!global.document || !global.document.createElement) {
+  Object.defineProperty(global, 'document', {
+    value: {
+      createElement: jest.fn(() => new HTMLElement()),
+      getElementById: jest.fn(() => new HTMLElement()),
+      querySelector: jest.fn(() => new HTMLElement()),
+      querySelectorAll: jest.fn(() => []),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      body: { style: {} },
+      ...global.document
+    },
+    configurable: true,
+    writable: true
+  })
+} else if (global.document && !global.document.addEventListener.mock) {
+  // If document exists but addEventListener isn't mocked, create proper mock
+  global.document.addEventListener = jest.fn()
+  global.document.removeEventListener = jest.fn()
+}
 
 // Mock tab components
 jest.mock('../../src/components/navigator/tabs/documents-tab.js', () => ({
@@ -416,14 +426,31 @@ describe('Navigator Integration Tests', () => {
   })
 
   describe('tab component lifecycle integration', () => {
-    it('should properly initialize tab components', (done) => {
-      // Tab components are loaded asynchronously
-      setTimeout(() => {
-        expect(navigator.tabComponents.documents).toBeDefined()
-        expect(navigator.tabComponents.outline).toBeDefined()
-        expect(navigator.tabComponents.search).toBeDefined()
-        done()
-      }, 100)
+    it('should properly initialize tab components', async () => {
+      // Mock the required DOM elements for tab initialization
+      const mockDocumentsContainer = { id: 'documents-tab-content' }
+      const mockOutlineContainer = { id: 'outline-tab-content' }  
+      const mockSearchContainer = { id: 'search-tab-content' }
+
+      // Override the document.getElementById mock for this test
+      const originalGetElementById = document.getElementById
+      document.getElementById = jest.fn().mockImplementation((id) => {
+        if (id === 'documents-tab-content') return mockDocumentsContainer
+        if (id === 'outline-tab-content') return mockOutlineContainer
+        if (id === 'search-tab-content') return mockSearchContainer
+        return null
+      })
+      
+      // Initialize tab components
+      await navigator.initializeTabs()
+      
+      // After async initialization, components should be defined
+      expect(navigator.tabComponents.documents).toBeDefined()
+      expect(navigator.tabComponents.outline).toBeDefined()
+      expect(navigator.tabComponents.search).toBeDefined()
+      
+      // Restore original mock
+      document.getElementById = originalGetElementById
     })
 
     it('should handle tab component loading errors', () => {

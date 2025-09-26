@@ -169,6 +169,15 @@
   background-color: rgba(var(--color-warning-rgb), 0.1);
   border-color: rgba(var(--color-warning-rgb), 0.3);
   color: var(--color-warning);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.status-item.sync-status.out-of-sync:hover {
+  background-color: rgba(var(--color-warning-rgb), 0.2);
+  border-color: rgba(var(--color-warning-rgb), 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-item.sync-status.local-only {

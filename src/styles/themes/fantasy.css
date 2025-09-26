@@ -1,0 +1,300 @@
+/**
+ * Fantasy Theme - Medieval manuscript inspired colors for fantasy writers
+ * Uses the King's Colors Palette for an immersive writing experience
+ */
+
+[data-theme='fantasy'] {
+  /* King's Colors Palette - Brand Colors */
+  
+  /* Primary colors */
+  --primary-color: #2A4D2E;           /* King's Green Base */
+  --secondary-color: #6A1B2D;         /* Royal Burgundy Base */
+  --accent-color: #D4AF37;            /* Imperial Gold Base */
+
+  /* Override base variables to match fantasy theme colors */
+  --color-primary: #D4AF37;           /* Imperial Gold Base */
+  --color-primary-rgb: 212, 175, 55;  /* Imperial Gold RGB */
+  --color-secondary: #6A1B2D;         /* Royal Burgundy Base */
+  --color-secondary-rgb: 106, 27, 45; /* Royal Burgundy RGB */
+  
+  /* Background color overrides */
+  --color-bg: #F3E6D1;               /* Parchment Light */
+  --color-bg-secondary: #E6D5B8;     /* Parchment Base */
+  --color-bg-tertiary: #C9B28A;      /* Parchment Dark */
+  --color-bg-tertiary-rgb: 201, 178, 138; /* Parchment Dark RGB */
+  
+  /* Text color overrides */
+  --color-text: #17301A;             /* King's Green Dark */
+  --color-text-secondary: #2A4D2E;   /* King's Green Base */
+  --color-text-tertiary: #4F7A55;    /* King's Green Light */
+  --color-text-inverse: #F3E6D1;     /* Parchment Light for dark backgrounds */
+  
+  /* Border color overrides */
+  --color-border: #C9B28A;           /* Parchment Dark */
+  --color-border-rgb: 201, 178, 138; /* Parchment Dark RGB */
+  --color-border-light: #E6D5B8;     /* Parchment Base */
+
+  /* Background colors - Parchment inspired */
+  --background-color: #F3E6D1;        /* Parchment Light */
+  --surface-color: #E6D5B8;           /* Parchment Base */
+  --surface-hover: #C9B28A;           /* Parchment Dark */
+
+  /* Header-specific (can be overridden independently) */
+  --header-background: #2A4D2E;       /* King's Green Base */
+  --header-text-color: #D4AF37;       /* Imperial Gold Base - Better contrast */
+  --header-border-color: #E6C875;     /* Light Imperial Gold - Luxurious definition */
+  --header-shadow: 0 2px 8px rgba(23, 48, 26, 0.2);
+
+  /* Text colors - Medieval ink inspired */
+  --text-color: #17301A;              /* King's Green Dark */
+  --text-secondary: #2A4D2E;          /* King's Green Base */
+  --text-muted: #4F7A55;              /* King's Green Light */
+
+  /* Border colors */
+  --border-color: #C9B28A;            /* Parchment Dark */
+  --border-light: #E6D5B8;            /* Parchment Base */
+  --border-dark: #A6801D;             /* Imperial Gold Dark */
+
+  /* Status colors (themed for fantasy) */
+  --success-color: #2A4D2E;           /* King's Green Base */
+  --warning-color: #D4AF37;           /* Imperial Gold Base */
+  --error-color: #8E2C42;             /* Royal Burgundy Light */
+  --info-color: #4F7A55;              /* King's Green Light */
+
+  /* Shadows (softer for parchment aesthetic) */
+  --shadow: 0 2px 4px rgba(23, 48, 26, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(23, 48, 26, 0.15);
+
+  /* Typography - Medieval manuscript feel */
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  /* Editor specific */
+  --editor-background: #F3E6D1;       /* Parchment Light */
+  --editor-gutter: #E6D5B8;           /* Parchment Base */
+  --editor-selection: rgba(212, 175, 55, 0.25); /* Imperial Gold with transparency */
+  --editor-cursor: #17301A;           /* King's Green Dark */
+  --editor-line-number: #4F7A55;      /* King's Green Light */
+
+  /* Code highlighting (medieval manuscript inspired) */
+  --code-keyword: #6A1B2D;            /* Royal Burgundy Base */
+  --code-string: #2A4D2E;             /* King's Green Base */
+  --code-comment: #4F7A55;            /* King's Green Light */
+  --code-number: #A6801D;             /* Imperial Gold Dark */
+  --code-operator: #40101C;           /* Royal Burgundy Dark */
+  --code-function: #8E2C42;           /* Royal Burgundy Light */
+  --code-variable: #D4AF37;           /* Imperial Gold Base */
+
+  /* Markdown highlighting (illuminated manuscript style) */
+  --markdown-heading: #6A1B2D;        /* Royal Burgundy Base - like illuminated capitals */
+  --markdown-link: #A6801D;           /* Imperial Gold Dark */
+  --markdown-emphasis: #2A4D2E;       /* King's Green Base */
+  --markdown-strong: #17301A;         /* King's Green Dark */
+  --markdown-code: #8E2C42;           /* Royal Burgundy Light */
+  --markdown-quote: #4F7A55;          /* King's Green Light */
+  --markdown-hr: #C9B28A;             /* Parchment Dark */
+
+  /* RGB versions for rgba() usage */
+  --color-border-rgb: 201, 178, 138;  /* Parchment Dark RGB */
+}
+
+/* Fantasy theme specific styles */
+[data-theme='fantasy'] .app-header {
+  background-color: var(--header-background);
+  color: var(--header-text-color);
+  border-bottom: 1px solid var(--header-border-color);
+  box-shadow: var(--header-shadow);
+}
+
+[data-theme='fantasy'] .app-title {
+  color: var(--header-text-color);
+}
+
+[data-theme='fantasy'] .sidebar,
+[data-theme='fantasy'] .navigator,
+[data-theme='fantasy'] .gutenberg-panel {
+  background-color: var(--surface-color);
+}
+
+[data-theme='fantasy'] .editor-container {
+  background-color: var(--editor-background);
+}
+
+[data-theme='fantasy'] button:hover {
+  background-color: var(--surface-hover);
+}
+
+[data-theme='fantasy'] input:focus,
+[data-theme='fantasy'] textarea:focus {
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+  border-color: var(--accent-color);
+}
+
+/* Enhanced button styles for fantasy theme */
+[data-theme='fantasy'] .btn-primary {
+  background-color: var(--accent-color);
+  color: #17301A;
+  border-color: var(--border-dark);
+}
+
+[data-theme='fantasy'] .btn-primary:hover {
+  background-color: var(--border-dark);
+  color: var(--background-color);
+}
+
+[data-theme='fantasy'] .btn-secondary {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme='fantasy'] .btn-secondary:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Command bar styling */
+[data-theme='fantasy'] .command-bar {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme='fantasy'] .command-bar input {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+/* Header component overrides - components in header use header colors */
+[data-theme='fantasy'] .app-header .command-bar-trigger,
+[data-theme='fantasy'] .app-header .github-signin-btn,
+[data-theme='fantasy'] .github-signin-btn,
+[data-theme='fantasy'] .app-header .auth-signin-btn,
+[data-theme='fantasy'] .auth-signin-btn,
+[data-theme='fantasy'] .app-header .auth-user-btn,
+[data-theme='fantasy'] .auth-user-btn {
+  color: var(--header-text-color);
+  border-color: var(--header-border-color);
+  background: transparent;
+}
+
+[data-theme='fantasy'] .app-header .command-bar-trigger:hover,
+[data-theme='fantasy'] .app-header .github-signin-btn:hover,
+[data-theme='fantasy'] .github-signin-btn:hover,
+[data-theme='fantasy'] .app-header .auth-signin-btn:hover,
+[data-theme='fantasy'] .auth-signin-btn:hover,
+[data-theme='fantasy'] .app-header .auth-user-btn:hover,
+[data-theme='fantasy'] .auth-user-btn:hover {
+  color: var(--header-text-color);
+  border-color: var(--accent-color);
+  background-color: rgba(212, 175, 55, 0.1);
+}
+
+/* Navigation and sidebar enhancements */
+[data-theme='fantasy'] .nav-tab.active {
+  background-color: var(--accent-color);
+  color: #17301A;
+  border-bottom-color: var(--accent-color);
+}
+
+[data-theme='fantasy'] .nav-tab:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Status indicators with fantasy theme colors */
+[data-theme='fantasy'] .status-synced {
+  background-color: var(--success-color);
+  color: var(--background-color);
+}
+
+[data-theme='fantasy'] .status-out-of-sync {
+  background-color: var(--warning-color);
+  color: #17301A;
+}
+
+[data-theme='fantasy'] .status-local-only {
+  background-color: var(--error-color);
+  color: var(--background-color);
+}
+
+/* Scrollbar styling for fantasy theme */
+[data-theme='fantasy'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme='fantasy'] ::-webkit-scrollbar-track {
+  background: var(--surface-color);
+}
+
+[data-theme='fantasy'] ::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+[data-theme='fantasy'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-dark);
+}
+
+/* Selection styling */
+[data-theme='fantasy'] ::selection {
+  background-color: rgba(212, 175, 55, 0.3);
+  color: var(--text-color);
+}
+
+/* Focus indicators */
+[data-theme='fantasy'] *:focus {
+  outline-color: var(--accent-color);
+}
+
+/* Settings dialog styling */
+[data-theme='fantasy'] .settings-dialog {
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme='fantasy'] .settings-tab.active {
+  background-color: var(--accent-color);
+  color: #17301A;
+}
+
+[data-theme='fantasy'] .settings-tab:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Theme preview cards */
+[data-theme='fantasy'] .theme-preview-card.active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}
+
+/* Print optimizations for fantasy theme */
+@media print {
+  [data-theme='fantasy'] {
+    --background-color: white;
+    --text-color: black;
+    --surface-color: white;
+    --border-color: #ccc;
+    --header-background: white;
+    --header-text-color: black;
+    --header-border-color: #ccc;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  [data-theme='fantasy'] {
+    --text-color: #000000;
+    --background-color: #ffffff;
+    --border-color: #000000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='fantasy'] * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

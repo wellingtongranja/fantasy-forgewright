@@ -204,49 +204,26 @@ export function registerGitCommands(registry, app) {
       icon: '🔄',
       aliases: [':gsy'],
       handler: async () => {
-        if (!app.authManager?.isAuthenticated()) {
+        if (!app.gitService) {
           return {
             success: false,
-            message: 'Not logged in to Git repository. Use ":glo" to log in first.'
-          }
-        }
-
-        if (!app.githubStorage?.isConfigured()) {
-          return {
-            success: false,
-            message: 'Git repository not configured. Use ":gcf <owner> <repo>" to configure.'
+            message: 'Git service not available'
           }
         }
 
         try {
-          // This would be implemented in the SyncManager
-          if (app.syncManager) {
-            const result = await app.syncManager.syncWithGitHub()
+          const result = await app.gitService.syncAllDocuments()
 
-            // Update Navigator after sync operations
-            if (app.navigator) {
-              app.navigator.refresh()
-            }
-
-            // Update Git UI to reflect sync status changes
-            // app.updateGitUI() - Method not implemented yet
-
-            return {
-              success: true,
-              message: 'Git repository sync completed',
-              data: {
-                uploaded: result.uploaded || 0,
-                downloaded: result.downloaded || 0,
-                conflicts: result.conflicts || 0,
-                errors: result.errors || 0
-              }
-            }
-          } else {
-            return {
-              success: false,
-              message: 'Sync manager not available. Feature coming soon.'
-            }
+          // Update Navigator after sync operations
+          if (app.navigator) {
+            app.navigator.refresh()
           }
+
+          return result.success ? {
+            success: true,
+            message: result.message,
+            data: result.stats
+          } : result
         } catch (error) {
           return {
             success: false,
@@ -263,17 +240,10 @@ export function registerGitCommands(registry, app) {
       icon: '⬆️',
       aliases: [':gpu'],
       handler: async () => {
-        if (!app.authManager?.isAuthenticated()) {
+        if (!app.gitService) {
           return {
             success: false,
-            message: 'Not logged in to Git repository. Use ":glo" to log in first.'
-          }
-        }
-
-        if (!app.githubStorage?.isConfigured()) {
-          return {
-            success: false,
-            message: 'Git repository not configured. Use ":gcf <owner> <repo>" to configure.'
+            message: 'Git service not available'
           }
         }
 
@@ -297,38 +267,21 @@ export function registerGitCommands(registry, app) {
             return { success: false, message: 'Failed to save document before push' }
           }
 
-          // Use the saved document (which has the updated metadata.modified)
+          // Use the saved document ID
           const docToSync = saveResult.success && saveResult.document ? saveResult.document : app.currentDocument
-          const result = await app.githubStorage.saveDocument(docToSync)
-
-          // Update document with Git metadata, preserving the existing metadata
-          const updatedDoc = {
-            ...docToSync,
-            githubSha: result.document.githubSha,
-            githubPath: result.document.githubPath,
-            lastSyncedAt: docToSync.metadata?.modified || new Date().toISOString()
-          }
-
-          // Save updated document locally with Git metadata
-          await app.storageManager.saveDocument(updatedDoc)
+          const result = await app.gitService.pushDocument(docToSync.id)
 
           // Update current document if it's the same one
-          if (app.currentDocument && app.currentDocument.id === docToSync.id) {
-            app.currentDocument = updatedDoc
+          if (result.success && result.document && app.currentDocument && app.currentDocument.id === docToSync.id) {
+            app.currentDocument = result.document
           }
 
           // Update Navigator to reflect new sync status
           if (app.navigator) {
-            app.navigator.onDocumentSave(updatedDoc)
+            app.navigator.refresh()
           }
 
-          // Update Git UI to reflect sync status changes
-          // app.updateGitUI() - Method not implemented yet
-
-          return {
-            success: true,
-            message: `Document "${docToSync.title}" pushed to Git repository successfully`
-          }
+          return result
         } catch (error) {
           return {
             success: false,
@@ -371,24 +324,28 @@ export function registerGitCommands(registry, app) {
           const filename = args[0]
 
           if (filename) {
-            // Pull specific document
-            const document = await app.githubStorage.loadDocument(
-              `${app.githubStorage.documentsPath}/${filename}`
+            // Find local document that matches the filename
+            const allDocs = await app.storageManager.getAllDocuments()
+            const targetDoc = allDocs.find(doc =>
+              doc.githubPath && doc.githubPath.endsWith(filename)
             )
-            const savedDoc = await app.storageManager.saveDocument(document)
 
-            // Update Navigator to show newly pulled document
-            if (app.navigator) {
-              app.navigator.onDocumentSave(savedDoc)
+            if (!targetDoc) {
+              return {
+                success: false,
+                message: `No local document found matching "${filename}". Use git list to see available documents.`
+              }
             }
 
-            // Update Git UI
-            // app.updateGitUI() - Method not implemented yet
-
-            return {
-              success: true,
-              message: `Document "${document.title}" pulled from Git repository successfully`
+            // Use GitService for consistent pull behavior with editor reload
+            if (!app.gitService) {
+              return {
+                success: false,
+                message: 'Git service not available'
+              }
             }
+
+            return await app.gitService.pullDocument(targetDoc.id)
           } else {
             // List available documents for pulling
             const documents = await app.githubStorage.listDocuments()
@@ -427,78 +384,134 @@ export function registerGitCommands(registry, app) {
       handler: async (args) => {
         const url = args[0]
 
-        if (!url) {
+        if (!app.gitService) {
           return {
             success: false,
-            message: 'Git repository URL required. Usage: git import <url>'
-          }
-        }
-
-        if (!url.includes('github.com') && !url.includes('gitlab.com') && !url.includes('bitbucket.org') && !url.includes('raw.githubusercontent.com')) {
-          return {
-            success: false,
-            message: 'Invalid Git repository URL. Please provide a valid Git repository file URL.'
+            message: 'Git service not available'
           }
         }
 
         try {
-          // Convert Git file URL to raw URL if needed
-          let rawUrl = url
-          if (url.includes('github.com') && !url.includes('raw.githubusercontent.com')) {
-            rawUrl = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/')
+          const result = await app.gitService.importDocument(url)
+
+          if (result.success && result.document) {
+            app.loadDocument(result.document)
           }
 
-          const response = await fetch(rawUrl)
-          if (!response.ok) {
-            throw new Error(`Failed to fetch: ${response.status}`)
-          }
-
-          const content = await response.text()
-
-          // Try to parse as Fantasy Editor document
-          let document
-          try {
-            if (content.startsWith('---')) {
-              // Has front matter, try to parse
-              document = app.githubStorage.parseDocumentContent(content)
-            } else {
-              // Plain markdown, create new document
-              const title = url.split('/').pop().replace('.md', '') || 'Imported Document'
-              document = {
-                id: app.storageManager.generateGUID(),
-                title,
-                content,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                tags: ['imported'],
-                checksum: app.storageManager.generateChecksum(content)
-              }
-            }
-          } catch (parseError) {
-            // Fallback: create simple document
-            const title = url.split('/').pop().replace('.md', '') || 'Imported Document'
-            document = {
-              id: app.storageManager.generateGUID(),
-              title,
-              content,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              tags: ['imported'],
-              checksum: app.storageManager.generateChecksum(content)
-            }
-          }
-
-          await app.storageManager.saveDocument(document)
-          app.loadDocument(document)
-
-          return {
-            success: true,
-            message: `Document "${document.title}" imported successfully from Git repository`
-          }
+          return result
         } catch (error) {
           return {
             success: false,
             message: `Import failed: ${error.message}`
+          }
+        }
+      }
+    },
+
+    {
+      name: 'git diff',
+      description: 'view differences between local and remote document',
+      category: 'git',
+      icon: '🔄',
+      aliases: [':gdf'],
+      handler: async () => {
+        if (!app.authManager?.isAuthenticated()) {
+          return {
+            success: false,
+            message: 'Not logged in to Git repository. Use ":glo" to log in first.'
+          }
+        }
+
+        if (!app.githubStorage?.isConfigured()) {
+          return {
+            success: false,
+            message: 'Git repository not configured. Use ":gcf <owner> <repo>" to configure.'
+          }
+        }
+
+        if (!app.currentDocument) {
+          return {
+            success: false,
+            message: 'No document currently open'
+          }
+        }
+
+        if (!app.gitService || !app.diffManager) {
+          return {
+            success: false,
+            message: 'Git service or diff manager not available'
+          }
+        }
+
+        try {
+          // Check if already in diff mode - if so, toggle off
+          if (app.editor && app.editor.isInDiffMode()) {
+            const success = await app.editor.exitDiffMode(true) // Keep current changes
+            if (success) {
+              return {
+                success: true,
+                message: 'Diff mode closed - changes preserved'
+              }
+            } else {
+              return {
+                success: false,
+                message: 'Failed to exit diff mode'
+              }
+            }
+          }
+
+          const document = app.currentDocument
+
+          // Check if document has Git metadata
+          if (!document.githubSha || !document.githubPath) {
+            return {
+              success: false,
+              message: 'Current document not synced to Git repository'
+            }
+          }
+
+          // Check if document is out-of-sync
+          const syncStatus = app.syncStatusManager.getDocumentSyncStatus(document)
+          if (syncStatus.class !== 'out-of-sync') {
+            return {
+              success: true,
+              message: 'Document is already synced - no changes to diff'
+            }
+          }
+
+          // Get remote document content
+          const remoteResult = await app.gitService.getRemoteDocumentContent(document.id)
+          if (!remoteResult.success) {
+            return {
+              success: false,
+              message: remoteResult.message
+            }
+          }
+
+          // Enter diff mode
+          if (app.editor) {
+            const success = await app.editor.enterDiffMode(document.content, remoteResult.content)
+            if (success) {
+              return {
+                success: true,
+                message: 'Diff mode activated - use inline accept/reject buttons or :gdf to exit'
+              }
+            } else {
+              return {
+                success: false,
+                message: 'Failed to enter diff mode'
+              }
+            }
+          } else {
+            return {
+              success: false,
+              message: 'Editor not available for diff mode'
+            }
+          }
+        } catch (error) {
+          return {
+            success: false,
+            message: `Diff failed: ${error.message}`
           }
         }
       }
@@ -561,27 +574,15 @@ export function registerGitCommands(registry, app) {
       icon: '🚀',
       aliases: [':gin'],
       handler: async () => {
-        if (!app.authManager?.isAuthenticated()) {
+        if (!app.gitService) {
           return {
             success: false,
-            message: 'Not logged in to Git repository. Use ":glo" to log in first.'
-          }
-        }
-
-        if (!app.githubStorage?.isConfigured()) {
-          return {
-            success: false,
-            message: 'Git repository not configured. Use ":gcf <owner> <repo>" to configure.'
+            message: 'Git service not available'
           }
         }
 
         try {
-          await app.githubStorage.ensureDocumentsDirectory()
-
-          return {
-            success: true,
-            message: 'Git repository initialized for Fantasy Editor documents'
-          }
+          return await app.gitService.initRepository()
         } catch (error) {
           return {
             success: false,

@@ -54,27 +54,48 @@ export class BaseProvider {
     }
 
     const tokenParams = this.buildTokenParams(code, codeVerifier)
-    
+    const headers = this.getTokenHeaders()
+    const body = this.formatTokenRequest(tokenParams)
+
+    // Minimal secure logging
+    console.log(`Token exchange initiated for ${this.name} provider`)
+
     try {
       const response = await fetch(this.tokenUrl, {
         method: 'POST',
-        headers: this.getTokenHeaders(),
-        body: this.formatTokenRequest(tokenParams)
+        headers: headers,
+        body: body
       })
+
+      console.log(`Token exchange response: ${response.status} ${response.statusText}`)
 
       if (!response.ok) {
         const errorText = await response.text()
+        const rateLimitReset = response.headers.get('X-RateLimit-Reset')
+        const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining')
+        console.error(`Token exchange failed: ${response.status} ${response.statusText}${rateLimitReset ? `, Rate limit resets: ${new Date(parseInt(rateLimitReset) * 1000).toLocaleString()}` : ''}`)
+
+        // Handle rate limiting specifically
+        if (response.status === 429 || response.status === 403) {
+          const resetTime = response.headers.get('X-RateLimit-Reset')
+          const resetDate = resetTime ? new Date(parseInt(resetTime) * 1000) : new Date(Date.now() + 3600000)
+          throw new Error(`GitHub API rate limit exceeded. Resets at: ${resetDate.toLocaleString()}`)
+        }
+
         throw new Error(`Token exchange failed: ${response.status} - ${errorText}`)
       }
 
       const data = await response.json()
-      
+      console.log(`Token exchange successful for ${this.name} provider`)
+
       if (data.error) {
+        console.error(`OAuth error: ${data.error}`)
         throw new Error(`OAuth error: ${data.error_description || data.error}`)
       }
 
       return this.processTokenResponse(data)
     } catch (error) {
+      console.error(`Token exchange error for ${this.name}: ${error.message}`)
       throw new Error(`Token exchange failed: ${error.message}`)
     }
   }

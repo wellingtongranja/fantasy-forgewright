@@ -13,10 +13,10 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      console.log('Caching static assets')
-      return cache.addAll(STATIC_ASSETS)
-    })
+    caches.open(STATIC_CACHE).then((cache) =>
+      // Caching static assets - debug output removed for production security
+      cache.addAll(STATIC_ASSETS)
+    )
   )
   self.skipWaiting()
 })

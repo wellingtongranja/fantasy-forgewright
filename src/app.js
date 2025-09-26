@@ -1,3 +1,31 @@
+// Core CSS imports - loaded first
+import './styles/base.css'
+import './styles/variables.css'
+
+// Component CSS imports
+import './components/navigator/navigator.css'
+import './components/sidebar/file-tree.css'
+import './components/search/search-results.css'
+import './components/auth/github-auth-button.css'
+import './components/auth/github-user-menu.css'
+import './styles/components/auth-button.css'
+import './styles/components/provider-selector.css'
+import './styles/components/command-bar-trigger.css'
+import './components/status-bar/status-bar.css'
+
+// Theme CSS imports - loaded last to override component defaults
+import './styles/themes/light.css'
+import './styles/themes/dark.css'
+import './styles/themes/fantasy.css'
+import './styles/themes/custom.css'
+
+// Specific component CSS
+import './components/command-bar-v2/styles/command-bar.css'
+import './components/dialogs/settings-dialog.css'
+import './components/legal-splash/legal-splash.css'
+import './styles/diff-mode.css'
+
+// JavaScript imports
 import { EditorManager } from './core/editor/editor.js'
 import { ThemeManager } from './core/themes/theme-manager.js'
 import { StorageManager } from './core/storage/storage-manager.js'
@@ -5,8 +33,6 @@ import { SettingsManager } from './core/settings/settings-manager.js'
 import { SearchEngine } from './core/search/search-engine.js'
 import { CommandRegistry } from './core/commands/command-registry.js'
 import { CommandBar } from './components/command-bar-v2/components/CommandBar.js'
-import './components/command-bar-v2/styles/command-bar.css'
-import './components/dialogs/settings-dialog.css'
 import { Navigator } from './components/navigator/navigator.js'
 import { FileTree } from './components/sidebar/file-tree.js'
 import { registerCoreCommands } from './core/commands/core-commands.js'
@@ -16,11 +42,15 @@ import { devHelpers } from './utils/dev-helpers.js'
 import { AuthManager } from './core/auth/auth-manager.js'
 import { GitHubStorage } from './core/storage/github-storage.js'
 import { SyncManager } from './core/storage/sync-manager.js'
+import { SyncStatusManager } from './core/sync/sync-status-manager.js'
+import { GitService } from './core/git/git-service.js'
 import { AuthButton } from './components/auth/auth-button.js'
 import { GitHubUserMenu } from './components/auth/github-user-menu.js'
-import { ExportManager } from './core/export/export-manager.js'
 import { WidthManager } from './core/editor/width-manager.js'
 import { StatusBarManager } from './components/status-bar/status-bar-manager.js'
+import { LegalManager } from './core/legal/legal-manager.js'
+import { LegalSplash } from './components/legal-splash/legal-splash.js'
+import { DiffManager } from './core/diff/diff-manager.js'
 
 class FantasyEditorApp {
   constructor() {
@@ -53,11 +83,19 @@ class FantasyEditorApp {
     this.exportManager = null
     this.widthManager = null
     this.statusBarManager = null
+
+    // Legal compliance system
+    this.legalManager = null
+    this.legalSplash = null
+
+    // Git diff functionality
+    this.diffManager = null
   }
 
   async init() {
     try {
       await this.initializeManagers()
+      await this.initializeLegalCompliance()
       this.attachEventListeners()
       await this.loadInitialDocument()
       this.updateUI()
@@ -101,12 +139,14 @@ class FantasyEditorApp {
 
     // Initialize editor with theme manager integration
     const editorElement = document.getElementById('editor')
-    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this))
+    this.editor = new EditorManager(editorElement, this.themeManager, this.showNotification.bind(this), this.settingsManager, this.handleContentChange.bind(this))
 
     // Initialize writer enhancements
-    this.exportManager = new ExportManager(this)
     this.widthManager = new WidthManager(this.settingsManager, this)
     this.statusBarManager = new StatusBarManager(this)
+    
+    // ExportManager is lazy-loaded to reduce bundle size
+    this._exportManager = null
     
     // Set up width manager callbacks to update status bar
     if (this.widthManager && this.statusBarManager) {
@@ -128,6 +168,9 @@ class FantasyEditorApp {
         this.statusBarManager.updateEditorZoom(currentZoom.level)
       }
     }
+
+    // Initialize Git diff functionality
+    this.diffManager = new DiffManager(this)
 
     // Initialize multi-provider authentication integration
     await this.initializeAuthIntegration()
@@ -178,11 +221,95 @@ class FantasyEditorApp {
   }
 
   /**
+   * Initialize legal compliance system
+   */
+  async initializeLegalCompliance() {
+    try {
+      // Initialize legal manager
+      this.legalManager = new LegalManager()
+      await this.legalManager.init()
+
+      // Initialize legal splash component
+      this.legalSplash = new LegalSplash(this.legalManager, undefined, { appName: 'Fantasy' })
+
+      // Check if user needs to accept legal documents
+      const hasAccepted = await this.legalManager.hasUserAcceptedAll()
+      if (!hasAccepted) {
+        // Show legal splash modal with required parameters
+        const userId = await this.legalManager.generateUserId()
+        const requiredDocuments = ['privacy-policy', 'eula', 'license'] // Required documents for app usage
+
+        const onAcceptance = async () => {
+          // Auto-open release notes after legal acceptance (first-time only)
+          // Legal documents accepted - opening release notes
+          await this.openReleaseNotesAfterAcceptance()
+        }
+
+        await this.legalSplash.show(userId, requiredDocuments, onAcceptance)
+      }
+
+    } catch (error) {
+      console.error('Failed to initialize legal compliance system:', error)
+      // Continue app initialization even if legal system fails
+      // This ensures the app remains functional for existing users
+    }
+  }
+
+  /**
+   * Auto-open release notes after legal acceptance
+   * Provides users with latest updates after they accept legal documents
+   */
+  async openReleaseNotesAfterAcceptance() {
+    try {
+      // Attempting to open release notes after legal acceptance
+
+      // Initialize system documents manager if needed
+      if (!this.systemDocumentsManager) {
+        // Initializing system documents manager
+        const { SystemDocumentsManager } = await import('./core/storage/system-documents.js')
+        this.systemDocumentsManager = new SystemDocumentsManager(this.storageManager)
+      }
+
+      // Load release notes using same pattern as :release command
+      // Loading release notes document
+      const releaseDoc = await this.systemDocumentsManager.getSystemDocument('release-notes')
+      if (releaseDoc) {
+        // Release notes found, loading with delay
+        // Small delay to ensure legal splash has finished closing
+        setTimeout(() => {
+          // Loading release notes document into editor
+          this.loadDocument(releaseDoc)
+          this.showNotification('Welcome to Fantasy Editor! Here\'s what\'s new in this version.', 'info')
+        }, 500)
+      } else {
+        console.warn('⚠️ Release notes not available for auto-open after legal acceptance')
+      }
+    } catch (error) {
+      console.error('❌ Failed to auto-open release notes after legal acceptance:', error)
+      // Non-critical failure - don't block user experience
+    }
+  }
+
+  /**
    * Setup command event handlers
    */
   setupCommandEventHandlers() {
     // Command event handling is now done in core-commands.js
     // This avoids duplicate event listeners and inconsistent formatting
+  }
+
+  /**
+   * Lazy-load ExportManager to reduce bundle size
+   * Only loads when export functionality is first used
+   */
+  async getExportManager() {
+    if (!this._exportManager) {
+      // Dynamically import ExportManager only when needed
+      const module = await import('./core/export/export-manager.js')
+      const { ExportManager } = module
+      this._exportManager = new ExportManager(this)
+    }
+    return this._exportManager
   }
 
   /**
@@ -229,12 +356,21 @@ class FantasyEditorApp {
    */
   async completeOAuthFlow(code, state) {
     try {
+      console.log('🔍 OAuth Debug: Starting completeOAuthFlow')
+      console.log('🔍 OAuth Debug: Code:', code?.substring(0, 10) + '...')
+      console.log('🔍 OAuth Debug: State:', state)
+      console.log('🔍 OAuth Debug: Current URL:', window.location.href)
+
       if (!this.authManager) {
         throw new Error('Authentication integration not initialized')
       }
 
+      console.log('🔍 OAuth Debug: AuthManager available, calling handleCallback')
+
       // Handle the OAuth callback
       const user = await this.authManager.handleCallback(window.location.href)
+
+      console.log('🔍 OAuth Debug: handleCallback successful, user:', user?.name || user?.login)
 
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
 
@@ -244,7 +380,12 @@ class FantasyEditorApp {
       // Automatically create and configure default repository
       await this.setupDefaultRepository(user)
     } catch (error) {
-      console.error('OAuth completion failed:', error)
+      console.error('🔥 OAuth completion failed:', error)
+      console.error('🔥 Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
       this.showNotification(`Login failed: ${error.message}`, 'error')
     }
   }
@@ -255,7 +396,7 @@ class FantasyEditorApp {
   async setupDefaultRepository(user) {
     try {
       if (!this.githubStorage) {
-        console.log('Git repository storage not initialized, skipping repository setup')
+        // Git repository storage not initialized, skipping repository setup
         return
       }
 
@@ -298,7 +439,7 @@ class FantasyEditorApp {
       const availableProviders = this.authManager.getAvailableProviders()
       if (availableProviders.length === 0) {
         console.warn('No OAuth providers configured. Check environment variables for provider client IDs.')
-        return
+        // Don't return early - continue with initialization even without providers
       }
 
       // Initialize GitHub storage (backward compatibility)
@@ -312,13 +453,22 @@ class FantasyEditorApp {
         autoSyncInterval: 5 * 60 * 1000 // 5 minutes
       })
 
+      // Initialize centralized sync status manager
+      this.syncStatusManager = new SyncStatusManager(this)
+
+      // Initialize generic Git service (provider-agnostic)
+      this.gitService = new GitService(this)
+
       // Multi-provider authentication integration initialized
 
       // Initialize authentication UI components
       this.initializeAuthUI()
     } catch (error) {
-      console.error('❌ Failed to initialize authentication integration:', error)
+      console.error('Failed to initialize authentication integration:', error)
       // Don't show warning notification - authentication is optional functionality
+      
+      // Ensure authManager is null on failure so debugging is clear
+      this.authManager = null
     }
   }
 
@@ -445,12 +595,7 @@ class FantasyEditorApp {
       }
     })
 
-    if (this.editor.view) {
-      this.editor.view.dom.addEventListener('input', () => {
-        this.updateWordCount()
-        this.scheduleAutoSave()
-      })
-    }
+    // Auto save is now handled through CodeMirror content change callback in handleContentChange()
 
     document.getElementById('doc-title').addEventListener('input', () => {
       if (this.currentDocument) {
@@ -489,6 +634,7 @@ class FantasyEditorApp {
     })
   }
 
+
   async loadInitialDocument() {
     const documents = await this.storageManager.getAllDocuments()
 
@@ -504,7 +650,7 @@ class FantasyEditorApp {
   async createNewDocument(title = 'Untitled Document') {
     const newDoc = {
       title: title,
-      content: '# Welcome to Fantasy Editor\n\nStart writing your epic tale...',
+      content: '',
       tags: []
     }
 
@@ -603,6 +749,33 @@ class FantasyEditorApp {
     }, 100) // Small delay to ensure command bar has closed and DOM is ready
   }
 
+  /**
+   * Handle content changes from the editor for real-time outline updates and auto save
+   * This is called by the editor when content changes (debounced)
+   * @param {string} newContent - The updated content from the editor
+   */
+  handleContentChange(newContent) {
+    if (!this.currentDocument) return
+
+    // Update the current document content for outline parsing
+    // Note: This doesn't save the document, just updates it for outline parsing
+    const updatedDocument = {
+      ...this.currentDocument,
+      content: newContent
+    }
+
+    // Update the Navigator outline with the new content
+    if (this.navigator && this.navigator.tabComponents && this.navigator.tabComponents.outline) {
+      this.navigator.tabComponents.outline.updateOutline(updatedDocument)
+    }
+
+    // Trigger word count update
+    this.updateWordCount()
+
+    // Trigger auto save
+    this.scheduleAutoSave()
+  }
+
   async saveDocument() {
     if (!this.currentDocument) return { success: false, reason: 'no_document' }
 
@@ -653,6 +826,12 @@ class FantasyEditorApp {
       }
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
+      }
+
+      // CRITICAL FIX: Update sync status manager after document save
+      // This ensures both navigator and status bar display consistent sync status
+      if (this.syncStatusManager) {
+        await this.syncStatusManager.updateAll(savedDoc.id, savedDoc)
       }
 
       // Document saved successfully
@@ -766,58 +945,10 @@ class FantasyEditorApp {
    * Update GitHub sync status indicator in footer
    */
   updateGitHubSyncStatus() {
-    // Use status bar manager if available
-    if (!this.statusBarManager) return
-
-    // Check if GitHub is configured and authenticated
-    const config = this.githubStorage?.getConfig() || {}
-    const isAuthenticated = this.authManager?.isAuthenticated()
-    const isConfigured = config.configured && config.owner && config.repo
-
-    if (!isAuthenticated) {
-      this.statusBarManager.updateGitHubSyncIndicator(false)
-      this.statusBarManager.updateRepositoryInfo(null, false)
-      return
+    // Delegate to centralized sync status manager
+    if (this.syncStatusManager) {
+      this.syncStatusManager.updateStatusBar()
     }
-
-    if (!isConfigured) {
-      this.statusBarManager.updateGitHubSyncIndicator(false)
-      this.statusBarManager.updateRepositoryInfo(null, false)
-      return
-    }
-
-    // Show repository name (just repo name, not owner/repo)
-    this.statusBarManager.updateRepositoryInfo(config.repo, true)
-
-    // Determine sync status
-    let status = 'local-only'
-    let icon = '🔴'
-
-    if (this.currentDocument) {
-      const hasGitHubMetadata = this.currentDocument.githubSha && this.currentDocument.githubPath
-
-      if (hasGitHubMetadata) {
-        const lastSynced = this.currentDocument.lastSyncedAt
-          ? new Date(this.currentDocument.lastSyncedAt)
-          : null
-        const lastModified = this.currentDocument.metadata?.modified
-          ? new Date(this.currentDocument.metadata.modified)
-          : this.currentDocument.updatedAt
-            ? new Date(this.currentDocument.updatedAt)
-            : null
-
-        if (lastSynced && lastModified && lastSynced >= lastModified) {
-          status = 'synced'
-          icon = '🟢'
-        } else {
-          status = 'out-of-sync'
-          icon = '🟡'
-        }
-      }
-    }
-
-    this.statusBarManager.updateSyncStatus(status, icon)
-    this.statusBarManager.updateGitHubSyncIndicator(true)
   }
 
   updateUI() {
@@ -836,9 +967,18 @@ class FantasyEditorApp {
     const notification = document.createElement('div')
     notification.className = `notification notification-${type}`
 
-    // Handle multiline messages by converting newlines to <br> tags
+    // Handle multiline messages by converting newlines to <br> tags safely
     if (message.includes('\n')) {
-      notification.innerHTML = message.replace(/\n/g, '<br>')
+      // Use safe text with line breaks - escape HTML and convert newlines
+      const escaped = message
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;')
+        .replace(/\n/g, '<br>')
+      notification.innerHTML = escaped
     } else {
       notification.textContent = message
     }
@@ -1009,6 +1149,12 @@ class FantasyEditorApp {
       }
       if (this.fileTree) {
         this.fileTree.updateDocument(savedDoc)
+      }
+
+      // CRITICAL FIX: Update sync status manager after auto-save as well
+      // This ensures both navigator and status bar display consistent sync status
+      if (this.syncStatusManager) {
+        await this.syncStatusManager.updateAll(savedDoc.id, savedDoc)
       }
 
       this.updateSyncStatus('Auto-saved')

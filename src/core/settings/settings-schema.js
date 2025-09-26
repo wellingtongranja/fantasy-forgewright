@@ -71,8 +71,8 @@ export const DEFAULT_SETTINGS = {
   },
   
   privacy: {
-    analyticsEnabled: false,
-    crashReporting: false
+    agreedToTerms: false,
+    agreedDate: null
   }
 }
 
@@ -87,7 +87,7 @@ export const SETTINGS_SCHEMA = {
     properties: {
       theme: { 
         type: 'string', 
-        enum: ['light', 'dark', 'custom'] 
+        enum: ['light', 'dark', 'fantasy', 'custom'] 
       },
       customTheme: {
         type: 'object',
@@ -95,7 +95,7 @@ export const SETTINGS_SCHEMA = {
           name: { type: 'string', maxLength: 50 },
           baseTheme: { 
             type: 'string', 
-            enum: ['light', 'dark'] 
+            enum: ['light', 'dark', 'fantasy'] 
           },
           colors: {
             type: 'object',
@@ -166,8 +166,8 @@ export const SETTINGS_SCHEMA = {
   privacy: {
     type: 'object',
     properties: {
-      analyticsEnabled: { type: 'boolean' },
-      crashReporting: { type: 'boolean' }
+      agreedToTerms: { type: 'boolean' },
+      agreedDate: { type: ['number', 'null'] }
     }
   }
 }
@@ -300,6 +300,6 @@ export function getSearchableSettings() {
     { path: 'ui.showWordCount', label: 'Word Count', keywords: ['word', 'count', 'statistics'] },
     { path: 'gitIntegration.provider', label: 'Git Provider', keywords: ['git', 'github', 'gitlab', 'bitbucket', 'version', 'control'] },
     { path: 'gitIntegration.autoSync', label: 'Auto Sync', keywords: ['auto', 'sync', 'automatic', 'backup', 'git'] },
-    { path: 'privacy.analyticsEnabled', label: 'Analytics', keywords: ['analytics', 'tracking', 'privacy'] }
+    { path: 'privacy.agreedToTerms', label: 'Privacy Agreement', keywords: ['privacy', 'terms', 'agreement', 'consent'] }
   ]
 }

@@ -1,5 +1,6 @@
-# Cloudflare Worker configuration for Fantasy Editor OAuth Proxy
+# Cloudflare Worker configuration for Fantasy Editor
 
+# OAuth Proxy Worker Configuration
 name = "fantasy-oauth-proxy"
 main = "oauth-proxy.js"
 compatibility_date = "2024-01-15"

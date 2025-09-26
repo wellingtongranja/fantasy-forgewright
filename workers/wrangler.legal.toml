@@ -1,0 +1,49 @@
+# Cloudflare Worker configuration for Fantasy Editor Legal Documents
+# This is a separate, private worker for legal document management
+
+name = "fantasy-legal-docs"
+main = "legal-docs-worker.js"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# KV Namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "2807195395b84610a6f06f5e5801decb"
+preview_id = "a888960aa6d9471396e46fc44b7ef5af"
+
+# Environment variables (secrets managed separately via Wrangler CLI)
+[vars]
+CORS_ORIGIN = "https://fantasy.forgewright.io"
+ENVIRONMENT = "production"
+GITHUB_OWNER = "wellingtongranja"
+
+# Development environment
+[env.dev]
+name = "fantasy-legal-docs-dev"
+vars = { CORS_ORIGIN = "http://localhost:3000", ENVIRONMENT = "development", GITHUB_OWNER = "wellingtongranja" }
+
+[[env.dev.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "2807195395b84610a6f06f5e5801decb"
+
+# Staging environment
+[env.staging]
+name = "fantasy-legal-docs-staging"
+vars = { CORS_ORIGIN = "https://fantasy-editor.pages.dev", ENVIRONMENT = "staging", GITHUB_OWNER = "wellingtongranja" }
+
+[[env.staging.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "8b3a90b4876544d79d7c5c155d99ba86"
+
+# Production environment
+[env.production]
+name = "fantasy-legal-docs"
+vars = { CORS_ORIGIN = "https://fantasy.forgewright.io", ENVIRONMENT = "production", GITHUB_OWNER = "wellingtongranja" }
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "c80e0fe5e1e04c1ea67d993d7edaf527"
+
+# No custom domains - using workers.dev for security
+# Worker URL will not be publicly discoverable

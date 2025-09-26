@@ -13,8 +13,10 @@ export default {
   collectCoverageFrom: [
     "src/**/*.js",
     "!src/**/*.test.js",
-    "!src/**/__tests__/**"
+    "!src/**/__tests__/**",
+    "!src/workers/**/*.js"
   ],
+  coverageReporters: ["text", "lcov", "clover", "html"],
   testMatch: [
     "**/__tests__/**/*.test.js"
   ],

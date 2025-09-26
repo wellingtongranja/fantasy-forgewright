@@ -37,7 +37,7 @@ describe('StatusBarManager', () => {
       <div id="repository-info" style="display: none;">
         <span id="repo-name"></span>
       </div>
-      <div id="app-version" class="status-item">v0.0.1</div>
+      <div id="app-version" class="status-item">v0.0.2</div>
       <div id="sync-status">Ready</div>
       <div id="github-sync-indicator" style="display: none;">
         <span id="sync-status-icon"></span>
@@ -152,7 +152,7 @@ describe('StatusBarManager', () => {
   describe('updateVersion', () => {
     test('should update app version', () => {
       statusBarManager.updateVersion()
-      expect(statusBarManager.elements.appVersion.textContent).toBe('v0.0.1')
+      expect(statusBarManager.elements.appVersion.textContent).toBe('v0.0.2')
     })
   })
 

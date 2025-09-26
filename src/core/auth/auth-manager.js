@@ -1,3 +1,18 @@
+// Helper function to get environment variables across different environments
+function getEnvVar(key) {
+  // Jest test environment with mocked import.meta
+  if (typeof global !== 'undefined' && global.import?.meta?.env) {
+    return global.import.meta.env[key]
+  }
+  
+  // Node.js environment fallback
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key]
+  }
+  
+  return undefined
+}
+
 /**
  * AuthManager - Multi-provider OAuth authentication manager
  * Provides unified interface for GitHub, GitLab, Bitbucket, and generic Git providers
@@ -9,24 +24,27 @@ export class AuthManager {
     this.accessToken = null
     this.user = null
     this.initialized = false
-    // Handle import.meta.env in both browser and test environments
-    const getEnvVar = (key) => {
-      try {
-        return import.meta.env?.[key]
-      } catch {
-        return process.env?.[key]
-      }
-    }
 
-    this.workerUrl = getEnvVar('VITE_OAUTH_WORKER_URL') || 'https://oauth.forgewright.io'
-    
-    // Provider configurations
+    // Runtime configuration - OAuth Client IDs fetched securely at runtime
+    // SECURITY: No hardcoded OAuth credentials in client bundle
+    const workerUrl = (typeof window !== 'undefined')
+      ? import.meta.env.VITE_OAUTH_WORKER_URL
+      : getEnvVar('VITE_OAUTH_WORKER_URL')
+
+    // TEMPORARY OVERRIDE: Force correct port for development
+    const isLocalDev = window?.location?.hostname === 'localhost'
+    this.workerUrl = isLocalDev ? 'http://localhost:8787' : (workerUrl || 'https://oauth.forgewright.io')
+
+    // Runtime OAuth configuration - Client IDs loaded dynamically
+    this.oauthConfig = null
+
+    // Provider configurations - Client IDs populated at runtime
     this.providers = {
       github: {
         name: 'github',
         displayName: 'GitHub',
         authUrl: 'https://github.com/login/oauth/authorize',
-        clientId: getEnvVar('VITE_GITHUB_CLIENT_ID'),
+        clientId: null, // Loaded at runtime
         scopes: ['repo', 'user'],
         color: '#24292e'
       },
@@ -34,7 +52,7 @@ export class AuthManager {
         name: 'gitlab',
         displayName: 'GitLab',
         authUrl: 'https://gitlab.com/oauth/authorize',
-        clientId: getEnvVar('VITE_GITLAB_CLIENT_ID'),
+        clientId: null, // Loaded at runtime
         scopes: ['api', 'read_user', 'read_repository', 'write_repository'],
         color: '#fc6d26'
       },
@@ -42,7 +60,7 @@ export class AuthManager {
         name: 'bitbucket',
         displayName: 'Bitbucket',
         authUrl: 'https://bitbucket.org/site/oauth2/authorize',
-        clientId: getEnvVar('VITE_BITBUCKET_CLIENT_ID'),
+        clientId: null, // Loaded at runtime
         scopes: ['account', 'repositories:read', 'repositories:write'],
         color: '#0052cc'
       }
@@ -53,12 +71,65 @@ export class AuthManager {
   }
 
   /**
+   * Load OAuth configuration at runtime - secure alternative to hardcoded Client IDs
+   * @returns {Promise<void>}
+   */
+  async loadOAuthConfiguration() {
+    try {
+      // For development, use hardcoded values (temporary)
+      // In production, this would fetch from secure configuration endpoint
+      const isLocalDev = window?.location?.hostname === 'localhost'
+
+      if (isLocalDev) {
+        // Development configuration - fetch from secure endpoint
+        // SECURITY: NO hardcoded Client IDs, even in development
+        const configResponse = await fetch(`${this.workerUrl}/config/oauth`)
+        if (!configResponse.ok) {
+          console.warn('Development OAuth config unavailable, disabling OAuth')
+          this.oauthConfig = {
+            github: { clientId: null },
+            gitlab: { clientId: null },
+            bitbucket: { clientId: null }
+          }
+        } else {
+          this.oauthConfig = await configResponse.json()
+        }
+      } else {
+        // Production: Fetch from secure configuration endpoint
+        const configResponse = await fetch(`${this.workerUrl}/config/oauth`)
+        if (!configResponse.ok) {
+          throw new Error('Failed to load OAuth configuration')
+        }
+        this.oauthConfig = await configResponse.json()
+      }
+
+      // Update provider configurations with loaded Client IDs
+      Object.keys(this.providers).forEach(providerName => {
+        if (this.oauthConfig[providerName]?.clientId) {
+          this.providers[providerName].clientId = this.oauthConfig[providerName].clientId
+        }
+      })
+
+    } catch (error) {
+      console.error('Failed to load OAuth configuration:', error)
+      // Graceful degradation - disable OAuth functionality
+      this.oauthConfig = null
+      Object.keys(this.providers).forEach(providerName => {
+        this.providers[providerName].clientId = null
+      })
+    }
+  }
+
+  /**
    * Initialize auth manager
    * @returns {Promise<void>}
    */
   async init() {
+    // Load OAuth configuration at runtime first
+    await this.loadOAuthConfiguration()
+
     this.initialized = true
-    
+
     // Try to load stored authentication
     await this.loadStoredAuth()
   }
@@ -150,7 +221,7 @@ export class AuthManager {
         state: this.state,
         codeVerifier: this.codeVerifier
       }
-      sessionStorage.setItem('oauth_session', JSON.stringify(oauthSession))
+      localStorage.setItem('oauth_session', JSON.stringify(oauthSession))
 
       // Build authorization URL
       const authUrl = this.buildAuthorizationUrl(providerConfig, codeChallenge)
@@ -169,10 +240,14 @@ export class AuthManager {
    */
   async handleCallback(callbackUrl) {
     try {
+      console.log('🔍 AuthManager Debug: handleCallback called with URL:', callbackUrl)
+
       const url = new URL(callbackUrl)
       const code = url.searchParams.get('code')
       const state = url.searchParams.get('state')
       const error = url.searchParams.get('error')
+
+      console.log('🔍 AuthManager Debug: URL params:', { code: code?.substring(0, 10) + '...', state, error })
 
       if (error) {
         throw new Error(`OAuth error: ${error}`)
@@ -183,17 +258,27 @@ export class AuthManager {
       }
 
       // Retrieve OAuth session
-      const sessionData = sessionStorage.getItem('oauth_session')
+      const sessionData = localStorage.getItem('oauth_session')
+      console.log('🔍 AuthManager Debug: OAuth session data exists:', !!sessionData)
+
       if (!sessionData) {
-        throw new Error('Missing OAuth session data')
+        console.error('OAuth session data missing from localStorage. Available keys:', Object.keys(localStorage))
+        throw new Error('Missing OAuth session data - OAuth session may have expired or been cleared')
       }
 
       const oauthSession = JSON.parse(sessionData)
+      console.log('🔍 AuthManager Debug: OAuth session parsed:', {
+        provider: oauthSession.provider,
+        hasCodeVerifier: !!oauthSession.codeVerifier,
+        sessionState: oauthSession.state
+      })
 
       // Verify state parameter
       if (state !== oauthSession.state) {
         throw new Error('Invalid state parameter - possible CSRF attack')
       }
+
+      console.log('🔍 AuthManager Debug: State verified, calling exchangeCodeForToken')
 
       // Exchange code for access token
       await this.exchangeCodeForToken(
@@ -203,15 +288,21 @@ export class AuthManager {
         oauthSession.providerConfig
       )
 
+      console.log('🔍 AuthManager Debug: Token exchange successful')
+
       // Set current provider
       this.currentProvider = oauthSession.providerConfig
       this.providerConfig = oauthSession.providerConfig
 
+      console.log('🔍 AuthManager Debug: Fetching user info')
+
       // Fetch user information
       await this.fetchUserInfo()
 
-      // Store authentication
-      this.storeAuth()
+      console.log('🔍 AuthManager Debug: User info fetched:', this.user?.name || this.user?.login)
+
+      // Store authentication securely
+      await this.storeAuth()
 
       // Emit auth state change event
       this.emitAuthStateChange()
@@ -221,6 +312,7 @@ export class AuthManager {
 
       return this.user
     } catch (error) {
+      console.error('🔥 AuthManager handleCallback error:', error)
       this.cleanupOAuthSession()
       throw new Error(`OAuth callback failed: ${error.message}`)
     }
@@ -229,12 +321,12 @@ export class AuthManager {
   /**
    * Logout and clear authentication
    */
-  logout() {
+  async logout() {
     this.currentProvider = null
     this.providerConfig = null
     this.accessToken = null
     this.user = null
-    this.clearStoredAuth()
+    await this.clearStoredAuth()
     this.cleanupOAuthSession()
 
     // Emit auth state change event
@@ -265,31 +357,83 @@ export class AuthManager {
       }
     }
 
-    const response = await fetch(`${this.workerUrl}/oauth/token`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
+    const endpoint = `${this.workerUrl}/oauth/token`
+
+    console.log('🔍 Token Exchange Debug: Making request')
+    console.log('🔍 Token Exchange Debug: Worker URL:', this.workerUrl)
+    console.log('🔍 Token Exchange Debug: Endpoint:', endpoint)
+    console.log('🔍 Token Exchange Debug: Request body:', {
+      provider: requestBody.provider,
+      codeLength: requestBody.code?.length,
+      codeVerifierLength: requestBody.codeVerifier?.length,
+      hasProviderConfig: !!requestBody.providerConfig
     })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`Token exchange failed: ${errorData.details || response.statusText}`)
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      console.log('🔍 Token Exchange Debug: Response status:', response.status)
+      console.log('🔍 Token Exchange Debug: Response ok:', response.ok)
+      console.log('🔍 Token Exchange Debug: Response headers:', Object.fromEntries(response.headers.entries()))
+
+      if (!response.ok) {
+        let errorData = {}
+        let errorText = ''
+
+        try {
+          const responseText = await response.text()
+          console.log('🔥 Token Exchange Error: Raw response:', responseText)
+          errorText = responseText
+
+          // Try to parse as JSON
+          if (responseText) {
+            errorData = JSON.parse(responseText)
+          }
+        } catch (parseError) {
+          console.log('🔥 Token Exchange Error: Failed to parse error response as JSON')
+          errorData = { details: errorText || response.statusText }
+        }
+
+        const errorMessage = `Token exchange failed (${response.status}): ${errorData.details || errorData.error || errorText || response.statusText}`
+        console.error('🔥 Token Exchange Error:', errorMessage)
+        throw new Error(errorMessage)
+      }
+
+      const data = await response.json()
+      console.log('🔍 Token Exchange Debug: Success response:', {
+        hasAccessToken: !!data.access_token,
+        hasError: !!data.error,
+        tokenLength: data.access_token?.length
+      })
+
+      if (data.error) {
+        throw new Error(`Token exchange error: ${data.details || data.error}`)
+      }
+
+      if (!data.access_token) {
+        throw new Error('No access token received')
+      }
+
+      this.accessToken = data.access_token
+      console.log('🔍 Token Exchange Debug: Access token stored successfully')
+    } catch (fetchError) {
+      console.error('🔥 Token Exchange Debug: Network/Fetch error:', fetchError)
+
+      // Check if it's a network error (CORS, connection, etc.)
+      if (fetchError.name === 'TypeError' || fetchError.message.includes('fetch')) {
+        throw new Error(`Network error connecting to OAuth worker: ${fetchError.message}`)
+      }
+
+      // Re-throw other errors
+      throw fetchError
     }
-
-    const data = await response.json()
-
-    if (data.error) {
-      throw new Error(`Token exchange error: ${data.details || data.error}`)
-    }
-
-    if (!data.access_token) {
-      throw new Error('No access token received')
-    }
-
-    this.accessToken = data.access_token
   }
 
   /**
@@ -427,7 +571,7 @@ export class AuthManager {
    * @returns {string} Authorization URL
    */
   buildAuthorizationUrl(providerConfig, codeChallenge) {
-    const redirectUri = `${window.location.origin}/`
+    const redirectUri = `${window.location.origin}/auth/callback`
     const params = new URLSearchParams({
       client_id: providerConfig.clientId,
       redirect_uri: redirectUri,
@@ -446,16 +590,25 @@ export class AuthManager {
   }
 
   /**
-   * Store authentication data
+   * Store authentication data securely with encryption
    */
-  storeAuth() {
-    const authData = {
-      provider: this.currentProvider,
-      accessToken: this.accessToken,
-      user: this.user,
-      timestamp: Date.now()
+  async storeAuth() {
+    try {
+      // Import security utilities for secure token storage
+      const { storeSecureAuth } = await import('../../utils/security.js')
+
+      const authData = {
+        provider: this.currentProvider,
+        accessToken: this.accessToken,
+        user: this.user,
+        timestamp: Date.now()
+      }
+
+      await storeSecureAuth(authData)
+    } catch (error) {
+      console.error('Failed to store authentication data:', error)
+      throw new Error('Failed to store authentication data securely')
     }
-    sessionStorage.setItem('auth_data', JSON.stringify(authData))
   }
 
   /**
@@ -463,17 +616,12 @@ export class AuthManager {
    * @returns {Promise<boolean>} True if auth was loaded and validated
    */
   async loadStoredAuth() {
-    const authData = sessionStorage.getItem('auth_data')
-    if (!authData) {
-      return false
-    }
-
     try {
-      const data = JSON.parse(authData)
-      
-      // Check if auth is not too old (24 hours)
-      if (Date.now() - data.timestamp > 24 * 60 * 60 * 1000) {
-        this.clearStoredAuth()
+      // Import security utilities for secure token loading
+      const { loadSecureAuth } = await import('../../utils/security.js')
+
+      const data = await loadSecureAuth()
+      if (!data) {
         return false
       }
 
@@ -491,7 +639,7 @@ export class AuthManager {
       return true
     } catch (error) {
       console.warn('Stored auth validation failed:', error.message)
-      this.clearStoredAuth()
+      await this.clearStoredAuth()
       this.currentProvider = null
       this.providerConfig = null
       this.accessToken = null
@@ -501,17 +649,29 @@ export class AuthManager {
   }
 
   /**
-   * Clear stored authentication data
+   * Clear stored authentication data securely
    */
-  clearStoredAuth() {
-    sessionStorage.removeItem('auth_data')
+  async clearStoredAuth() {
+    try {
+      // Import security utilities for secure clearing
+      const { clearSecureAuth } = await import('../../utils/security.js')
+      clearSecureAuth()
+
+      // Also clear any legacy localStorage data for backward compatibility
+      localStorage.removeItem('auth_data')
+    } catch (error) {
+      console.error('Error clearing authentication data:', error)
+      // Fallback to basic clearing
+      localStorage.removeItem('auth_data')
+      sessionStorage.removeItem('auth_data')
+    }
   }
 
   /**
    * Clean up OAuth session data
    */
   cleanupOAuthSession() {
-    sessionStorage.removeItem('oauth_session')
+    localStorage.removeItem('oauth_session')
   }
 
   /**

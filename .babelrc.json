@@ -15,7 +15,10 @@
   "env": {
     "test": {
       "plugins": [
-        ["babel-plugin-transform-import-meta", { "replaceWith": "global" }]
+        ["babel-plugin-transform-import-meta", { 
+          "module": "ES6",
+          "replaceWith": "global.import"
+        }]
       ]
     }
   }

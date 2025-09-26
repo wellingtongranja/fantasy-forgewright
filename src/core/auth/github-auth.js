@@ -8,16 +8,31 @@ export class GitHubAuth {
   constructor() {
     this.clientId = null
     // Handle import.meta.env in both browser and test environments
-    let envUri
-    try {
-      envUri = import.meta.env?.VITE_GITHUB_REDIRECT_URI
-    } catch {
-      envUri = process.env?.VITE_GITHUB_REDIRECT_URI
+    let env = {}
+    
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Safely access import.meta without eval to prevent code injection
+      try {
+        // Use try-catch to safely access import.meta
+        env = import.meta?.env || {}
+      } catch (error) {
+        // import.meta not available (likely in test environment)
+        env = {}
+      }
+    } else if (typeof global !== 'undefined' && global.import?.meta?.env) {
+      // Jest environment with mocked import.meta
+      env = global.import.meta.env
+    } else {
+      // Node.js environment
+      env = process.env || {}
     }
+    
+    const envUri = env.VITE_GITHUB_REDIRECT_URI
     const origin = (typeof window !== 'undefined' && window.location) 
       ? window.location.origin 
       : 'http://localhost:3000'
-    this.redirectUri = envUri || `${origin}/`
+    this.redirectUri = envUri || `${origin}/auth/callback`
     this.scope = 'repo user'
     this.state = null
     this.codeVerifier = null

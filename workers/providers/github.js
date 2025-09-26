@@ -52,19 +52,38 @@ export class GitHubProvider extends BaseProvider {
    * @returns {Object} Token parameters
    */
   buildTokenParams(code, codeVerifier = null) {
+    // Secure token parameter validation
+
+    // Validate required credentials
+    if (!this.clientId) {
+      throw new Error('GitHub client_id is missing or undefined')
+    }
+    if (!this.clientSecret) {
+      throw new Error('GitHub client_secret is missing or undefined')
+    }
+    if (!this.redirectUri) {
+      throw new Error('GitHub redirect_uri is missing or undefined')
+    }
+    if (!code) {
+      throw new Error('Authorization code is missing or undefined')
+    }
+
     const params = {
       client_id: this.clientId,
       client_secret: this.clientSecret,
-      code: code
+      code: code,
+      redirect_uri: this.redirectUri
     }
 
-    // GitHub OAuth Apps don't use redirect_uri in token exchange
-    // Only GitHub Apps require it, and we're using OAuth Apps
-    
+    // GitHub OAuth Apps DO require redirect_uri in token exchange if used in authorization
+    // This was the root cause of the "incorrect client_id/client_secret" error
+
     // Add PKCE code verifier if provided
     if (codeVerifier) {
       params.code_verifier = codeVerifier
     }
+
+    // Token parameters prepared for GitHub OAuth exchange
 
     return params
   }

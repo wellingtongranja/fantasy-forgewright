@@ -88,7 +88,7 @@ describe('SettingsDialog', () => {
       expect(settingsDialog.tabs).toHaveLength(5)
       
       const tabIds = settingsDialog.tabs.map(t => t.id)
-      expect(tabIds).toEqual(['editor', 'themes', 'codemirror', 'git-integration', 'privacy'])
+      expect(tabIds).toEqual(['editor', 'themes', 'codemirror', 'git-integration', 'data-storage'])
       
       // Check each tab has required properties
       settingsDialog.tabs.forEach(tab => {
@@ -239,7 +239,7 @@ describe('SettingsDialog', () => {
       expect(settingsDialog.getStepForTab('codemirror')).toBe('5')
       expect(settingsDialog.getStepForTab('themes')).toBe('6')
       expect(settingsDialog.getStepForTab('git-integration')).toBe('7')
-      expect(settingsDialog.getStepForTab('privacy')).toBe('8')
+      expect(settingsDialog.getStepForTab('data-storage')).toBe('8')
       expect(settingsDialog.getStepForTab('unknown')).toBe('?')
     })
   })

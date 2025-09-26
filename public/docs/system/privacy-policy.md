@@ -1,7 +1,7 @@
 # Privacy Policy
 
 **Fantasy Editor**  
-**Version 0.0.1 (Alpha)**  
+**Version 0.0.2 (Alpha)**  
 **Last Updated**: January 2025
 
 ## Our Commitment

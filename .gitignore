@@ -37,9 +37,12 @@ coverage/
 *.lcov
 .nyc_output
 
-# Environment files
+# Environment files (SECURITY: Never commit these files!)
 .env
 .env.local
+.env.development
+.env.test
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
@@ -63,3 +66,6 @@ Thumbs.db
 sw.js
 workbox-*.js
 workers/.wrangler/
+
+# Cloudflare Workers secrets
+workers/.dev.vars
