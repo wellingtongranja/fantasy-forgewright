@@ -61,9 +61,7 @@ export class GitHubProvider extends BaseProvider {
     if (!this.clientSecret) {
       throw new Error('GitHub client_secret is missing or undefined')
     }
-    if (!this.redirectUri) {
-      throw new Error('GitHub redirect_uri is missing or undefined')
-    }
+    // redirect_uri not required for token exchange when omitted from authorization
     if (!code) {
       throw new Error('Authorization code is missing or undefined')
     }
@@ -71,8 +69,9 @@ export class GitHubProvider extends BaseProvider {
     const params = {
       client_id: this.clientId,
       client_secret: this.clientSecret,
-      code: code,
-      redirect_uri: this.redirectUri
+      code: code
+      // Omit redirect_uri to match authorization URL (which also omits it)
+      // This ensures consistent OAuth flow and prevents 404 errors
     }
 
     // GitHub OAuth Apps DO require redirect_uri in token exchange if used in authorization
