@@ -650,7 +650,7 @@ class FantasyEditorApp {
   async createNewDocument(title = 'Untitled Document') {
     const newDoc = {
       title: title,
-      content: '# Welcome to Fantasy Editor\n\nStart writing your epic tale...',
+      content: '',
       tags: []
     }
 
