@@ -571,10 +571,10 @@ export class AuthManager {
    * @returns {string} Authorization URL
    */
   buildAuthorizationUrl(providerConfig, codeChallenge) {
-    const redirectUri = `${window.location.origin}/`
+    // Omit redirect_uri to use GitHub OAuth app's configured callback URL
+    // This prevents redirect URI mismatch 404 errors
     const params = new URLSearchParams({
       client_id: providerConfig.clientId,
-      redirect_uri: redirectUri,
       scope: providerConfig.scopes.join(' '),
       state: this.state,
       code_challenge: codeChallenge,
