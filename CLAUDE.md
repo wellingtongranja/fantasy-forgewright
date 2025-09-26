@@ -10,7 +10,7 @@
 
 ## 🎯 Core Requirements
 
-### Current Status (Updated: September 2025)
+### Current Status (Updated: January 2025)
 
 #### ✅ Completed Features
 - [x] Markdown editing with CodeMirror 6
@@ -26,9 +26,10 @@
 - [x] Legal Documents Management System - Complete Phase 4 implementation with splash screen, secure worker, user acceptance tracking, and hash consistency fixes
 - [x] Centralized Sync Status Management - Unified sync status detection and display across Navigator and status bar components
 - [x] Real-time Navigator Outline Updates - Live document outline updates synchronized with editor content changes
+- [x] Settings Dialog Refactoring - Simplified About tab with correct MIT license, removed sync settings, added action buttons for :license, :release, :privacy, :help, :guide commands
+- [x] Navigator Text Styling Consistency - Fixed text styling alignment between DOCUMENTS, OUTLINE, and SEARCH tabs
 
 #### 🚧 In Progress / Needs Improvement
-- [ ] **Settings Dialog** - Functional but requires UX enhancements
 - [ ] **Conflict Resolution** - Basic system exists, needs robust testing and improvements
 - [ ] **Local File Handling** - Requires review and optimization
 - [ ] **Merge Functionality** - Needs comprehensive review
@@ -53,723 +54,91 @@
 - **Command bar**: Positioned at browser top (16px edge)
 - **Layout alignment**: Title and editor share 65ch container
 
-### Recent Improvements
+### Recent Improvements (January 2025)
 
+- **Settings Dialog Refactoring** - Complete UX overhaul with simplified About tab, correct MIT license information, removed synchronization settings from Git Integration tab, and added action buttons for `:license`, `:release`, `:privacy`, `:help`, `:guide` commands
+- **Navigator Text Styling Fix** - Aligned text styling consistency between DOCUMENTS, OUTLINE, and SEARCH tabs using unified CSS structure
+- **Editor Width Terminology** - Updated from "Standard coding" to "Standard writing" for writer-focused terminology
+- **Action Button Integration** - Settings Dialog action buttons execute commands and close modal for seamless user experience
 - **Status Bar Layout** - Reorganized with sync status prominently positioned before app version
 - **Unified Sync Indicator** - Combined red indicator and status text in single container with color-coded states
-- **Command Filtering Enhancement** - Fixed `:sp` filtering to show only spell check, not save command
 - **Navigator Component** - Complete tabbed sidebar replacing legacy sidebar with Documents, Outline, and Search tabs
-- **Auto-unhide System** - Mouse proximity detection (10px from left edge) with smooth animations
-- **Enhanced Pin Button** - Left seven-eighths block icon (▊) with CSS border styling for clear sidebar representation
-- **RECENT/PREVIOUS Organization** - Simplified document grouping without complex time-based categories
-- **Smooth Animations** - 0.4s cubic-bezier transitions for polished Navigator show/hide effects
-- **Integrated Commands** - `:d`, `:f`, `:l` commands with proper focus management and filtering
 - **Git Provider UI Integration** - Authentication button in header with user dropdown menu (GitHub first, others coming)
-- **Document Synchronization** - Bidirectional sync between local IndexedDB and Git providers
-- **Command System Enhancement** - All Git operations via colon shortcuts
-- **Editor Width & Zoom Controls** - Dynamic width presets (65ch/80ch/90ch) and zoom functionality (85%-130%)
 - **Document Export System** - Multi-format export capabilities (Markdown, HTML, PDF, Text) with streamlined commands
-- **Legal Documents Management System** - Complete legal compliance workflow with responsive modal splash screen, secure Cloudflare Worker for document serving, IndexedDB acceptance tracking, automatic release notes display after legal acceptance, and hash consistency fixes for persistent user acceptance records
+- **Legal Documents Management System** - Complete legal compliance workflow with responsive modal splash screen and hash consistency fixes
 
 ## 🛠️ Development Principles & Standards
 
-Fantasy Editor follows strict development principles to ensure maintainable, secure, and performant code. Every developer MUST adhere to these standards without exception.
-
-### Code Clean (MANDATORY)
-
-#### Function Standards
-- **Max 20 lines per function** - If longer, break into smaller functions
-- **Single Responsibility** - Each function does exactly one thing
-- **Pure functions preferred** - Avoid side effects when possible
-- **Descriptive names** - No abbreviations, clear intent
-
-```javascript
-// ✅ CORRECT: Clean, focused, testable
-export function validateDocumentTitle(title) {
-  if (!title?.trim()) {
-    throw new ValidationError('Title is required', 'title')
-  }
-
-  if (title.length > 100) {
-    throw new ValidationError('Title must be less than 100 characters', 'title')
-  }
-
-  return title.trim()
-}
-
-// ❌ INCORRECT: Complex, multiple responsibilities
-export function processDoc(d) {
-  // 50+ lines mixing validation, transformation, saving, syncing, etc.
-}
-```
-
-#### File Standards
-- **Max 200 lines per file** - If longer, split into multiple files
-- **Focused purpose** - Each file handles one domain/concern
-- **Clear imports** - Explicit imports, avoid barrel exports
-- **Consistent structure** - Exports at bottom, imports at top
-
-#### Variable & Naming Standards
-```javascript
-// ✅ CORRECT: Descriptive, clear intent
-const documentValidationResult = await validateDocumentContent(content)
-const isUserAuthenticated = await authManager.checkAuthStatus()
-const syncStatusIndicator = document.querySelector('[data-testid=sync-status]')
-
-// ❌ INCORRECT: Abbreviated, unclear
-const dvr = await validate(c)
-const auth = await check()
-const el = document.querySelector('.sync')
-```
-
-#### Comments Policy
-- **NO implementation comments** - Code should be self-explaining
-- **Business logic comments ONLY** - Why, not what or how
-- **JSDoc for public APIs** - Complete parameter and return documentation
-
-```javascript
-// ✅ CORRECT: Business context comment
-// GitHub API has 5000 req/hour limit, so we batch document uploads
-const batchSize = 10
-
-// ❌ INCORRECT: Implementation comment
-// Loop through documents and save each one
-for (const doc of documents) { ... }
-```
-
-### Test-Driven Development (TDD)
-
-#### RED → GREEN → REFACTOR Cycle
-Every feature MUST follow this exact cycle:
-
-```javascript
-// 1. RED: Write failing test first
-describe('DocumentValidator', () => {
-  it('should reject empty titles', () => {
-    expect(() => validateDocumentTitle('')).toThrow('Title is required')
-  })
-
-  it('should reject titles over 100 characters', () => {
-    const longTitle = 'a'.repeat(101)
-    expect(() => validateDocumentTitle(longTitle)).toThrow('must be less than 100')
-  })
-
-  it('should trim whitespace from valid titles', () => {
-    const result = validateDocumentTitle('  My Document  ')
-    expect(result).toBe('My Document')
-  })
-})
-
-// 2. GREEN: Implement minimal passing code
-export function validateDocumentTitle(title) {
-  if (!title?.trim()) {
-    throw new ValidationError('Title is required', 'title')
-  }
-
-  if (title.length > 100) {
-    throw new ValidationError('Title must be less than 100 characters', 'title')
-  }
-
-  return title.trim()
-}
-
-// 3. REFACTOR: Improve while keeping tests green
-export function validateDocumentTitle(title) {
-  const trimmedTitle = title?.trim() ?? ''
-
-  if (!trimmedTitle) {
-    throw new ValidationError('Title is required', 'title')
-  }
-
-  if (trimmedTitle.length > MAX_TITLE_LENGTH) {
-    throw new ValidationError(`Title must be less than ${MAX_TITLE_LENGTH} characters`, 'title')
-  }
-
-  return trimmedTitle
-}
-```
-
-#### Coverage Requirements
-- **>90% test coverage** for all business logic
-- **100% coverage** for critical paths (auth, sync, commands)
-- **Integration tests** for component interactions
-- **E2E tests** for complete user workflows
-
-#### Testing Principles
-```javascript
-// ✅ CORRECT: Test behavior, not implementation
-it('should save document when user runs save command', async () => {
-  const doc = { title: 'Test', content: 'Content' }
-  await commandSystem.execute('save', [doc])
-
-  const saved = await storage.getDocument(doc.id)
-  expect(saved.content).toBe('Content')
-})
-
-// ❌ INCORRECT: Testing implementation details
-it('should call storage.save with correct parameters', async () => {
-  const spy = jest.spyOn(storage, 'save')
-  // ... test implementation instead of behavior
-})
-```
-
-### Defensive Programming
-
-#### Input Validation (MANDATORY)
-All boundary functions MUST validate inputs:
-
-```javascript
-// ✅ CORRECT: Comprehensive input validation
-export async function saveDocument(document, options = {}) {
-  // Validate document structure
-  if (!document || typeof document !== 'object') {
-    throw new ValidationError('Document must be an object')
-  }
-
-  // Validate required fields
-  if (!document.id) {
-    throw new ValidationError('Document ID is required')
-  }
-
-  if (!document.title?.trim()) {
-    throw new ValidationError('Document title is required')
-  }
-
-  // Validate content
-  if (typeof document.content !== 'string') {
-    throw new ValidationError('Document content must be a string')
-  }
-
-  // Sanitize inputs
-  const sanitizedDocument = {
-    ...document,
-    title: sanitizeInput(document.title.trim()),
-    content: sanitizeMarkdown(document.content)
-  }
-
-  return await storage.save(sanitizedDocument, options)
-}
-
-// ❌ INCORRECT: No validation, assumes valid input
-export async function saveDocument(document, options) {
-  return await storage.save(document, options)  // Will fail with bad input
-}
-```
-
-#### Error Handling
-```javascript
-// ✅ CORRECT: Graceful error handling with user feedback
-export async function syncDocument(documentId) {
-  try {
-    const localDoc = await storage.getDocument(documentId)
-    const remoteDoc = await github.fetchDocument(documentId)
-
-    return await mergeDocs(localDoc, remoteDoc)
-
-  } catch (error) {
-    if (error instanceof NetworkError) {
-      // Graceful degradation for network issues
-      logger.warn('Sync failed due to network issue', { documentId, error })
-      return { status: 'offline', document: localDoc }
-    }
-
-    if (error instanceof AuthenticationError) {
-      // Clear invalid auth and prompt user
-      await authManager.clearAuth()
-      throw new UserActionRequiredError('Please sign in again', 'REAUTHENTICATION_REQUIRED')
-    }
-
-    // Log unexpected errors but don't expose internals to user
-    logger.error('Unexpected sync error', { documentId, error })
-    throw new UserError('Unable to sync document. Please try again.')
-  }
-}
-```
-
-#### Never Trust External Data
-```javascript
-// ✅ CORRECT: Validate all external data
-export async function handleGitHubResponse(response) {
-  if (!response || typeof response !== 'object') {
-    throw new Error('Invalid GitHub API response format')
-  }
-
-  // Validate required fields exist
-  const requiredFields = ['content', 'sha', 'path']
-  for (const field of requiredFields) {
-    if (!(field in response)) {
-      throw new Error(`Missing required field: ${field}`)
-    }
-  }
-
-  // Sanitize content before processing
-  return {
-    content: sanitizeMarkdown(response.content),
-    sha: validateSha(response.sha),
-    path: validatePath(response.path)
-  }
-}
-```
-
-### KISS (Keep It Simple, Stupid)
-
-#### Dependency Management
-- **Vanilla JavaScript only** - No frameworks except CodeMirror 6
-- **Current dependencies <10** - Every new dependency must be justified
-- **Standard Web APIs first** - Prefer native browser APIs over libraries
-- **Bundle size monitoring** - Target <5MB, track with every change
-
-```javascript
-// ✅ CORRECT: Use native APIs
-const searchWorker = new Worker('/js/search-worker.js')
-const docs = await fetch('/api/documents').then(r => r.json())
-const element = document.querySelector('[data-testid=command-bar]')
-
-// ❌ INCORRECT: Adding unnecessary dependencies
-import _ from 'lodash'  // For simple operations
-import axios from 'axios'  // Instead of fetch
-import jQuery from 'jquery'  // For DOM manipulation
-```
-
-#### Architecture Simplicity
-```javascript
-// ✅ CORRECT: Simple, direct approach
-export class CommandSystem {
-  constructor() {
-    this.commands = new Map()
-  }
-
-  register(name, handler) {
-    this.commands.set(name, handler)
-  }
-
-  async execute(name, args) {
-    const handler = this.commands.get(name)
-    if (!handler) throw new Error(`Unknown command: ${name}`)
-    return await handler(args)
-  }
-}
-
-// ❌ INCORRECT: Over-engineered with unnecessary abstractions
-export class CommandSystemFactory extends BaseFactory {
-  createCommandSystem() {
-    return new Proxy(new CommandSystemImpl(), {
-      // Complex proxy logic for no real benefit
-    })
-  }
-}
-```
-
-### PWA Excellence
-
-#### Offline-First Architecture
-All features MUST work offline:
-
-```javascript
-// ✅ CORRECT: Offline-first data access
-export async function getDocument(id) {
-  try {
-    // Always try local storage first
-    const localDoc = await indexedDB.getDocument(id)
-
-    if (navigator.onLine && shouldSync(localDoc)) {
-      // Sync in background if online
-      syncDocumentInBackground(id)
-    }
-
-    return localDoc
-
-  } catch (localError) {
-    // Fallback to remote only if local fails
-    if (navigator.onLine) {
-      const remoteDoc = await github.fetchDocument(id)
-      await indexedDB.saveDocument(remoteDoc)  // Cache for offline
-      return remoteDoc
-    }
-
-    throw new Error('Document not available offline')
-  }
-}
-```
-
-#### Service Worker Implementation
-```javascript
-// ✅ CORRECT: Comprehensive caching strategy
-const CACHE_STRATEGIES = {
-  appShell: {
-    strategy: 'CacheFirst',
-    maxAge: 7 * 24 * 60 * 60 * 1000,  // 7 days
-    files: ['/', '/index.html', '/manifest.json']
-  },
-
-  staticAssets: {
-    strategy: 'CacheFirst',
-    maxAge: 30 * 24 * 60 * 60 * 1000,  // 30 days
-    pattern: /\.(js|css|woff2|png|svg)$/
-  },
-
-  documents: {
-    strategy: 'NetworkFirst',
-    maxAge: 24 * 60 * 60 * 1000,  // 24 hours
-    syncBackground: true
-  }
-}
-```
-
-#### Performance Standards
-- **First Paint**: <1.5s on 3G
-- **Time to Interactive**: <3s on 3G
-- **Lighthouse Score**: >90 in all categories
-- **Bundle Size**: <5MB gzipped (currently >1MB, working to optimize)
-
-```javascript
-// ✅ CORRECT: Performance-conscious loading
-export async function loadEditor() {
-  // Critical path: Load editor immediately
-  const { CodeMirror } = await import('@codemirror/view')
-
-  // Non-critical: Load features lazily
-  setTimeout(async () => {
-    const { SearchEngine } = await import('./search/search-engine.js')
-    const { ExportManager } = await import('./export/export-manager.js')
-  }, 100)
-}
-```
-
-### Security-First Development
-
-#### Input Sanitization (ALWAYS)
-```javascript
-// ✅ CORRECT: Sanitize all inputs
-import DOMPurify from 'dompurify'
-
-export function processUserContent(content) {
-  // Sanitize HTML content
-  const cleanHTML = DOMPurify.sanitize(content)
-
-  // Validate markdown
-  const safeMarkdown = sanitizeMarkdown(cleanHTML)
-
-  return safeMarkdown
-}
-```
-
-#### Secret Management
-- **NEVER commit secrets** - Use environment variables
-- **Client-side encryption** - Encrypt sensitive data before storage
-- **Token rotation** - Implement automatic token refresh
-
-#### MIT License Compliance
-- **Open source** - Maximum freedom for personal and commercial use
-- **Fantasy Editor Forge** - Premium AI features available via subscription
-- **Attribution** - Maintain copyright notices
-
-### Error Handling & Logging
-
-#### Structured Error Types
-```javascript
-export class ValidationError extends Error {
-  constructor(message, field, code) {
-    super(message)
-    this.name = 'ValidationError'
-    this.field = field
-    this.code = code
-    this.userFacing = true
-  }
-}
-
-export class SystemError extends Error {
-  constructor(message, originalError) {
-    super(message)
-    this.name = 'SystemError'
-    this.originalError = originalError
-    this.userFacing = false
-  }
-}
-```
-
-#### Logging Standards
-```javascript
-// ✅ CORRECT: Structured logging
-logger.info('Document saved', {
-  documentId: doc.id,
-  titleLength: doc.title.length,
-  contentLength: doc.content.length,
-  tags: doc.tags.length
-})
-
-logger.error('Sync failed', {
-  documentId: doc.id,
-  error: error.message,
-  syncAttempt: attemptNumber
-})
-
-// ❌ INCORRECT: Unstructured logging
-console.log('Document saved: ' + doc.title)
-console.log('Error: ' + error.toString())
-```
-
-### Development Workflow
-
-#### Git Workflow
-```bash
-# 1. Create feature branch
-git checkout -b feature/document-validation
-
-# 2. Write tests first (TDD RED)
-git add test/document-validator.test.js
-git commit -m "test: add document validation test cases"
-
-# 3. Implement feature (TDD GREEN)
-git add src/core/validation/document-validator.js
-git commit -m "feat: implement document validation"
-
-# 4. Refactor if needed (TDD REFACTOR)
-git add src/core/validation/document-validator.js
-git commit -m "refactor: optimize validation performance"
-
-# 5. Integration
-git checkout main
-git merge feature/document-validation
-```
-
-#### Code Review Checklist
-- [ ] Follows all development principles above
-- [ ] Tests written first (TDD)
+### Core Standards (MANDATORY)
+
+**Clean Code Requirements:**
+- **Functions**: Max 20 lines, single responsibility, descriptive names
+- **Files**: Max 200 lines, focused purpose, clear imports
+- **Comments**: Only business logic context, no implementation details
+- **Naming**: Full words, clear intent, no abbreviations
+
+**Test-Driven Development:**
+- RED → GREEN → REFACTOR cycle mandatory
+- >90% test coverage for business logic
+- 100% coverage for auth, sync, commands
+- Test behavior, not implementation
+
+**Security Standards:**
+- **Input validation**: All boundary functions MUST validate
+- **Secret management**: Never commit secrets, use environment variables
+- **Error handling**: Graceful degradation, structured error types
+- **MIT License compliance**: Maintain copyright notices
+
+**Architecture Principles:**
+- **KISS**: Vanilla JavaScript only (except CodeMirror 6)
+- **Defensive programming**: Validate all external data
+- **Offline-first**: All features work without network
+- **Performance**: <3s Time to Interactive, <5MB bundle size
+
+### Code Review Checklist
 - [ ] Functions <20 lines, files <200 lines
-- [ ] Input validation for all boundary functions
-- [ ] Error handling with user-friendly messages
+- [ ] Tests written first (TDD)
+- [ ] Input validation for boundary functions
 - [ ] No new dependencies without justification
+- [ ] Security implications reviewed
 - [ ] Performance impact considered
-- [ ] **MANDATORY**: Enterprise Security checklist completed (see Security Implementation section above)
-- [ ] Security implications reviewed and documented
 
-This comprehensive set of development principles ensures Fantasy Editor maintains its high quality standards while remaining maintainable and secure.
+## 🔐 Security Standards (MANDATORY)
 
-## 🔐 Enterprise Security Implementation (MANDATORY)
+### Completed Security Audit (2025)
+- ✅ OAuth credential exposure resolved
+- ✅ Production debug logging eliminated
+- ✅ GDPR compliance implemented
+- ✅ Git history sanitized
+- ✅ Secure token handling via Cloudflare Worker
 
-Fantasy Editor has undergone a comprehensive security audit and implements enterprise-level security standards. All developers MUST adhere to these security requirements without exception.
+### Mandatory Security Rules
 
-### Completed Security Audit Results
+**Secret Management (ZERO TOLERANCE):**
+- Never commit secrets to version control
+- Use environment variables with VITE_ prefix
+- Store client secrets only on Cloudflare Workers
+- Implement pre-commit hooks to block secrets
 
-#### ✅ CRITICAL Security Issues Resolved (September 2025)
-- **OAuth Credential Exposure**: Removed exposed GitHub OAuth token and client secret from version control
-- **Production Debug Logging**: Eliminated all console.log statements exposing sensitive data in production builds
-- **GDPR Compliance**: Implemented consent-based browser fingerprinting with user control
-- **Version Control Security**: Completely removed GitHub Client ID and secrets from git history using filter-branch
-- **Service Worker Logging**: Removed production console logging from service workers
+**Input Sanitization:**
+- Validate all user inputs with DOMPurify
+- Multi-layer validation (type, length, content, patterns)
+- Never trust external data
+- Structured error handling
 
-#### ✅ HIGH Priority Security Implementations
-- **OAuth Security**: Implemented secure token handling via Cloudflare Worker proxy
-- **Environment Variable Security**: Secured all environment variables with proper .gitignore patterns
-- **Git History Sanitization**: Complete removal of sensitive data using git filter-branch
+**OAuth Security:**
+- PKCE implementation for token exchange
+- Secure worker proxy for API operations
+- Session-based token storage (24-hour expiration)
+- Automatic token cleanup on logout
 
-### Mandatory Security Standards for All Development
-
-#### 1. Secret Management (ZERO TOLERANCE)
-```javascript
-// ✅ CORRECT: Never commit secrets
-// Use environment variables only
-const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
-
-// ❌ FORBIDDEN: Never hardcode secrets
-const clientId = 'ghp_abc123...'  // NEVER DO THIS
-const secret = 'oauth_secret_123' // NEVER DO THIS
-```
-
-**Enforcement Rules:**
-- **Pre-commit hooks**: Block any commits containing patterns like `ghp_`, `gho_`, `oauth_`, API keys
-- **Git history scanning**: Regular audits using tools like `git-secrets` or `truffleHog`
-- **Environment variable validation**: All secrets must use VITE_ prefix for client access
-- **Worker proxy pattern**: Client secrets stored only on Cloudflare Workers, never in client code
-
-#### 2. Production Debug Logging (MANDATORY REMOVAL)
-```javascript
-// ✅ CORRECT: Conditional logging
-if (import.meta.env.DEV) {
-  console.log('Debug info:', sensitiveData)
-}
-
-// ✅ CORRECT: Production-safe logging
-logger.info('Operation completed', {
-  documentId: doc.id,  // Safe to log
-  // Never log: tokens, secrets, user data
-})
-
-// ❌ FORBIDDEN: Production console logging
-console.log('User token:', token)      // SECURITY VIOLATION
-console.log('OAuth response:', response) // SECURITY VIOLATION
-```
-
-#### 3. GDPR/CCPA Compliance (LEGALLY REQUIRED)
-```javascript
-// ✅ CORRECT: Consent-based data collection
-export class ConsentManager {
-  constructor() {
-    this.consentStatus = this.getStoredConsent()
-  }
-
-  async requestConsent(dataType) {
-    if (!this.consentStatus[dataType]) {
-      const consent = await this.showConsentDialog(dataType)
-      this.storeConsent(dataType, consent)
-    }
-    return this.consentStatus[dataType]
-  }
-
-  // Only collect data AFTER consent
-  async collectFingerprint() {
-    const canCollect = await this.requestConsent('fingerprinting')
-    if (!canCollect) return null
-
-    return generateFingerprint()
-  }
-}
-
-// ❌ FORBIDDEN: Automatic data collection
-const fingerprint = generateFingerprint() // No consent check
-```
-
-#### 4. Input Sanitization (DEFENSE IN DEPTH)
-```javascript
-// ✅ CORRECT: Multi-layer sanitization
-import DOMPurify from 'dompurify'
-
-export function processUserInput(input) {
-  // Layer 1: Type validation
-  if (typeof input !== 'string') {
-    throw new ValidationError('Input must be string')
-  }
-
-  // Layer 2: Length validation
-  if (input.length > MAX_INPUT_LENGTH) {
-    throw new ValidationError('Input too long')
-  }
-
-  // Layer 3: Content sanitization
-  const sanitized = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em'],
-    ALLOWED_ATTR: []
-  })
-
-  // Layer 4: Additional validation
-  if (containsMaliciousPatterns(sanitized)) {
-    throw new SecurityError('Input contains prohibited content')
-  }
-
-  return sanitized
-}
-```
-
-#### 5. OAuth Security Architecture (CLOUDFLARE WORKER PATTERN)
-```javascript
-// ✅ CORRECT: Secure OAuth implementation
-export class SecureOAuthManager {
-  constructor() {
-    this.workerUrl = import.meta.env.VITE_OAUTH_WORKER_URL
-    // Client secrets NEVER exposed to browser
-  }
-
-  async authenticate(provider) {
-    // Step 1: Generate PKCE challenge
-    const { codeVerifier, codeChallenge } = this.generatePKCE()
-
-    // Step 2: Redirect to provider (no client secret exposed)
-    const authUrl = this.buildAuthUrl(provider, codeChallenge)
-    window.location.href = authUrl
-  }
-
-  async exchangeCodeForToken(code, state) {
-    // Step 3: Exchange via secure worker (client secret on server)
-    const response = await fetch(`${this.workerUrl}/oauth/exchange`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, state, provider: 'github' })
-    })
-
-    if (!response.ok) {
-      throw new AuthenticationError('Token exchange failed')
-    }
-
-    return response.json()
-  }
-}
-```
-
-### Security Review Checklist (MANDATORY FOR ALL PRs)
-
-#### Code Review Requirements
-- [ ] **Secret Scanning**: No hardcoded secrets, tokens, or API keys
-- [ ] **Debug Logging**: No console.log statements in production code paths
-- [ ] **Input Validation**: All user inputs validated and sanitized
-- [ ] **Error Handling**: No sensitive data in error messages
-- [ ] **GDPR Compliance**: User consent obtained before data collection
-- [ ] **OAuth Security**: Tokens handled via secure worker proxy only
-- [ ] **Environment Variables**: Proper VITE_ prefixing for client variables
-
-#### Deployment Security Checklist
-- [ ] **Production Build**: No development debugging enabled
-- [ ] **Environment Separation**: Production secrets separate from development
-- [ ] **CSP Headers**: Strict Content Security Policy implemented
-- [ ] **HTTPS Enforcement**: All connections encrypted
-- [ ] **Token Validation**: OAuth tokens properly validated and scoped
-
-### Incident Response Procedures
-
-#### Security Incident Classification
-1. **CRITICAL**: Secret exposure, data breach, authentication bypass
-2. **HIGH**: XSS vulnerability, unauthorized access, privacy violation
-3. **MEDIUM**: Missing validation, weak encryption, information disclosure
-4. **LOW**: Missing security headers, incomplete logging
-
-#### Immediate Response Actions
-```bash
-# CRITICAL: Secret exposed in commit
-git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch .env.production' --prune-empty --tag-name-filter cat -- --all
-
-# HIGH: Revoke exposed tokens immediately
-# 1. Revoke on provider (GitHub/GitLab)
-# 2. Regenerate new credentials
-# 3. Update environment variables
-# 4. Deploy new version
-
-# Force push cleaned history
-git push origin --force --all
-```
-
-### Continuous Security Monitoring
-
-#### Automated Security Checks
-- **Pre-commit**: Block commits with secrets or debug logging
-- **CI/CD Pipeline**: Security scanning with tools like CodeQL
-- **Dependency Scanning**: Regular `npm audit` and vulnerability updates
-- **Environment Auditing**: Regular review of production environment variables
-
-### Remaining Security Tasks
-
-#### HIGH Priority
-- [ ] **Environment Variable Audit**: Review all VITE_ variables for sensitive data exposure
-- [ ] **Consent Management System**: Complete GDPR/CCPA consent framework implementation
-
-#### MEDIUM Priority
-- [ ] **Privacy Policy Update**: Align privacy policy with actual data collection practices
-- [ ] **localStorage Encryption**: Implement Web Crypto API encryption for local storage
-
-### Security Training Requirements
-
-#### Developer Onboarding
-- Complete OWASP Top 10 training
-- Understand Fantasy Editor security architecture
-- Review completed security audit and lessons learned
-- Practice secure coding patterns specific to this codebase
-
-#### Ongoing Education
-- Monthly security newsletter review
-- Quarterly security architecture reviews
-- Annual penetration testing participation
-- Stay updated on JavaScript/PWA security best practices
-
-This enterprise-level security framework ensures Fantasy Editor maintains the highest security standards while preventing regression of the extensive security work completed during the September 2025 audit.
+### Security Review Checklist
+- [ ] No hardcoded secrets, tokens, or API keys
+- [ ] No console.log in production code paths
+- [ ] All inputs validated and sanitized
+- [ ] GDPR compliance for data collection
+- [ ] OAuth tokens via secure worker proxy
+- [ ] Proper VITE_ environment variable prefixing
 
 ## 🏗️ Technical Architecture
 
