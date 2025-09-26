@@ -15,8 +15,8 @@ function createUnifiedTheme(themeName, options = {}) {
   return EditorView.theme(
     {
       '&': {
-        color: 'var(--text-primary)',
-        backgroundColor: 'var(--background-primary)',
+        color: 'var(--color-text)',
+        backgroundColor: 'var(--color-bg)',
         fontSize: fontSize || 'var(--codemirror-font-size)',
         fontFamily: 'var(--font-family-mono)'
       },
@@ -24,7 +24,7 @@ function createUnifiedTheme(themeName, options = {}) {
       '.cm-content': {
         padding: '16px',
         lineHeight: 'var(--line-height-relaxed)',
-        caretColor: 'var(--text-primary)',
+        caretColor: 'var(--color-text)',
         minHeight: '100%',
         fontSize: fontSize || 'var(--codemirror-font-size)'
       },
@@ -34,7 +34,7 @@ function createUnifiedTheme(themeName, options = {}) {
       },
 
       '.cm-editor': {
-        backgroundColor: 'var(--background-primary)'
+        backgroundColor: 'var(--color-bg)'
       },
 
       '.cm-scroller': {
@@ -44,10 +44,10 @@ function createUnifiedTheme(themeName, options = {}) {
 
       // Line numbers
       '.cm-gutters': {
-        backgroundColor: 'var(--background-secondary)',
-        color: 'var(--text-muted)',
+        backgroundColor: 'var(--color-bg-secondary)',
+        color: 'var(--color-text-secondary)',
         border: 'none',
-        borderRight: '1px solid var(--border-color)'
+        borderRight: '1px solid var(--color-border)'
       },
 
       '.cm-lineNumbers .cm-gutterElement': {
@@ -82,7 +82,7 @@ function createUnifiedTheme(themeName, options = {}) {
       // Fold gutter
       '.cm-foldGutter': {
         width: '20px',
-        color: 'var(--text-muted)'
+        color: 'var(--color-text-secondary)'
       },
 
       '.cm-foldGutter .cm-gutterElement': {
@@ -92,21 +92,21 @@ function createUnifiedTheme(themeName, options = {}) {
       },
 
       '.cm-foldGutter .cm-gutterElement:hover': {
-        backgroundColor: 'var(--background-hover)',
-        color: 'var(--text-primary)'
+        backgroundColor: 'var(--color-bg-tertiary)',
+        color: 'var(--color-text)'
       },
 
       // Placeholder text
       '.cm-placeholder': {
-        color: 'var(--text-muted)',
+        color: 'var(--color-text-secondary)',
         fontStyle: 'italic'
       },
 
       // Search panel
       '.cm-search': {
-        backgroundColor: 'var(--background-secondary)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--border-radius, 6px)',
+        backgroundColor: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-md, 6px)',
         padding: '8px',
         boxShadow: 'var(--shadow-sm)'
       },
@@ -114,48 +114,49 @@ function createUnifiedTheme(themeName, options = {}) {
       '.cm-search input, .cm-search button, .cm-search label': {
         margin: '0 4px',
         fontSize: 'var(--font-size-sm)',
-        fontFamily: 'var(--font-family-sans)'
+        fontFamily: 'var(--font-family-base)'
       },
 
       '.cm-search input[type=text]': {
-        backgroundColor: 'var(--background-primary)',
-        color: 'var(--text-primary)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--border-radius, 4px)',
+        backgroundColor: 'var(--color-bg)',
+        color: 'var(--color-text)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-sm, 4px)',
         padding: '4px 8px',
         outline: 'none'
       },
 
       '.cm-search input[type=text]:focus': {
         borderColor: 'var(--color-primary)',
-        boxShadow: '0 0 0 2px var(--color-primary-alpha)'
+        boxShadow: '0 0 0 2px rgba(var(--color-primary-rgb), 0.2)'
       },
 
       '.cm-search button': {
-        backgroundColor: 'var(--background-tertiary)',
-        color: 'var(--text-primary)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--border-radius, 4px)',
+        backgroundColor: 'var(--color-bg-tertiary)',
+        color: 'var(--color-text)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-sm, 4px)',
         padding: '4px 8px',
         cursor: 'pointer'
       },
 
       '.cm-search button:hover': {
-        backgroundColor: 'var(--background-hover)'
+        backgroundColor: 'var(--color-bg-secondary)',
+        borderColor: 'var(--color-primary)'
       },
 
       // Panel styling
       '.cm-panels': {
-        backgroundColor: 'var(--background-secondary)',
-        color: 'var(--text-primary)'
+        backgroundColor: 'var(--color-bg-secondary)',
+        color: 'var(--color-text)'
       },
 
       '.cm-panels.cm-panels-top': {
-        borderBottom: '1px solid var(--border-color)'
+        borderBottom: '1px solid var(--color-border)'
       },
 
       '.cm-panels.cm-panels-bottom': {
-        borderTop: '1px solid var(--border-color)'
+        borderTop: '1px solid var(--color-border)'
       },
 
       // Completion popup
@@ -171,23 +172,23 @@ function createUnifiedTheme(themeName, options = {}) {
 
       '.cm-completionDetail': {
         fontStyle: 'italic',
-        color: 'var(--text-muted)'
+        color: 'var(--color-text-secondary)'
       },
 
       '.cm-tooltip': {
-        backgroundColor: 'var(--background-secondary)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--border-radius, 6px)',
+        backgroundColor: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-md, 6px)',
         boxShadow: 'var(--shadow-lg)',
         maxWidth: '400px'
       },
 
       '.cm-tooltip .cm-tooltip-arrow:before': {
-        borderTopColor: 'var(--border-color)'
+        borderTopColor: 'var(--color-border)'
       },
 
       '.cm-tooltip .cm-tooltip-arrow:after': {
-        borderTopColor: 'var(--background-secondary)'
+        borderTopColor: 'var(--color-bg-secondary)'
       }
     },
     { dark: themeName === 'dark' || themeName === 'fantasy' }
