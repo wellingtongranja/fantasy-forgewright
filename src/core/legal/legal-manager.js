@@ -145,11 +145,26 @@ export class LegalManager {
       const userId = await this.generateUserId()
       const requiredDocuments = ['privacy-policy', 'eula', 'license']
 
+      // DEVELOPMENT MODE: Check if user has any previous acceptances
+      // In development, if user has previously accepted ANY legal documents,
+      // don't show the splash again (even if versions have changed)
+      const isLocalhost = window.location.hostname === 'localhost'
+      if (isLocalhost) {
+        try {
+          const existingAcceptances = await this.acceptance.hasAnyAcceptanceRecords(userId)
+          if (existingAcceptances) {
+            console.log('💻 Development mode: User has previous acceptances, skipping legal splash')
+            return true
+          }
+        } catch (error) {
+          console.warn('Could not check existing acceptance records:', error)
+        }
+      }
+
       // Get current document metadata to check versions
       const metadata = await this.checkForUpdates()
 
       // If worker is unavailable, we can't verify current document versions
-      // Check if this is a worker unavailable scenario vs no documents
       if (!metadata || !metadata.documents || Object.keys(metadata.documents).length === 0) {
         // If we have the error field, this means worker is unavailable (not just no documents)
         // In this case, check if user has any existing acceptances stored locally
