@@ -175,13 +175,48 @@ export class EditorExtensions {
       },
       // Search panel styling
       '.cm-search': {
-        backgroundColor: 'var(--background-secondary)',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--border-radius)'
+        backgroundColor: 'var(--color-bg-secondary)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-md)',
+        padding: '8px'
+      },
+      '.cm-search button': {
+        backgroundColor: 'var(--color-bg-tertiary)',
+        color: 'var(--color-text)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-sm)',
+        padding: '4px 8px',
+        margin: '0 2px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        lineHeight: '1',
+        transition: 'all var(--transition-fast)'
+      },
+      '.cm-search button:hover': {
+        backgroundColor: 'var(--color-bg-secondary)',
+        borderColor: 'var(--color-primary)'
+      },
+      '.cm-search button:focus': {
+        outline: '2px solid var(--color-primary)',
+        outlineOffset: '1px'
+      },
+      '.cm-search input': {
+        backgroundColor: 'var(--color-bg)',
+        color: 'var(--color-text)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-sm)',
+        padding: '4px 6px',
+        margin: '0 4px',
+        fontSize: '13px'
+      },
+      '.cm-search input:focus': {
+        outline: 'none',
+        borderColor: 'var(--color-primary)',
+        boxShadow: '0 0 0 3px rgba(var(--color-primary-rgb), 0.1)'
       },
       // Placeholder styling
       '.cm-placeholder': {
-        color: 'var(--text-muted)',
+        color: 'var(--color-text-secondary)',
         fontStyle: 'italic'
       }
     }))
