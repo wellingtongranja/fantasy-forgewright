@@ -173,46 +173,64 @@ export class EditorExtensions {
         padding: '0 4px',
         cursor: 'pointer'
       },
-      // Search panel styling
-      '.cm-search': {
-        backgroundColor: 'var(--color-bg-secondary)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--border-radius-md)',
-        padding: '8px'
+      // Search panel styling with higher specificity
+      '.cm-editor .cm-search': {
+        backgroundColor: 'var(--color-bg-secondary) !important',
+        border: '1px solid var(--color-border) !important',
+        borderRadius: 'var(--border-radius-md) !important',
+        padding: '8px !important'
       },
-      '.cm-search button': {
-        backgroundColor: 'var(--color-bg-tertiary)',
-        color: 'var(--color-text)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--border-radius-sm)',
-        padding: '4px 8px',
-        margin: '0 2px',
-        cursor: 'pointer',
-        fontSize: '12px',
-        lineHeight: '1',
-        transition: 'all var(--transition-fast)'
+      '.cm-editor .cm-search button': {
+        backgroundColor: 'var(--color-bg-tertiary) !important',
+        color: 'var(--color-text) !important',
+        border: '1px solid var(--color-border) !important',
+        borderRadius: 'var(--border-radius-sm) !important',
+        padding: '4px 8px !important',
+        margin: '0 2px !important',
+        cursor: 'pointer !important',
+        fontSize: '12px !important',
+        lineHeight: '1 !important',
+        transition: 'all var(--transition-fast) !important'
       },
-      '.cm-search button:hover': {
-        backgroundColor: 'var(--color-bg-secondary)',
-        borderColor: 'var(--color-primary)'
+      '.cm-editor .cm-search button:hover': {
+        backgroundColor: 'var(--color-bg-secondary) !important',
+        borderColor: 'var(--color-primary) !important'
       },
-      '.cm-search button:focus': {
-        outline: '2px solid var(--color-primary)',
-        outlineOffset: '1px'
+      '.cm-editor .cm-search button:focus': {
+        outline: '2px solid var(--color-primary) !important',
+        outlineOffset: '1px !important'
       },
-      '.cm-search input': {
-        backgroundColor: 'var(--color-bg)',
-        color: 'var(--color-text)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--border-radius-sm)',
-        padding: '4px 6px',
-        margin: '0 4px',
-        fontSize: '13px'
+      '.cm-editor .cm-search input': {
+        backgroundColor: 'var(--color-bg) !important',
+        color: 'var(--color-text) !important',
+        border: '1px solid var(--color-border) !important',
+        borderRadius: 'var(--border-radius-sm) !important',
+        padding: '4px 6px !important',
+        margin: '0 4px !important',
+        fontSize: '13px !important'
       },
-      '.cm-search input:focus': {
-        outline: 'none',
-        borderColor: 'var(--color-primary)',
-        boxShadow: '0 0 0 3px rgba(var(--color-primary-rgb), 0.1)'
+      '.cm-editor .cm-search input:focus': {
+        outline: 'none !important',
+        borderColor: 'var(--color-primary) !important',
+        boxShadow: '0 0 0 3px rgba(var(--color-primary-rgb), 0.1) !important'
+      },
+      // Also try alternative class names that CodeMirror might use
+      '.cm-search-panel': {
+        backgroundColor: 'var(--color-bg-secondary) !important',
+        border: '1px solid var(--color-border) !important',
+        borderRadius: 'var(--border-radius-md) !important',
+        padding: '8px !important'
+      },
+      '.cm-search-panel button': {
+        backgroundColor: 'var(--color-bg-tertiary) !important',
+        color: 'var(--color-text) !important',
+        border: '1px solid var(--color-border) !important',
+        borderRadius: 'var(--border-radius-sm) !important',
+        padding: '4px 8px !important',
+        margin: '0 2px !important',
+        cursor: 'pointer !important',
+        fontSize: '12px !important',
+        lineHeight: '1 !important'
       },
       // Placeholder styling
       '.cm-placeholder': {
