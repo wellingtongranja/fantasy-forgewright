@@ -38,6 +38,8 @@ jobs:
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         VITE_DOMAIN: fantasy.forgewright.io
         VITE_BASE_URL: https://fantasy.forgewright.io
+        VITE_OAUTH_WORKER_URL: https://fantasy-oauth-proxy.wellington-granja.workers.dev
+        VITE_LEGAL_WORKER_URL: https://fantasy-legal-docs.wellington-granja.workers.dev
     
     # Temporarily skip E2E tests due to configuration issues
     # - name: Run E2E tests  

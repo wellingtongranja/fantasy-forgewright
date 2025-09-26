@@ -33,7 +33,7 @@ export class AuthManager {
 
     // TEMPORARY OVERRIDE: Force correct port for development
     const isLocalDev = window?.location?.hostname === 'localhost'
-    this.workerUrl = isLocalDev ? 'http://localhost:8787' : (workerUrl || 'https://oauth.forgewright.io')
+    this.workerUrl = isLocalDev ? 'http://localhost:8787' : (workerUrl || 'https://fantasy-oauth-proxy.wellington-granja.workers.dev')
 
     // Runtime OAuth configuration - Client IDs loaded dynamically
     this.oauthConfig = null
