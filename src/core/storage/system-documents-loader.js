@@ -15,6 +15,7 @@ export class SystemDocumentsLoader {
   async loadSystemDocuments() {
     const documents = [
       { id: 'help', filename: 'help.md', title: 'Fantasy Editor Help' },
+      { id: 'user-guide', filename: 'user-guide.md', title: 'User Guide' },
       {
         id: 'license-mit',
         filename: 'license-mit.md',
@@ -70,6 +71,7 @@ export class SystemDocumentsLoader {
   getTagsForDocument(systemId) {
     const tagMap = {
       help: ['help', 'documentation', 'commands'],
+      'user-guide': ['guide', 'documentation', 'manual', 'help'],
       'license-agpl': ['license', 'legal', 'agpl'],
       'license-commercial': ['license', 'commercial', 'premium'],
       eula: ['legal', 'agreement', 'terms'],

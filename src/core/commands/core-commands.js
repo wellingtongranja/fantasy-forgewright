@@ -1496,9 +1496,9 @@ export function registerCoreCommands(registry, app) {
         // Default: show version information
         return {
           success: true,
-          message: 'Fantasy Editor v0.0.1-alpha - Use ":v notes" to open release notes',
+          message: 'Fantasy Editor v0.0.2-alpha - Use ":v notes" to open release notes',
           data: {
-            version: '0.0.1-alpha',
+            version: '0.0.2-alpha',
             build: 'development',
             features: [
               'PWA',
@@ -1522,28 +1522,47 @@ export function registerCoreCommands(registry, app) {
       icon: '❓',
       aliases: [':help', ':?'],
       handler: async () => {
-        const allCommands = registry.getAllCommands()
-        const categories = {}
-        
-        allCommands.forEach(cmd => {
-          const category = cmd.category || 'general'
-          if (!categories[category]) {
-            categories[category] = []
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
           }
-          const alias = cmd.aliases?.[0] || cmd.name
-          categories[category].push(`${alias}: ${cmd.description}`)
-        })
 
-        const categoryOrder = ['document', 'git', 'search', 'export', 'preferences', 'about', 'general']
-        const orderedCategories = categoryOrder.filter(cat => categories[cat])
-        
-        return {
-          success: true,
-          message: 'Available Commands:',
-          data: orderedCategories.flatMap(cat => [
-            `\n${cat.toUpperCase()}:`,
-            ...categories[cat].sort()
-          ])
+          const helpDoc = await app.systemDocumentsManager.getSystemDocument('help')
+          if (helpDoc) {
+            app.loadDocument(helpDoc)
+            return { success: true, message: 'Help document loaded' }
+          } else {
+            return { success: false, message: 'Help document not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load help: ${error.message}` }
+        }
+      }
+    },
+
+    {
+      name: 'guide',
+      description: 'open comprehensive user guide',
+      category: 'about',
+      icon: '📚',
+      aliases: [':guide'],
+      handler: async () => {
+        try {
+          if (!app.systemDocumentsManager) {
+            const { SystemDocumentsManager } = await import('../storage/system-documents.js')
+            app.systemDocumentsManager = new SystemDocumentsManager(app.storageManager)
+          }
+
+          const guideDoc = await app.systemDocumentsManager.getSystemDocument('user-guide')
+          if (guideDoc) {
+            app.loadDocument(guideDoc)
+            return { success: true, message: 'User guide loaded' }
+          } else {
+            return { success: false, message: 'User guide not available' }
+          }
+        } catch (error) {
+          return { success: false, message: `Failed to load user guide: ${error.message}` }
         }
       }
     },
@@ -1559,8 +1578,8 @@ export function registerCoreCommands(registry, app) {
           success: true,
           message: 'Fantasy Editor - A distraction-free markdown editor for fantasy writers',
           data: [
-            'Version: v0.0.1-alpha (Community Edition)',
-            'License: AGPL v3 (Open Source)',
+            'Version: v0.0.2-alpha (Free MIT Edition)',
+            'License: MIT (Open Source)',
             'Features: PWA, Offline Storage, Multi-theme, Command Palette',
             '',
             'Commands:',
