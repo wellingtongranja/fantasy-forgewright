@@ -10,7 +10,7 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 OAUTH_REDIRECT_URI = "https://fantasy.forgewright.io/"
 CORS_ORIGIN = "https://fantasy.forgewright.io"
-GITHUB_CLIENT_ID = "Ov23lijjSYIiqiJIb8duV"
+GITHUB_CLIENT_ID = "Ov23lijSYIiqiJIb86uV"
 
 # Development environment
 [env.dev]
@@ -25,7 +25,7 @@ vars = { OAUTH_REDIRECT_URI = "https://fantasy-editor.pages.dev/", CORS_ORIGIN =
 # Production environment (default)
 [env.production]
 name = "fantasy-oauth-proxy"
-vars = { OAUTH_REDIRECT_URI = "https://fantasy.forgewright.io/", CORS_ORIGIN = "https://fantasy.forgewright.io", GITHUB_CLIENT_ID = "Ov23lijjSYIiqiJIb8duV" }
+vars = { OAUTH_REDIRECT_URI = "https://fantasy.forgewright.io/", CORS_ORIGIN = "https://fantasy.forgewright.io", GITHUB_CLIENT_ID = "Ov23lijSYIiqiJIb86uV" }
 
 # Custom domains disabled for security - using default workers.dev domain
 # [[routes]]
