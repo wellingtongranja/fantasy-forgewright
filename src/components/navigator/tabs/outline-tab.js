@@ -109,8 +109,8 @@ export class OutlineTab {
     const content = this.container.querySelector('.outline-content')
     content.innerHTML = `
       <div class="outline-empty">
-        <div class="empty-icon">No headers found</div>
-        <p>Add headers using # in your markdown</p>
+        <p>No headers found</p>
+        <small>Add headers using # in your markdown</small>
       </div>
     `
 
