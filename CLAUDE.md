@@ -11,12 +11,14 @@
 ## 🎯 Current Status
 
 ### ⚠️ Technical Debt
+
 - **Bundle Size**: Currently >1MB (target <5MB)
 - **Test Coverage**: Need to increase coverage to >90%
 - **Conflict Resolution**: Basic system exists, needs robust testing
 - **Local File Handling**: Requires review and optimization
 
 ### 🚀 Next Sprint Priorities
+
 - [ ] Document persistence system optimization
 - [ ] Navigator Component improvements
 - [ ] Settings Dialog enhancement
@@ -27,23 +29,27 @@
 ### Core Standards (MANDATORY)
 
 **Clean Code Requirements:**
+
 - **Functions**: Max 20 lines, single responsibility, descriptive names
 - **Files**: Max 200 lines, focused purpose, clear imports
 - **Comments**: Only business logic context, no implementation details
 - **Naming**: Full words, clear intent, no abbreviations
 
 **Test-Driven Development:**
+
 - RED → GREEN → REFACTOR cycle mandatory
 - >90% test coverage for business logic
 - 100% coverage for auth, sync, commands
 - Test behavior, not implementation
 
 **Security Standards:**
+
 - **Input validation**: All boundary functions MUST validate
 - **Secret management**: Never commit secrets, use environment variables
 - **Error handling**: Graceful degradation, structured error types
 
 **Architecture Principles:**
+
 - **KISS**: Vanilla JavaScript only (except CodeMirror 6)
 - **Defensive programming**: Validate all external data
 - **Offline-first**: All features work without network
@@ -52,18 +58,21 @@
 ## 🔐 Security Standards (MANDATORY)
 
 **Secret Management (ZERO TOLERANCE):**
+
 - Never commit secrets to version control
 - Use environment variables with VITE_ prefix
 - Store client secrets only on Cloudflare Workers
 - Implement pre-commit hooks to block secrets
 
 **Input Sanitization:**
+
 - Validate all user inputs with DOMPurify
 - Multi-layer validation (type, length, content, patterns)
 - Never trust external data
 - Structured error handling
 
 **OAuth Security:**
+
 - PKCE implementation for token exchange
 - Secure worker proxy for API operations
 - Session-based token storage (24-hour expiration)
@@ -72,12 +81,14 @@
 ## 🏗️ Core Architecture
 
 ### Design Principles
+
 - **Offline-First**: IndexedDB stores all documents locally first
 - **Command-Centric**: Ctrl+Space is the only keyboard shortcut
 - **Theme-Aware**: CSS Custom Properties for dynamic theming
 - **PWA**: Service Worker handles background sync and caching
 
 ### Document Data Structure
+
 ```javascript
 {
   uid: 'doc_1648125632_a1b2c3d4',
@@ -131,15 +142,18 @@ docs/                      # Documentation
 ## 🎯 Command System (MANDATORY RULES)
 
 ### Command Access
+
 Access ALL functionality via `Ctrl+Space` command palette only.
 
 ### Alias Format Rules (MANDATORY)
+
 - ✅ ALL aliases MUST start with `:`
 - ✅ Followed by 1-3 characters max
 - ✅ Each shortcut maps to exactly ONE command
 - ❌ NO non-colon aliases allowed
 
 ### Essential Commands
+
 | Shortcut | Command | Usage Example |
 |----------|---------|---------------|
 | **`:n`** | `new` | `:n My Epic Tale` |
@@ -150,6 +164,7 @@ Access ALL functionality via `Ctrl+Space` command palette only.
 | **`:se`** | `settings` | `:se` |
 
 ### Command Implementation Example
+
 ```javascript
 {
   name: 'new',
@@ -171,11 +186,13 @@ Access ALL functionality via `Ctrl+Space` command palette only.
 **NO EXCEPTIONS** - Only `Ctrl+Space` triggers command palette.
 
 #### Why This Matters
+
 1. **Zero Browser Conflicts** - No overriding browser shortcuts
 2. **Consistent UX** - One shortcut to remember (Ctrl+Space)
 3. **Discoverable** - Find commands through fuzzy search
 
 #### For Developers (MANDATORY)
+
 - ✅ Add commands to registry with `:xx` aliases only
 - ✅ Use descriptive names and parameter definitions
 - ❌ NEVER add direct keyboard event listeners for shortcuts
@@ -186,6 +203,7 @@ Access ALL functionality via `Ctrl+Space` command palette only.
 GitHub OAuth integration with automatic repository setup. Multi-provider system ready for GitLab, Bitbucket, and others.
 
 **Key Features:**
+
 - Header authentication button with user dropdown
 - Real-time sync status indicators (synced/out-of-sync/local-only)
 - Color-coded status pills for quick identification
