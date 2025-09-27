@@ -432,9 +432,12 @@ export class DocumentsTab {
   attachEventListeners() {
     // Unified click handler for all document interactions
     this.container.addEventListener('click', (e) => {
+      console.log(`[PROD DEBUG] Click detected on:`, e.target, 'Closest git-action-btn:', e.target.closest('.git-action-btn'))
+
       // Handle Git action buttons
       const gitActionBtn = e.target.closest('.git-action-btn')
       if (gitActionBtn) {
+        console.log(`[PROD DEBUG] Git action button found:`, gitActionBtn)
         e.stopPropagation()
         this.handleGitAction(gitActionBtn)
         return
@@ -588,6 +591,8 @@ export class DocumentsTab {
   handleGitAction(gitActionBtn) {
     const action = gitActionBtn.dataset.action
     const docId = gitActionBtn.dataset.docId
+
+    console.log(`[PROD DEBUG] handleGitAction called - action: ${action}, docId: ${docId}`)
 
     switch (action) {
       case 'push':
@@ -1456,6 +1461,8 @@ export class DocumentsTab {
   }
 
   renderGitActions(doc, syncStatus, isAuthenticated = false, isConfigured = false) {
+    console.log(`[PROD DEBUG] renderGitActions for "${doc.title}" - Auth: ${isAuthenticated}, Config: ${isConfigured}`)
+
     const actions = []
 
     // Git actions only if authenticated and configured
@@ -1489,6 +1496,8 @@ export class DocumentsTab {
       action: 'save',
       shortcut: ':s'
     })
+
+    console.log(`[PROD DEBUG] Generated ${actions.length} actions for "${doc.title}":`, actions.map(a => a.action))
 
     if (actions.length === 0) return ''
 
