@@ -325,6 +325,7 @@ export class DocumentsTab {
     const isAuthenticated = this.app.authManager?.isAuthenticated()
     const isConfigured = this.app.githubStorage?.getConfig()?.configured
 
+
     return `
       <div class="document-item ${isSelected ? 'selected' : ''} ${isRecent ? 'recent-item' : ''}"
            data-doc-id="${doc.id}"
@@ -339,7 +340,7 @@ export class DocumentsTab {
             </div>
             <div class="document-actions">
               ${this.renderSyncIndicator(syncStatus, doc.id)}
-              ${isAuthenticated && isConfigured ? this.renderGitActions(doc, syncStatus) : ''}
+              ${this.renderGitActions(doc, syncStatus, isAuthenticated, isConfigured)}
             </div>
           </div>
           <div class="document-meta">
@@ -1454,28 +1455,31 @@ export class DocumentsTab {
     `
   }
 
-  renderGitActions(doc, syncStatus) {
+  renderGitActions(doc, syncStatus, isAuthenticated = false, isConfigured = false) {
     const actions = []
 
-    // Push action for documents that need to be uploaded
-    if (syncStatus.class === 'out-of-sync' || syncStatus.class === 'local-only') {
-      const label = syncStatus.class === 'local-only' ? 'Push to Git' : 'Push changes'
-      actions.push({
-        icon: '⬆',
-        label: label,
-        action: 'push',
-        shortcut: ':gpu'
-      })
-    }
+    // Git actions only if authenticated and configured
+    if (isAuthenticated && isConfigured) {
+      // Push action for documents that need to be uploaded
+      if (syncStatus.class === 'out-of-sync' || syncStatus.class === 'local-only') {
+        const label = syncStatus.class === 'local-only' ? 'Push to Git' : 'Push changes'
+        actions.push({
+          icon: '⬆',
+          label: label,
+          action: 'push',
+          shortcut: ':gpu'
+        })
+      }
 
-    // Pull action only for out-of-sync documents (not synced ones)
-    if (syncStatus.class === 'out-of-sync') {
-      actions.push({
-        icon: '⬇',
-        label: 'Pull latest',
-        action: 'pull',
-        shortcut: ':gpl'
-      })
+      // Pull action only for out-of-sync documents (not synced ones)
+      if (syncStatus.class === 'out-of-sync') {
+        actions.push({
+          icon: '⬇',
+          label: 'Pull latest',
+          action: 'pull',
+          shortcut: ':gpl'
+        })
+      }
     }
 
     // Save action - always available for any document
