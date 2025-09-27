@@ -240,14 +240,14 @@ export class AuthManager {
    */
   async handleCallback(callbackUrl) {
     try {
-      console.log('🔍 AuthManager Debug: handleCallback called with URL:', callbackUrl)
+      // OAuth callback processing started
 
       const url = new URL(callbackUrl)
       const code = url.searchParams.get('code')
       const state = url.searchParams.get('state')
       const error = url.searchParams.get('error')
 
-      console.log('🔍 AuthManager Debug: URL params:', { code: code?.substring(0, 10) + '...', state, error })
+      // Validating OAuth parameters
 
       if (error) {
         throw new Error(`OAuth error: ${error}`)
@@ -259,7 +259,7 @@ export class AuthManager {
 
       // Retrieve OAuth session
       const sessionData = localStorage.getItem('oauth_session')
-      console.log('🔍 AuthManager Debug: OAuth session data exists:', !!sessionData)
+      // Checking OAuth session state
 
       if (!sessionData) {
         console.error('OAuth session data missing from localStorage. Available keys:', Object.keys(localStorage))
@@ -267,18 +267,14 @@ export class AuthManager {
       }
 
       const oauthSession = JSON.parse(sessionData)
-      console.log('🔍 AuthManager Debug: OAuth session parsed:', {
-        provider: oauthSession.provider,
-        hasCodeVerifier: !!oauthSession.codeVerifier,
-        sessionState: oauthSession.state
-      })
+      // OAuth session validated
 
       // Verify state parameter
       if (state !== oauthSession.state) {
         throw new Error('Invalid state parameter - possible CSRF attack')
       }
 
-      console.log('🔍 AuthManager Debug: State verified, calling exchangeCodeForToken')
+      // Exchanging authorization code for token
 
       // Exchange code for access token
       await this.exchangeCodeForToken(
@@ -288,18 +284,18 @@ export class AuthManager {
         oauthSession.providerConfig
       )
 
-      console.log('🔍 AuthManager Debug: Token exchange successful')
+      // Token exchange completed
 
       // Set current provider
       this.currentProvider = oauthSession.providerConfig
       this.providerConfig = oauthSession.providerConfig
 
-      console.log('🔍 AuthManager Debug: Fetching user info')
+      // Fetching user profile
 
       // Fetch user information
       await this.fetchUserInfo()
 
-      console.log('🔍 AuthManager Debug: User info fetched:', this.user?.name || this.user?.login)
+      // User profile retrieved successfully
 
       // Store authentication securely
       await this.storeAuth()
@@ -359,15 +355,10 @@ export class AuthManager {
 
     const endpoint = `${this.workerUrl}/oauth/token`
 
-    console.log('🔍 Token Exchange Debug: Making request')
-    console.log('🔍 Token Exchange Debug: Worker URL:', this.workerUrl)
-    console.log('🔍 Token Exchange Debug: Endpoint:', endpoint)
-    console.log('🔍 Token Exchange Debug: Request body:', {
-      provider: requestBody.provider,
-      codeLength: requestBody.code?.length,
-      codeVerifierLength: requestBody.codeVerifier?.length,
-      hasProviderConfig: !!requestBody.providerConfig
-    })
+    // Making authenticated request to OAuth worker
+    // Connecting to OAuth worker
+    // Calling OAuth endpoint
+    // Sending token exchange request
 
     try {
       const response = await fetch(endpoint, {
@@ -379,9 +370,9 @@ export class AuthManager {
         body: JSON.stringify(requestBody)
       })
 
-      console.log('🔍 Token Exchange Debug: Response status:', response.status)
-      console.log('🔍 Token Exchange Debug: Response ok:', response.ok)
-      console.log('🔍 Token Exchange Debug: Response headers:', Object.fromEntries(response.headers.entries()))
+      // Processing OAuth response
+      // Response received
+      // Response validated
 
       if (!response.ok) {
         let errorData = {}
@@ -389,7 +380,7 @@ export class AuthManager {
 
         try {
           const responseText = await response.text()
-          console.log('🔥 Token Exchange Error: Raw response:', responseText)
+          // OAuth error response received
           errorText = responseText
 
           // Try to parse as JSON
@@ -407,11 +398,7 @@ export class AuthManager {
       }
 
       const data = await response.json()
-      console.log('🔍 Token Exchange Debug: Success response:', {
-        hasAccessToken: !!data.access_token,
-        hasError: !!data.error,
-        tokenLength: data.access_token?.length
-      })
+      // Token exchange successful
 
       if (data.error) {
         throw new Error(`Token exchange error: ${data.details || data.error}`)
@@ -422,7 +409,7 @@ export class AuthManager {
       }
 
       this.accessToken = data.access_token
-      console.log('🔍 Token Exchange Debug: Access token stored successfully')
+      // Access token stored securely
     } catch (fetchError) {
       console.error('🔥 Token Exchange Debug: Network/Fetch error:', fetchError)
 

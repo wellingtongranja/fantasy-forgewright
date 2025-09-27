@@ -295,6 +295,11 @@ export class GitHubStorage {
       return false
     }
 
+    // Check if repository is configured
+    if (!this.owner || !this.repo) {
+      return false
+    }
+
     try {
       await this.auth.makeAuthenticatedRequest(`/repos/${this.owner}/${this.repo}`)
       return true // If we reach here, repository is accessible
