@@ -528,6 +528,12 @@
   box-shadow: 0 0 0 2px var(--color-primary-alpha);
 }
 
+/* Action icon styling - prevent click interference */
+.action-icon {
+  pointer-events: none;
+  user-select: none;
+}
+
 /* Enhanced styling for save button */
 .git-action-btn[data-action="save"] {
   position: relative;

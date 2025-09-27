@@ -434,9 +434,16 @@ export class DocumentsTab {
     this.container.addEventListener('click', (e) => {
       console.log(`[PROD DEBUG] Click detected on:`, e.target, 'Closest git-action-btn:', e.target.closest('.git-action-btn'))
 
-      // Handle Git action buttons
-      const gitActionBtn = e.target.closest('.git-action-btn')
-      if (gitActionBtn) {
+      // Handle Git action buttons - check both button and icon clicks
+      let gitActionBtn = e.target.closest('.git-action-btn')
+
+      // Also check if clicking on action icon directly
+      if (!gitActionBtn && e.target.classList.contains('action-icon')) {
+        gitActionBtn = e.target.parentElement
+        console.log(`[PROD DEBUG] Found git action button via action-icon parent:`, gitActionBtn)
+      }
+
+      if (gitActionBtn && gitActionBtn.classList.contains('git-action-btn')) {
         console.log(`[PROD DEBUG] Git action button found:`, gitActionBtn)
         e.stopPropagation()
         this.handleGitAction(gitActionBtn)
