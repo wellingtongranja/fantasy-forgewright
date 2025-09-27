@@ -443,6 +443,13 @@ export class DocumentsTab {
         console.log(`[PROD DEBUG] Found git action button via action-icon parent:`, gitActionBtn)
       }
 
+      // Check if clicking on git-actions container - find first button
+      if (!gitActionBtn && (e.target.classList.contains('git-actions') || e.target.closest('.git-actions'))) {
+        const actionsContainer = e.target.closest('.git-actions') || e.target
+        gitActionBtn = actionsContainer.querySelector('.git-action-btn')
+        console.log(`[PROD DEBUG] Found git action button in container:`, gitActionBtn)
+      }
+
       if (gitActionBtn && gitActionBtn.classList.contains('git-action-btn')) {
         console.log(`[PROD DEBUG] Git action button found:`, gitActionBtn)
         e.stopPropagation()
@@ -1508,7 +1515,7 @@ export class DocumentsTab {
 
     if (actions.length === 0) return ''
 
-    return `
+    const html = `
       <div class="git-actions">
         ${actions.map(action => `
           <button class="git-action-btn"
@@ -1521,6 +1528,10 @@ export class DocumentsTab {
         `).join('')}
       </div>
     `
+
+    console.log(`[PROD DEBUG] Generated HTML for "${doc.title}":`, html)
+
+    return html
   }
 
   renderWordCount(doc) {
