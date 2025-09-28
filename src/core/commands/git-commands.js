@@ -321,31 +321,98 @@ export function registerGitCommands(registry, app) {
         }
 
         try {
-          const filename = args[0]
+          const filename = args.join(' ')
 
           if (filename) {
-            // Find local document that matches the filename
+            // First, try to find local document that matches the filename
             const allDocs = await app.storageManager.getAllDocuments()
-            const targetDoc = allDocs.find(doc =>
+            const localDoc = allDocs.find(doc =>
               doc.githubPath && doc.githubPath.endsWith(filename)
             )
 
-            if (!targetDoc) {
+            if (localDoc) {
+              // Local document found - use existing pull logic
+              if (!app.gitService) {
+                return {
+                  success: false,
+                  message: 'Git service not available'
+                }
+              }
+              return await app.gitService.pullDocument(localDoc.id)
+            }
+
+            // If not found locally, check remote documents by title
+            const remoteDocuments = await app.githubStorage.listDocuments()
+            const remoteDoc = remoteDocuments.find(doc =>
+              doc.title === filename || doc.githubPath.endsWith(filename)
+            )
+
+            if (!remoteDoc) {
               return {
                 success: false,
-                message: `No local document found matching "${filename}". Use git list to see available documents.`
+                message: `No document found matching "${filename}". Use git list to see available documents.`
               }
             }
 
-            // Use GitService for consistent pull behavior with editor reload
-            if (!app.gitService) {
+            // Remote-only document found - load it directly using existing infrastructure
+            try {
+              // Use githubStorage.loadDocument to fetch and create the local document
+              const document = await app.githubStorage.loadDocument(remoteDoc.githubPath)
+
+              // Ensure document has proper sync structure for storage compatibility
+              if (!document.sync) {
+                // Generate simple checksum for content integrity (matching GUID manager implementation)
+                let checksum = '00000000'
+                if (document.content && typeof document.content === 'string') {
+                  let hash = 0
+                  for (let i = 0; i < document.content.length; i++) {
+                    const char = document.content.charCodeAt(i)
+                    hash = ((hash << 5) - hash) + char
+                    hash = hash & hash // Convert to 32-bit integer
+                  }
+                  checksum = Math.abs(hash).toString(16).padStart(8, '0')
+                }
+
+                document.sync = {
+                  status: 'synced',
+                  lastSync: new Date().toISOString(),
+                  remoteSha: remoteDoc.githubSha,
+                  checksum: checksum
+                }
+              }
+
+              // Ensure document has required GitHub path metadata for future sync operations
+              if (!document.githubPath) {
+                document.githubPath = remoteDoc.githubPath
+              }
+              if (!document.githubSha) {
+                document.githubSha = remoteDoc.githubSha
+              }
+
+              // Save the document locally
+              const savedDoc = await app.storageManager.saveDocument(document)
+
+              // Load the document in the editor
+              if (savedDoc && app.loadDocument) {
+                app.loadDocument(savedDoc)
+              }
+
+              // Update Navigator to show the newly pulled document
+              if (app.navigator && app.navigator.refresh) {
+                app.navigator.refresh()
+              }
+
+              return {
+                success: true,
+                message: `Document "${remoteDoc.title}" pulled successfully`,
+                document: savedDoc
+              }
+            } catch (error) {
               return {
                 success: false,
-                message: 'Git service not available'
+                message: `Failed to pull remote document: ${error.message}`
               }
             }
-
-            return await app.gitService.pullDocument(targetDoc.id)
           } else {
             // List available documents for pulling
             const documents = await app.githubStorage.listDocuments()
