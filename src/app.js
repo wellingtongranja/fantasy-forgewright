@@ -356,21 +356,15 @@ class FantasyEditorApp {
    */
   async completeOAuthFlow(code, state) {
     try {
-      console.log('🔍 OAuth Debug: Starting completeOAuthFlow')
-      console.log('🔍 OAuth Debug: Code:', code?.substring(0, 10) + '...')
-      console.log('🔍 OAuth Debug: State:', state)
-      console.log('🔍 OAuth Debug: Current URL:', window.location.href)
 
       if (!this.authManager) {
         throw new Error('Authentication integration not initialized')
       }
 
-      console.log('🔍 OAuth Debug: AuthManager available, calling handleCallback')
 
       // Handle the OAuth callback
       const user = await this.authManager.handleCallback(window.location.href)
 
-      console.log('🔍 OAuth Debug: handleCallback successful, user:', user?.name || user?.login)
 
       this.showNotification(`Successfully logged in as ${user.name}!`, 'success')
 

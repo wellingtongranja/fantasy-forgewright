@@ -1479,7 +1479,6 @@ export class DocumentsTab {
       </div>
     `
 
-    console.log('🎨 Generated HTML:', html)
 
     return html
   }

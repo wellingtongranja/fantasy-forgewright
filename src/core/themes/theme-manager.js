@@ -183,7 +183,6 @@ export class ThemeManager {
 
     // Note: Theme reconfiguration would need proper StateEffect implementation
     // For now, themes are applied at initialization time
-    console.log('Theme change requested:', theme, 'Extensions:', themeExtension)
   }
 
   /**

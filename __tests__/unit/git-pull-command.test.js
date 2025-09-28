@@ -203,5 +203,72 @@ describe('Git Pull Command - Multi-word Filename Support', () => {
       expect(mockApp.navigator.refresh).toHaveBeenCalled()
       expect(result.message).toBe('Document "The Forge Eternal" pulled successfully')
     })
+
+    test('should support case-insensitive filename matching for user-friendly access', async () => {
+      // Arrange - Document exists with exact title "The Forge Eternal"
+      const mockDocs = [
+        {
+          id: 'doc_1',
+          title: 'Another Document',
+          githubPath: 'documents/another-doc.md'
+        }
+      ]
+      mockStorageManager.getAllDocuments.mockResolvedValue(mockDocs)
+
+      // Mock remote documents with the target document
+      const mockRemoteDocs = [
+        {
+          id: 'remote_doc_1',
+          title: 'The Forge Eternal', // Exact case
+          githubPath: 'documents/b83a8aac-a5e9-4b25-aea1-e68c79a774f1.md',
+          githubSha: 'abc123'
+        }
+      ]
+      mockGithubStorage.listDocuments = jest.fn().mockResolvedValue(mockRemoteDocs)
+      mockGithubStorage.loadDocument = jest.fn().mockResolvedValue({
+        id: 'remote_doc_1',
+        title: 'The Forge Eternal',
+        content: '# The Forge Eternal\n\nContent from remote repository'
+      })
+
+      mockStorageManager.saveDocument = jest.fn().mockResolvedValue({
+        id: 'saved_doc',
+        title: 'The Forge Eternal',
+        content: '# The Forge Eternal\n\nContent from remote repository'
+      })
+
+      // Mock app.loadDocument and navigator.refresh
+      mockApp.loadDocument = jest.fn()
+      mockApp.navigator = {
+        refresh: jest.fn()
+      }
+
+      // Import git commands
+      const { registerGitCommands } = await import('../../src/core/commands/git-commands.js')
+
+      // Mock command registry
+      const mockRegistry = {
+        registerCommands: jest.fn()
+      }
+
+      // Register commands
+      registerGitCommands(mockRegistry, mockApp)
+
+      // Get the git pull command
+      const registeredCommands = mockRegistry.registerCommands.mock.calls[0][0]
+      const gitPullCommand = registeredCommands.find(cmd => cmd.name === 'git pull')
+
+      // Act - User types `:gpl the forge eternal` (lowercase)
+      const result = await gitPullCommand.handler(['the', 'forge', 'eternal'])
+
+      // Assert - Should find document despite case mismatch
+      expect(result.success).toBe(true)
+      expect(mockGithubStorage.listDocuments).toHaveBeenCalled()
+      expect(mockGithubStorage.loadDocument).toHaveBeenCalledWith('documents/b83a8aac-a5e9-4b25-aea1-e68c79a774f1.md')
+      expect(mockStorageManager.saveDocument).toHaveBeenCalled()
+      expect(mockApp.loadDocument).toHaveBeenCalled()
+      expect(mockApp.navigator.refresh).toHaveBeenCalled()
+      expect(result.message).toBe('Document "The Forge Eternal" pulled successfully')
+    })
   })
 })

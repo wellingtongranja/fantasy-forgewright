@@ -374,13 +374,6 @@ export class EditorManager {
    * @returns {boolean} Success status
    */
   async enterDiffMode(localContent, remoteContent) {
-    console.log('EditorManager.enterDiffMode called with:', {
-      localLength: localContent?.length,
-      remoteLength: remoteContent?.length,
-      hasView: !!this.view,
-      hasFantasyEditor: !!window.fantasyEditor,
-      hasDiffManager: !!window.fantasyEditor?.diffManager
-    })
 
     if (!this.view) {
       console.error('❌ No editor view available')
@@ -399,10 +392,8 @@ export class EditorManager {
         title: 'Current Document'
       }
 
-      console.log('🔥 Calling diffManager.enterDiffMode...')
       // Use the DiffManager to enter diff mode
       const result = await window.fantasyEditor.diffManager.enterDiffMode(tempDoc, remoteContent)
-      console.log('🔥 diffManager.enterDiffMode returned:', result)
       return result
     } catch (error) {
       console.error('❌ EditorManager.enterDiffMode failed:', error)

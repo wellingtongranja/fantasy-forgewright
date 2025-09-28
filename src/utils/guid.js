@@ -173,12 +173,11 @@ export class GuidManager {
    * @param {string} oldId - Old UID (doc_timestamp_random8chars)
    * @returns {string} New GUID
    */
-  migrateUidToGuid(oldId) {
+  migrateUidToGuid(_oldId) {
     // Generate new GUID for migration
     const newGuid = this.generateGuid()
 
-    // Log migration for debugging
-    console.log(`Migrating document ID: ${oldId} → ${newGuid}`)
+    // Log migration for debugging (removed to reduce console noise)
 
     return newGuid
   }

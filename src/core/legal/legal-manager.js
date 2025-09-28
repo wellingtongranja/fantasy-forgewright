@@ -153,7 +153,6 @@ export class LegalManager {
         try {
           const existingAcceptances = await this.acceptance.hasAnyAcceptanceRecords(userId)
           if (existingAcceptances) {
-            console.log('💻 Development mode: User has previous acceptances, skipping legal splash')
             return true
           }
         } catch (error) {

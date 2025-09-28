@@ -203,9 +203,10 @@ export class GitHubStorage {
       }
 
       // Filter for markdown files and extract metadata
+      // Exclude README.md and other non-document markdown files
       const documents = []
       for (const file of files) {
-        if (file.type === 'file' && file.name.endsWith('.md')) {
+        if (file.type === 'file' && file.name.endsWith('.md') && !file.name.toLowerCase().startsWith('readme')) {
           try {
             const document = await this.loadDocument(file.path)
             documents.push({

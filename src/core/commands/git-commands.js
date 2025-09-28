@@ -324,10 +324,10 @@ export function registerGitCommands(registry, app) {
           const filename = args.join(' ')
 
           if (filename) {
-            // First, try to find local document that matches the filename
+            // First, try to find local document that matches the filename (case-insensitive)
             const allDocs = await app.storageManager.getAllDocuments()
             const localDoc = allDocs.find(doc =>
-              doc.githubPath && doc.githubPath.endsWith(filename)
+              doc.githubPath && doc.githubPath.toLowerCase().endsWith(filename.toLowerCase())
             )
 
             if (localDoc) {
@@ -344,7 +344,8 @@ export function registerGitCommands(registry, app) {
             // If not found locally, check remote documents by title
             const remoteDocuments = await app.githubStorage.listDocuments()
             const remoteDoc = remoteDocuments.find(doc =>
-              doc.title === filename || doc.githubPath.endsWith(filename)
+              doc.title.toLowerCase() === filename.toLowerCase() ||
+              doc.githubPath.toLowerCase().endsWith(filename.toLowerCase())
             )
 
             if (!remoteDoc) {

@@ -21,7 +21,6 @@ export class LegalAcceptanceManager {
    * Initialize IndexedDB database
    */
   async initDatabase() {
-    console.log('Initializing IndexedDB database:', this.dbName)
 
     // Check if IndexedDB is available
     if (!window.indexedDB) {
@@ -76,7 +75,6 @@ export class LegalAcceptanceManager {
   async openDatabase() {
     return new Promise((resolve, reject) => {
       try {
-        console.log('Opening IndexedDB with version:', this.dbVersion)
         const request = indexedDB.open(this.dbName, this.dbVersion)
 
         request.onerror = (event) => {
@@ -85,17 +83,12 @@ export class LegalAcceptanceManager {
         }
 
         request.onsuccess = (event) => {
-          console.log('IndexedDB opened successfully')
           const db = event.target.result
           this.db = db
-
-          console.log('Available object stores:', Array.from(db.objectStoreNames))
-          console.log('Database initialized successfully with object store:', this.storeName)
           resolve(db)
         }
 
         request.onupgradeneeded = (event) => {
-          console.log('IndexedDB upgrade needed, creating schema')
           const db = event.target.result
 
           // Remove existing object store if it exists with wrong name
