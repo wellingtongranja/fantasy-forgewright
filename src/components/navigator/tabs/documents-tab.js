@@ -215,7 +215,7 @@ export class DocumentsTab {
 
     html += '</div>'
     // Safely set HTML content to prevent XSS attacks
-    safeHTML(html, ['div', 'span', 'a', 'strong', 'em', 'br', 'p'], ['class', 'data-doc-id', 'data-action', 'title', 'href'])
+    safeHTML(html, ['div', 'span', 'a', 'strong', 'em', 'br', 'p', 'button'], ['class', 'data-doc-id', 'data-action', 'title', 'href', 'aria-label'])
       .then(sanitizedHtml => {
         content.innerHTML = sanitizedHtml
       })
@@ -258,7 +258,7 @@ export class DocumentsTab {
     `
 
     // Safely set HTML content to prevent XSS attacks in virtual scrolling
-    safeHTML(html, ['div', 'span', 'a', 'strong', 'em', 'br', 'p'], ['class', 'data-doc-id', 'data-action', 'title', 'href'])
+    safeHTML(html, ['div', 'span', 'a', 'strong', 'em', 'br', 'p', 'button'], ['class', 'data-doc-id', 'data-action', 'title', 'href', 'aria-label'])
       .then(sanitizedHtml => {
         content.innerHTML = sanitizedHtml
       })
@@ -323,7 +323,8 @@ export class DocumentsTab {
     const syncStatus = this.getDocumentSyncStatus(doc)
     const timeAgo = this.formatTimeAgo(doc.updatedAt || doc.metadata?.modified)
     const isAuthenticated = this.app.authManager?.isAuthenticated()
-    const isConfigured = this.app.githubStorage?.getConfig()?.configured
+    const isConfigured = this.app.authManager?.isAuthenticated() && !!this.app.githubStorage?.getConfig()?.owner
+
 
 
     return `
@@ -432,26 +433,26 @@ export class DocumentsTab {
   attachEventListeners() {
     // Unified click handler for all document interactions
     this.container.addEventListener('click', (e) => {
-      console.log(`[PROD DEBUG] Click detected on:`, e.target, 'Closest git-action-btn:', e.target.closest('.git-action-btn'))
+      console.log('🖱️ Click detected:', e.target, 'Classes:', Array.from(e.target.classList))
 
       // Handle Git action buttons - check both button and icon clicks
       let gitActionBtn = e.target.closest('.git-action-btn')
+      console.log('🎯 Git action button found:', gitActionBtn)
 
       // Also check if clicking on action icon directly
       if (!gitActionBtn && e.target.classList.contains('action-icon')) {
         gitActionBtn = e.target.parentElement
-        console.log(`[PROD DEBUG] Found git action button via action-icon parent:`, gitActionBtn)
+        console.log('🎯 Found via action-icon parent:', gitActionBtn)
       }
 
       // Check if clicking on git-actions container - find first button
       if (!gitActionBtn && (e.target.classList.contains('git-actions') || e.target.closest('.git-actions'))) {
         const actionsContainer = e.target.closest('.git-actions') || e.target
         gitActionBtn = actionsContainer.querySelector('.git-action-btn')
-        console.log(`[PROD DEBUG] Found git action button in container:`, gitActionBtn)
+        console.log('🎯 Found via git-actions container:', gitActionBtn)
       }
 
       if (gitActionBtn && gitActionBtn.classList.contains('git-action-btn')) {
-        console.log(`[PROD DEBUG] Git action button found:`, gitActionBtn)
         e.stopPropagation()
         this.handleGitAction(gitActionBtn)
         return
@@ -602,25 +603,44 @@ export class DocumentsTab {
     }
   }
 
-  handleGitAction(gitActionBtn) {
+  async handleGitAction(gitActionBtn) {
     const action = gitActionBtn.dataset.action
     const docId = gitActionBtn.dataset.docId
 
-    console.log(`[PROD DEBUG] handleGitAction called - action: ${action}, docId: ${docId}`)
+    console.log('🔧 handleGitAction called:', { action, docId, button: gitActionBtn })
 
-    switch (action) {
-      case 'push':
-        this.pushDocument(docId)
-        break
-      case 'pull':
-        this.pullDocument(docId)
-        break
-      case 'save':
-        this.saveDocument(docId)
-        break
-      default:
-        console.warn('Unknown Git action:', action)
+    // Handle pull action differently since it needs docId, not filename
+    if (action === 'pull') {
+      if (!this.app.gitService) {
+        console.warn('Git service not available')
+        return
+      }
+      console.log('🚀 Executing git pull for document:', docId)
+      const result = await this.app.gitService.pullDocument(docId)
+
+      // Update Navigator to reflect changes
+      if (result.success && this.app.navigator) {
+        this.app.navigator.refresh()
+      }
+      return
     }
+
+    // For other actions, use command system
+    const commandMap = {
+      'push': ':gpu',
+      'save': ':s'
+    }
+
+    const command = commandMap[action]
+    if (!command) {
+      console.warn('Unknown Git action:', action)
+      return
+    }
+
+    console.log('🚀 Executing command:', command)
+
+    // Delegate to centralized command system using working colon aliases
+    await this.app.executeCommand(command)
   }
 
   handleSyncStatusClick(syncStatusIndicator) {
@@ -739,7 +759,7 @@ export class DocumentsTab {
       if (syncStatus.class === 'out-of-sync') {
         menuItems.push({
           label: 'Push Changes',
-          action: () => this.pushDocument(docId),
+          action: () => this.app.executeCommand(':gpu'),
           icon: '⬆️',
           shortcut: ':gpu'
         })
@@ -754,7 +774,7 @@ export class DocumentsTab {
       if (syncStatus.class !== 'local-only') {
         menuItems.push({
           label: 'Pull Latest',
-          action: () => this.pullDocument(docId),
+          action: () => this.app.executeCommand(`:gpl ${docId}`),
           icon: '⬇️',
           shortcut: ':gpl'
         })
@@ -788,65 +808,8 @@ export class DocumentsTab {
     }
   }
 
-  async pushDocument(docId) {
-    if (!this.app.gitService) {
-      this.app.showNotification?.('Git service not available', 'error')
-      return
-    }
-
-    this.app.showNotification?.('Pushing document...', 'info')
-
-    const result = await this.app.gitService.pushDocument(docId)
-
-    if (result.success) {
-      this.app.showNotification?.(result.message, 'success')
-      // GitService already calls syncStatusManager.updateAll() which updates navigator
-      // No need for additional renderDocuments() call which uses stale cached data
-    } else {
-      this.app.showNotification?.(result.message, 'error')
-    }
-  }
-
-  async pullDocument(docId) {
-    if (!this.app.gitService) {
-      this.app.showNotification?.('Git service not available', 'error')
-      return
-    }
-
-    this.app.showNotification?.('Pulling document...', 'info')
-
-    const result = await this.app.gitService.pullDocument(docId)
-
-    if (result.success) {
-      this.app.showNotification?.(result.message, 'success')
-      // GitService already calls syncStatusManager.updateAll() which updates navigator
-      // No need for additional renderDocuments() call which uses stale cached data
-    } else {
-      this.app.showNotification?.(result.message, 'error')
-    }
-  }
-
-  async saveDocument(docId) {
-    try {
-      this.app.showNotification?.('Saving document...', 'info')
-      const result = await this.app.saveDocument()
-
-      if (result.success) {
-        this.app.showNotification?.(result.message || 'Document saved successfully', 'success')
-        // Refresh documents to update sync status after save
-        this.loadDocuments()
-      } else {
-        this.app.showNotification?.(result.message || 'Failed to save document', 'error')
-      }
-    } catch (error) {
-      console.error('Failed to save document:', error)
-      this.app.showNotification?.('Failed to save document', 'error')
-    }
-  }
 
   async viewDocumentDiff(docId) {
-    // Viewing document diff - debug logging removed for production security
-
     if (!this.app.gitService || !this.app.diffManager) {
       console.error('❌ Services not available:', {
         gitService: !!this.app.gitService,
@@ -867,8 +830,6 @@ export class DocumentsTab {
       }
       return
     }
-
-    // Services available - proceeding with diff operation
 
     try {
       // Check if document is out-of-sync (has Git metadata and local changes)
@@ -909,12 +870,8 @@ export class DocumentsTab {
 
       // Enter diff mode
       if (this.app.editor && this.app.diffManager) {
-        // Calling editor.enterDiffMode - content analysis removed for security
-
         try {
           const success = await this.app.editor.enterDiffMode(document.content, remoteResult.content)
-          // Diff mode result processed - debug output removed for security
-
           if (success) {
             this.app.showNotification?.('Diff mode activated - review changes and accept or cancel', 'success')
           } else {
@@ -941,12 +898,11 @@ export class DocumentsTab {
   showDocumentContextMenu(x, y, menuItems) {
     // This would show a context menu at the specified coordinates
     // For now, just log the menu items
-    // Context menu created - position and items data removed for security
+    console.log('Context menu requested at', { x, y }, 'with items:', menuItems.length)
   }
 
   async renameDocument(docId) {
     // This would show a rename dialog
-    // Rename document operation - debug output removed for security
     this.app.showNotification?.('Rename functionality not yet implemented', 'info')
   }
 
@@ -1027,12 +983,12 @@ export class DocumentsTab {
     const actions = []
 
     if (syncStatus.class === 'out-of-sync') {
-      actions.push({ key: 'p', label: 'Push changes', action: () => this.pushDocument(docId) })
+      actions.push({ key: 'p', label: 'Push changes', action: () => this.app.executeCommand(':gpu') })
       actions.push({ key: 'd', label: 'View diff', action: () => this.viewDocumentDiff(docId) })
     }
 
     if (syncStatus.class !== 'local-only') {
-      actions.push({ key: 'l', label: 'Pull latest', action: () => this.pullDocument(docId) })
+      actions.push({ key: 'l', label: 'Pull latest', action: () => this.app.executeCommand(`:gpl ${docId}`) })
     }
 
     if (actions.length === 0) {
@@ -1215,7 +1171,6 @@ export class DocumentsTab {
 
   enableVirtualScrolling() {
     this.virtualScrolling.enabled = true
-    // Virtual scrolling enabled - document count removed for security
   }
 
   disableVirtualScrolling() {
@@ -1411,7 +1366,6 @@ export class DocumentsTab {
     let startHeight = 0
 
     this.separatorMouseDown = (e) => {
-      // Separator mousedown triggered - debug output removed
       isResizing = true
       startY = e.clientY
       startHeight = this.recentSectionHeight
@@ -1475,8 +1429,6 @@ export class DocumentsTab {
   }
 
   renderGitActions(doc, syncStatus, isAuthenticated = false, isConfigured = false) {
-    console.log(`[PROD DEBUG] renderGitActions for "${doc.title}" - Auth: ${isAuthenticated}, Config: ${isConfigured}`)
-
     const actions = []
 
     // Git actions only if authenticated and configured
@@ -1511,8 +1463,6 @@ export class DocumentsTab {
       shortcut: ':s'
     })
 
-    console.log(`[PROD DEBUG] Generated ${actions.length} actions for "${doc.title}":`, actions.map(a => a.action))
-
     if (actions.length === 0) return ''
 
     const html = `
@@ -1529,7 +1479,7 @@ export class DocumentsTab {
       </div>
     `
 
-    console.log(`[PROD DEBUG] Generated HTML for "${doc.title}":`, html)
+    console.log('🎨 Generated HTML:', html)
 
     return html
   }

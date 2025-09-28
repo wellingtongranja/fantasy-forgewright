@@ -80,14 +80,20 @@ export class GitHubStorage {
       const filepath = `${this.documentsPath}/${filename}`
       const content = this.formatDocumentContent(document)
 
-      // Check if file already exists (using GUID-based filename)
+      // Check if file already exists (only for previously synced documents)
       let existingFile = null
-      try {
-        existingFile = await this.getFileInfo(filepath)
-      } catch (error) {
-        // If we can't check file existence, throw error to prevent data loss
-        throw new Error(`Failed to verify file existence: ${error.message}`)
+      const hasBeenSynced = document.remoteSha || document.lastSyncedAt || document.githubSha
+
+      if (hasBeenSynced) {
+        // Only check remote file for documents that have been synced before
+        try {
+          existingFile = await this.getFileInfo(filepath)
+        } catch (error) {
+          // If we can't check file existence for a previously synced document, throw error
+          throw new Error(`Failed to verify file existence: ${error.message}`)
+        }
       }
+      // For new documents (never synced), existingFile remains null = create new file
 
       const requestBody = {
         message: existingFile
