@@ -99,7 +99,7 @@ export class DiffManager {
 
       // Create custom theme styling for Fantasy theme
       const customThemeStyles = currentTheme === 'fantasy' ? {
-        '&dark .cm-collapsedLines': {
+        '.cm-collapsedLines': {
           color: 'var(--color-text-secondary)',
           background: 'var(--color-bg-secondary)',
           border: '1px solid var(--color-border)',
@@ -443,7 +443,7 @@ export class DiffManager {
 
       // Create custom theme styling for Fantasy theme
       const customThemeStyles = newTheme === 'fantasy' ? {
-        '&dark .cm-collapsedLines': {
+        '.cm-collapsedLines': {
           color: 'var(--color-text-secondary)',
           background: 'var(--color-bg-secondary)',
           border: '1px solid var(--color-border)',
