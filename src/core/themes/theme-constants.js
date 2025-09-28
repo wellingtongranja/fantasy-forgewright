@@ -28,6 +28,11 @@ export const THEME_COLORS = {
       background: '#f8f9fa',
       text: '#212529',
       border: '#dee2e6'
+    },
+    highlight: {
+      line: 'rgba(0, 0, 0, 0.05)',
+      selection: 'rgba(0, 100, 200, 0.2)',
+      selectionBorder: 'rgba(0, 100, 200, 0.4)'
     }
   },
 
@@ -55,6 +60,11 @@ export const THEME_COLORS = {
       background: '#2d3748',
       text: '#f7fafc',
       border: '#4a5568'
+    },
+    highlight: {
+      line: 'rgba(255, 255, 255, 0.05)',
+      selection: 'rgba(100, 150, 255, 0.2)',
+      selectionBorder: 'rgba(100, 150, 255, 0.4)'
     }
   },
 
@@ -82,6 +92,11 @@ export const THEME_COLORS = {
       background: '#2A4D2E',  // King's Green Base
       text: '#D4AF37',        // Imperial Gold Base
       border: '#E6C875'       // Light Imperial Gold
+    },
+    highlight: {
+      line: 'rgba(139, 69, 19, 0.1)',
+      selection: 'rgba(184, 134, 11, 0.3)',
+      selectionBorder: 'rgba(184, 134, 11, 0.5)'
     }
   },
 
@@ -109,6 +124,11 @@ export const THEME_COLORS = {
       background: '#f8f9fa',
       text: '#212529',
       border: '#dee2e6'
+    },
+    highlight: {
+      line: 'rgba(0, 0, 0, 0.05)',
+      selection: 'rgba(99, 102, 241, 0.2)',
+      selectionBorder: 'rgba(99, 102, 241, 0.4)'
     }
   }
 }

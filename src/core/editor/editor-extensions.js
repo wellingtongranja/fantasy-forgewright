@@ -165,13 +165,41 @@ export class EditorExtensions {
       '.cm-focused': {
         outline: 'none'
       },
-      // Fold gutter styling
+      // Fold gutter styling with theme integration
       '.cm-foldGutter': {
-        width: '20px'
+        width: '20px',
+        backgroundColor: 'var(--color-bg)',
+        borderRight: '1px solid var(--color-border)'
       },
       '.cm-foldGutter .cm-gutterElement': {
         padding: '0 4px',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        color: 'var(--color-text-secondary)',
+        fontSize: '12px',
+        lineHeight: '1.2',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      },
+      '.cm-foldGutter .cm-gutterElement:hover': {
+        backgroundColor: 'var(--color-bg-secondary)',
+        color: 'var(--color-text)',
+        borderRadius: 'var(--border-radius-sm, 3px)'
+      },
+      // Fold placeholder styling (collapsed content indicator)
+      '.cm-foldPlaceholder': {
+        backgroundColor: 'var(--color-bg-tertiary) !important',
+        color: 'var(--color-text-secondary) !important',
+        border: '1px solid var(--color-border) !important',
+        borderRadius: 'var(--border-radius-sm, 3px) !important',
+        padding: '2px 6px !important',
+        fontSize: '11px !important',
+        fontFamily: 'inherit !important',
+        cursor: 'pointer !important'
+      },
+      '.cm-foldPlaceholder:hover': {
+        backgroundColor: 'var(--color-bg-secondary) !important',
+        borderColor: 'var(--color-primary) !important'
       },
       // Search panel styling with higher specificity
       '.cm-editor .cm-search': {
@@ -236,7 +264,16 @@ export class EditorExtensions {
       '.cm-placeholder': {
         color: 'var(--color-text-secondary)',
         fontStyle: 'italic'
-      }
+      },
+      // Active line and selection highlighting with theme integration
+      '.cm-activeLine': {
+        backgroundColor: 'var(--color-highlight-line, rgba(0, 0, 0, 0.05)) !important'
+      },
+      '.cm-selectionMatch': {
+        backgroundColor: 'var(--color-highlight-selection, rgba(0, 100, 200, 0.2)) !important',
+        outline: '1px solid var(--color-highlight-selection-border, rgba(0, 100, 200, 0.4)) !important',
+        borderRadius: 'var(--border-radius-sm, 3px) !important'
+      },
     }))
 
     return extensions
@@ -255,28 +292,12 @@ export class EditorExtensions {
   }
 
   /**
-   * Get theme-aware editor styling
+   * Get theme-aware editor styling (legacy method - now handled by CSS custom properties)
    */
   getEditorTheme() {
-    const theme = this.themeManager?.getCurrentTheme() || 'light'
-
-    // Theme-specific overrides
-    const themeOverrides = {
-      light: {
-        '.cm-activeLine': { backgroundColor: 'rgba(0, 0, 0, 0.05)' },
-        '.cm-selectionMatch': { backgroundColor: 'rgba(0, 100, 200, 0.2)' }
-      },
-      dark: {
-        '.cm-activeLine': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
-        '.cm-selectionMatch': { backgroundColor: 'rgba(100, 150, 255, 0.2)' }
-      },
-      fantasy: {
-        '.cm-activeLine': { backgroundColor: 'rgba(139, 69, 19, 0.1)' },
-        '.cm-selectionMatch': { backgroundColor: 'rgba(184, 134, 11, 0.3)' }
-      }
-    }
-
-    return themeOverrides[theme] || themeOverrides.light
+    // Theme styling is now handled through CSS custom properties
+    // This method is kept for compatibility but returns empty object
+    return {}
   }
 
   /**

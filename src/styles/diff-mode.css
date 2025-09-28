@@ -1,23 +1,23 @@
 /* Unified Diff Mode Styles for Fantasy Editor - Simplified */
 
-/* Diff Mode Close Button */
+/* Diff Mode Close Button - Positioned in document title area */
 .diff-close-button {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 8px;
+  right: 8px;
   z-index: 1000;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
-  border-radius: 50%;
+  border-radius: 6px;
   background: var(--color-bg-secondary);
   color: var(--color-text);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 600;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
   transition: all var(--transition-fast);
@@ -46,6 +46,28 @@ body:not(.diff-mode-active) .diff-close-button {
   display: none;
 }
 
+/* SURGICAL FIX - CodeMirror unchanged lines widgets theme integration */
+.cm-collapsedLines {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--border-radius-sm, 3px) !important;
+  padding: 2px 8px !important;
+  font-size: 12px !important;
+  text-align: center !important;
+  cursor: pointer !important;
+}
+
+/* Also fix merge spacer which may appear in unified diff */
+.cm-mergeSpacer {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--border-radius-sm, 3px) !important;
+  padding: 2px 8px !important;
+  font-size: 12px !important;
+}
+
 /* Unified Diff Highlighting Styles */
 .cm-deletedChunk {
   background: var(--color-diff-deleted-bg, rgba(220, 53, 69, 0.15)) !important;
@@ -55,6 +77,7 @@ body:not(.diff-mode-active) .diff-close-button {
   border-radius: 3px !important;
   text-decoration: line-through !important;
   opacity: 0.7 !important;
+  color: var(--color-text) !important;
 }
 
 .cm-insertedChunk {
@@ -63,6 +86,7 @@ body:not(.diff-mode-active) .diff-close-button {
   margin: 2px 0 !important;
   padding: 2px 4px !important;
   border-radius: 3px !important;
+  color: var(--color-text) !important;
 }
 
 .cm-changedChunk {
@@ -71,12 +95,13 @@ body:not(.diff-mode-active) .diff-close-button {
   margin: 2px 0 !important;
   padding: 2px 4px !important;
   border-radius: 3px !important;
+  color: var(--color-text) !important;
 }
 
 /* Gutter markers for unified diff */
 .cm-mergeViewGutter {
   background: var(--color-gutter-bg, #f8f9fa) !important;
-  color: var(--color-text-muted, #6c757d) !important;
+  color: var(--color-text-secondary, #6c757d) !important;
   border-right: 1px solid var(--color-border, #e1e4e8) !important;
   padding: 0 4px !important;
 }
@@ -91,17 +116,25 @@ body:not(.diff-mode-active) .diff-close-button {
   color: var(--color-diff-added-border, #28a745) !important;
 }
 
-/* Merge controls styling */
+/* Merge controls styling - Fixed positioning to prevent text overlap */
 .cm-mergeControl {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-  margin: 2px 0 !important;
-  padding: 2px 6px !important;
+  display: block !important;
+  margin: 8px 0 !important;
+  padding: 6px 8px !important;
   background: var(--color-merge-control-bg, rgba(0, 0, 0, 0.05)) !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   font-size: 11px !important;
   line-height: 1.2 !important;
+  border: 1px solid var(--color-border, #e1e4e8) !important;
+  clear: both !important;
+  width: fit-content !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.cm-mergeControl .cm-mergeControl-buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
 
 .cm-mergeControl button {
@@ -284,7 +317,7 @@ body:not(.diff-mode-active) .diff-close-button {
 
 /* Line numbers in diff */
 .cm-mergeView .cm-lineNumbers {
-  color: var(--color-text-muted, #656d76);
+  color: var(--color-text-secondary, #656d76);
   font-size: 12px;
   padding: 0 6px;
 }
@@ -310,15 +343,24 @@ body:not(.diff-mode-active) .diff-close-button {
   border-left-color: var(--color-diff-conflict-border, #ffc107);
 }
 
-/* Merge controls */
+/* Merge controls - Alternative styling for different diff contexts */
 .cm-merge-controls {
+  display: block;
+  margin: 8px 0;
+  padding: 6px 8px;
+  background: var(--color-merge-controls-bg, rgba(0, 0, 0, 0.05));
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid var(--color-border, #e1e4e8);
+  clear: both;
+  width: fit-content;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cm-merge-controls .buttons-container {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 4px;
-  background: var(--color-merge-controls-bg, rgba(0, 0, 0, 0.05));
-  border-radius: 3px;
-  font-size: 12px;
+  gap: 6px;
 }
 
 .cm-merge-accept,
@@ -351,7 +393,7 @@ body:not(.diff-mode-active) .diff-close-button {
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: var(--color-text-muted, #586069);
+  color: var(--color-text-secondary, #586069);
 }
 
 .cm-merge-gutter.cm-merge-gutter-added {
@@ -422,7 +464,7 @@ body:not(.diff-mode-active) .diff-close-button {
 [data-theme='dark'] .cm-merge-gutter {
   background: var(--color-gutter-bg, #2d2d2d);
   border-right-color: var(--color-border, #404040);
-  color: var(--color-text-muted, #888);
+  color: var(--color-text-secondary, #888);
 }
 
 [data-theme='fantasy'] .diff-mode-indicator {
@@ -506,4 +548,108 @@ body:not(.diff-mode-active) .diff-close-button {
 .cm-merge-reject:focus {
   outline: 2px solid var(--color-focus-outline, #0066cc);
   outline-offset: 2px;
+}
+
+/* Fix theme consistency for unified diff mode - ensure unchanged lines follow theme */
+.cm-editor.cm-focused .cm-content,
+.cm-editor .cm-content {
+  background: var(--color-editor-bg) !important;
+  color: var(--color-text) !important;
+}
+
+/* Collapsed/unchanged sections theme consistency */
+.cm-foldPlaceholder {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* Unified merge view containers should respect theme */
+.cm-mergeView .cm-editor {
+  background: var(--color-editor-bg) !important;
+  color: var(--color-text) !important;
+}
+
+/* CodeMirror line content should respect theme colors */
+.cm-line {
+  color: var(--color-text) !important;
+}
+
+/* Selection and cursor colors in diff mode */
+.cm-focused .cm-selectionBackground {
+  background: var(--color-selection-bg, rgba(0, 102, 204, 0.2)) !important;
+}
+
+.cm-cursor {
+  border-left-color: var(--color-text) !important;
+}
+
+/* Fix for collapsed/unchanged content indicators - the "X unchanged lines" widgets */
+.cm-merge-unchanged,
+.cm-merge-changed,
+.cm-merge-gap,
+.cm-merge-spacer {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  text-align: center !important;
+}
+
+/* Specific fix for unchanged lines widget */
+.cm-widget {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+}
+
+/* More specific targeting for diff mode widgets */
+body.diff-mode-active .cm-widget {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 4px 8px !important;
+}
+
+/* Target the specific unchanged lines indicator */
+body.diff-mode-active .cm-content [title*='unchanged'],
+body.diff-mode-active .cm-content [title*='lines'] {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+/* Additional selectors for CodeMirror merge view widgets */
+body.diff-mode-active .cm-merge-unchanged-widget,
+body.diff-mode-active .cm-merge-gap-widget,
+body.diff-mode-active .cm-merge-separator,
+body.diff-mode-active .cm-collapseMarker,
+body.diff-mode-active .cm-foldPlaceholder,
+body.diff-mode-active .cm-merge-spacer {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+/* Force all diff-mode widgets to follow theme */
+body.diff-mode-active .cm-editor .cm-widget,
+body.diff-mode-active .cm-mergeView .cm-widget {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
 }

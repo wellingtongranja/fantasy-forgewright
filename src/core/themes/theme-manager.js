@@ -1,5 +1,5 @@
 import { getThemeExtension } from './codemirror-themes.js'
-import { THEME_COLORS, getHeaderColors } from './theme-constants.js'
+import { THEME_COLORS, getHeaderColors, getThemeColors } from './theme-constants.js'
 
 export class ThemeManager {
   constructor(settingsManager) {
@@ -58,6 +58,9 @@ export class ThemeManager {
     // Handle custom theme colors
     if (theme === 'custom') {
       this.applyCustomTheme()
+    } else {
+      // Apply standard theme highlight colors
+      this.applyThemeHighlightColors(theme)
     }
 
     // Apply CodeMirror theme if editor is available
@@ -82,12 +85,15 @@ export class ThemeManager {
     // Map custom theme color keys to actual CSS variables used by the app
     const colorMapping = {
       backgroundPrimary: ['--background-color', '--color-bg'],
-      backgroundSecondary: ['--surface-color', '--color-bg-secondary', '--color-bg-tertiary'], 
+      backgroundSecondary: ['--surface-color', '--color-bg-secondary', '--color-bg-tertiary'],
       textPrimary: ['--text-color', '--color-text'],
       textSecondary: ['--text-secondary', '--color-text-secondary'],
       textMuted: ['--text-muted', '--color-text-muted'],
       accent: ['--accent-color', '--color-primary'],
-      border: ['--border-color', '--color-border']
+      border: ['--border-color', '--color-border'],
+      highlightLine: ['--color-highlight-line'],
+      highlightSelection: ['--color-highlight-selection'],
+      highlightSelectionBorder: ['--color-highlight-selection-border']
     }
 
     // Apply mapped colors to document
@@ -148,6 +154,19 @@ export class ThemeManager {
   }
 
   /**
+   * Apply theme highlight colors from theme constants
+   */
+  applyThemeHighlightColors(theme) {
+    const themeColors = getThemeColors(theme)
+    if (!themeColors?.highlight) return
+
+    // Apply highlight colors as CSS custom properties
+    document.documentElement.style.setProperty('--color-highlight-line', themeColors.highlight.line)
+    document.documentElement.style.setProperty('--color-highlight-selection', themeColors.highlight.selection)
+    document.documentElement.style.setProperty('--color-highlight-selection-border', themeColors.highlight.selectionBorder)
+  }
+
+  /**
    * Clear custom theme colors from document element
    */
   clearCustomTheme() {
@@ -164,7 +183,10 @@ export class ThemeManager {
       '--color-border-rgb',
       '--surface-hover',
       '--border-light',
-      '--border-dark'
+      '--border-dark',
+      '--color-highlight-line',
+      '--color-highlight-selection',
+      '--color-highlight-selection-border'
     ]
 
     // Remove all custom theme variables from document element

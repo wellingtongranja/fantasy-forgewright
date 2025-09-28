@@ -99,7 +99,10 @@ export class ThemesTab {
       { key: 'textSecondary', label: 'Secondary Text' },
       { key: 'textMuted', label: 'Muted Text' },
       { key: 'accent', label: 'Accent Color' },
-      { key: 'border', label: 'Border Color' }
+      { key: 'border', label: 'Border Color' },
+      { key: 'highlightLine', label: 'Active Line Highlight' },
+      { key: 'highlightSelection', label: 'Selection Highlight' },
+      { key: 'highlightSelectionBorder', label: 'Selection Border' }
     ]
 
     return colorFields.map(field => new ColorPicker({

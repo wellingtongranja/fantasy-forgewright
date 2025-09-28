@@ -15,10 +15,12 @@ export class DiffManager {
   constructor(app) {
     this.app = app
     this.diffCompartment = new Compartment()
+    this.themeCompartment = new Compartment()
     this.diffExtensions = null
     this.isInDiffMode = false
     this.originalContent = null
     this.contentChangeTimeout = null
+    this.themeChangeListener = null
 
     // Dependencies initialized - debug logging removed for production security
 
@@ -82,7 +84,34 @@ export class DiffManager {
 
       // Creating unified diff view - content analysis removed for security
 
-      // Step 5: Create unified merge view extensions
+      // Step 5: Get current theme and map to CodeMirror theme class
+      const currentTheme = this.app.themeManager?.getCurrentTheme() || 'light'
+
+      // Get theme-specific merge class
+      let mergeThemeClass
+      if (currentTheme === 'fantasy') {
+        // Fantasy theme gets custom styling
+        mergeThemeClass = 'dark' // Use dark as base but we'll add custom CSS
+      } else {
+        const isDark = this.app.themeManager?.isDarkTheme(currentTheme) || false
+        mergeThemeClass = isDark ? 'dark' : 'light'
+      }
+
+      // Create custom theme styling for Fantasy theme
+      const customThemeStyles = currentTheme === 'fantasy' ? {
+        '&dark .cm-collapsedLines': {
+          color: 'var(--color-text-secondary)',
+          background: 'var(--color-bg-secondary)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-sm)',
+          padding: '2px 8px',
+          fontSize: '11px',
+          textAlign: 'center',
+          cursor: 'pointer'
+        }
+      } : {}
+
+      // Step 6: Create unified merge view extensions with proper theme class
       this.diffExtensions = unifiedMergeView({
         original: testRemoteContent,
         highlightChanges: true,
@@ -95,8 +124,8 @@ export class DiffManager {
         }
       })
 
-      // Step 6: Set the local content and apply diff extensions
-      // Create a new state with the unified merge extensions
+      // Step 7: Set the local content and apply diff extensions with theme class
+      // Create a new state with the unified merge extensions and theme class
       const newState = EditorState.create({
         doc: testLocalContent,
         extensions: [
@@ -104,9 +133,14 @@ export class DiffManager {
           ...(this.app.themeManager ? this.app.themeManager.getCodeMirrorTheme() : []),
           this.diffCompartment.of(this.diffExtensions),
           // Ensure content change listener is active in diff mode for Navigator outline updates
-          this.createDiffModeContentListener()
+          this.createDiffModeContentListener(),
+          // Add theme class for CodeMirror merge package styling with custom Fantasy support
+          this.themeCompartment.of(EditorView.theme(customThemeStyles, { dark: mergeThemeClass === 'dark' }))
         ]
       })
+
+      // Step 8: Set up theme change listener for dynamic theme updates
+      this.setupThemeChangeListener()
 
       // Replace the entire state
       editorView.setState(newState)
@@ -190,6 +224,9 @@ export class DiffManager {
         clearTimeout(this.contentChangeTimeout)
         this.contentChangeTimeout = null
       }
+
+      // Remove theme change listener
+      this.removeThemeChangeListener()
 
       // Remove body class
       document.body.classList.remove('diff-mode-active')
@@ -369,6 +406,89 @@ export class DiffManager {
   }
 
   /**
+   * Set up theme change listener for dynamic theme updates in diff mode
+   */
+  setupThemeChangeListener() {
+    if (!this.isInDiffMode) return
+
+    // Listen for theme change events
+    this.themeChangeListener = (event) => {
+      if (event.detail && event.detail.theme) {
+        this.updateDiffModeTheme(event.detail.theme)
+      }
+    }
+
+    document.addEventListener('themechange', this.themeChangeListener)
+  }
+
+  /**
+   * Update diff mode theme when theme changes
+   */
+  updateDiffModeTheme(newTheme) {
+    if (!this.isInDiffMode) return
+
+    const editorView = this.app.editor?.view
+    if (!editorView) return
+
+    try {
+      // Get theme-specific merge class
+      let mergeThemeClass
+      if (newTheme === 'fantasy') {
+        // Fantasy theme gets custom styling
+        mergeThemeClass = 'dark' // Use dark as base but we'll add custom CSS
+      } else {
+        const isDark = this.app.themeManager?.isDarkTheme(newTheme) || false
+        mergeThemeClass = isDark ? 'dark' : 'light'
+      }
+
+      // Create custom theme styling for Fantasy theme
+      const customThemeStyles = newTheme === 'fantasy' ? {
+        '&dark .cm-collapsedLines': {
+          color: 'var(--color-text-secondary)',
+          background: 'var(--color-bg-secondary)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-sm)',
+          padding: '2px 8px',
+          fontSize: '11px',
+          textAlign: 'center',
+          cursor: 'pointer'
+        }
+      } : {}
+
+      // Preserve current state but update theme extensions only
+      editorView.dispatch({
+        effects: [
+          // Update theme compartment with custom styling for Fantasy
+          this.themeCompartment.reconfigure(
+            EditorView.theme(customThemeStyles, { dark: mergeThemeClass === 'dark' })
+          )
+        ]
+      })
+
+      // Force re-render of merge view widgets by temporarily hiding and showing
+      setTimeout(() => {
+        if (this.isInDiffMode && editorView.state) {
+          // Trigger a view update to refresh merge widgets
+          editorView.requestMeasure()
+        }
+      }, 10)
+
+    } catch (error) {
+      console.error('Failed to update diff mode theme:', error)
+    }
+  }
+
+  /**
+   * Remove theme change listener
+   */
+  removeThemeChangeListener() {
+    if (this.themeChangeListener) {
+      document.removeEventListener('themechange', this.themeChangeListener)
+      this.themeChangeListener = null
+    }
+  }
+
+  /**
    * Create and add the close button for diff mode
    */
   createCloseButton() {
@@ -388,9 +508,36 @@ export class DiffManager {
     }
     this.closeButton.addEventListener('click', this.closeButtonHandler)
 
-    // Find the editor container to position relative to it
-    const editorContainer = document.querySelector('.app-main') || document.body
-    editorContainer.appendChild(this.closeButton)
+    // Position the close button specifically in the document title area
+    const titleContainer = document.querySelector('.doc-title-container')
+
+    if (titleContainer) {
+      // Make the title container relative positioned to contain the absolute close button
+      titleContainer.style.position = 'relative'
+      titleContainer.appendChild(this.closeButton)
+    } else {
+      // Fallback: create our own container in the editor area
+      const editorContainer = document.querySelector('.editor-container') ||
+                             document.querySelector('.editor') ||
+                             document.querySelector('.app-main')
+
+      if (editorContainer) {
+        // Create a positioned container for the close button
+        const closeButtonContainer = document.createElement('div')
+        closeButtonContainer.className = 'diff-close-button-container'
+        closeButtonContainer.style.position = 'absolute'
+        closeButtonContainer.style.top = '16px'
+        closeButtonContainer.style.right = '16px'
+        closeButtonContainer.style.zIndex = '1000'
+        closeButtonContainer.appendChild(this.closeButton)
+
+        editorContainer.style.position = 'relative'
+        editorContainer.appendChild(closeButtonContainer)
+      } else {
+        // Last resort: use document body
+        document.body.appendChild(this.closeButton)
+      }
+    }
   }
 
   /**
@@ -404,8 +551,33 @@ export class DiffManager {
         this.closeButtonHandler = null
       }
 
-      // Remove from DOM
-      this.closeButton.remove()
+      // Clean up any positioning changes we made
+      const parentContainer = this.closeButton.parentElement
+
+      if (parentContainer) {
+        // If we created a special container, remove it
+        if (parentContainer.classList.contains('diff-close-button-container')) {
+          parentContainer.remove()
+        } else {
+          // Clean up positioning styles we added
+          if (parentContainer.classList.contains('doc-title-container') ||
+              parentContainer.classList.contains('editor-container') ||
+              parentContainer.classList.contains('editor')) {
+            // Remove the position: relative we added if no other absolute positioned children
+            const hasOtherAbsoluteChildren = Array.from(parentContainer.children).some(
+              child => child !== this.closeButton &&
+              window.getComputedStyle(child).position === 'absolute'
+            )
+            if (!hasOtherAbsoluteChildren) {
+              parentContainer.style.position = ''
+            }
+          }
+
+          // Remove the close button
+          this.closeButton.remove()
+        }
+      }
+
       this.closeButton = null
     }
   }
