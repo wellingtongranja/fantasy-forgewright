@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
+import packageJson from './package.json'
 
 export default defineConfig(({ command, mode }) => {
   // SECURITY: Only load safe environment variables, prevent OAuth secrets in bundle
@@ -173,10 +174,11 @@ export default defineConfig(({ command, mode }) => {
   },
   
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.0.1'),
+    __APP_VERSION__: JSON.stringify(packageJson.version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
     __DEV__: isDevelopment,
     __PROD__: isProduction,
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(packageJson.version),
     __ENABLE_DEVTOOLS__: isDevelopment || env.VITE_ENABLE_DEVTOOLS === 'true'
   },
 
