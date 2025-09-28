@@ -433,11 +433,8 @@ export class DocumentsTab {
   attachEventListeners() {
     // Unified click handler for all document interactions
     this.container.addEventListener('click', (e) => {
-      console.log('🖱️ Click detected:', e.target, 'Classes:', Array.from(e.target.classList))
-
       // Handle Git action buttons - check both button and icon clicks
       let gitActionBtn = e.target.closest('.git-action-btn')
-      console.log('🎯 Git action button found:', gitActionBtn)
 
       // Also check if clicking on action icon directly
       if (!gitActionBtn && e.target.classList.contains('action-icon')) {
@@ -607,7 +604,6 @@ export class DocumentsTab {
     const action = gitActionBtn.dataset.action
     const docId = gitActionBtn.dataset.docId
 
-    console.log('🔧 handleGitAction called:', { action, docId, button: gitActionBtn })
 
     // Handle pull action differently since it needs docId, not filename
     if (action === 'pull') {
@@ -637,7 +633,6 @@ export class DocumentsTab {
       return
     }
 
-    console.log('🚀 Executing command:', command)
 
     // Delegate to centralized command system using working colon aliases
     await this.app.executeCommand(command)

@@ -32,11 +32,9 @@ export class LegalAcceptanceManager {
     try {
       // First, try to open without version to get current version
       const currentVersion = await this.getCurrentDatabaseVersion()
-      console.log('Current database version:', currentVersion)
 
       // Use current version + 1 if database exists, otherwise start with 1
       this.dbVersion = currentVersion ? currentVersion + 1 : 1
-      console.log('Using database version:', this.dbVersion)
 
       return this.openDatabase()
     } catch (error) {
@@ -98,12 +96,10 @@ export class LegalAcceptanceManager {
           }
 
           if (!db.objectStoreNames.contains(this.storeName)) {
-            console.log('Creating object store:', this.storeName)
             const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
             store.createIndex('userId', 'userId', { unique: false })
             store.createIndex('documentType', 'documentType', { unique: false })
             store.createIndex('acceptedAt', 'acceptedAt', { unique: false })
-            console.log('Object store created with indexes')
           }
         }
       } catch (error) {
