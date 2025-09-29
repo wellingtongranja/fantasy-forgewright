@@ -620,8 +620,7 @@ export class GitHubStorage {
         // Wait a moment for GitHub to set up the repository
         await new Promise((resolve) => setTimeout(resolve, 2000))
 
-        // Initialize the repository with root README and documents directory
-        await this.createRepositoryReadme()
+        // Initialize the repository with documents directory only
         await this.ensureDocumentsDirectory()
 
         return true
@@ -659,79 +658,6 @@ export class GitHubStorage {
     }
   }
 
-  /**
-   * Create main repository README.md file
-   * @returns {Promise<void>}
-   */
-  async createRepositoryReadme() {
-    if (!this.isConfigured()) {
-      throw new Error('Git repository storage not configured')
-    }
-
-    const readmeContent = `# Fantasy Editor
-
-A distraction-free markdown editor for creative writers, powered by GitHub storage.
-
-## About This Repository
-
-This repository contains documents created with Fantasy Editor. Your creative works are stored securely and can be accessed from anywhere.
-
-## Features
-
-- **Offline-first**: Documents are stored locally and synced to GitHub
-- **Keyboard-focused**: Complete control via command palette (Ctrl+Space)
-- **Writer-friendly**: Optimized for long-form writing and creativity
-- **GitHub Integration**: Automatic backup and synchronization
-- **Markdown Support**: Full-featured markdown editor with live preview
-
-## Repository Structure
-
-- \`documents/\` - Your creative works and stories
-- \`README.md\` - This file
-
-## Getting Started
-
-1. Open [Fantasy Editor](https://forgewright.io)
-2. Sign in with GitHub
-3. Start writing your stories
-4. Use commands like \`:ghp\` to push documents or \`:ghs\` to sync
-
-## Commands
-
-- \`:ghs\` - Sync all documents
-- \`:ghp\` - Push current document
-- \`:ghls\` - List all documents
-- \`:gst\` - Show GitHub status
-
-## About Fantasy Editor
-
-Fantasy Editor is designed specifically for creative writers who want a distraction-free environment for their storytelling. With GitHub integration, your work is automatically backed up and accessible from any device.
-
-Created: ${new Date().toISOString()}
-`
-
-    try {
-      await this.auth.makeAuthenticatedRequest(
-        `/repos/${this.owner}/${this.repo}/contents/README.md`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: 'Initialize Fantasy Editor repository',
-            content: btoa(unescape(encodeURIComponent(readmeContent))),
-            branch: this.branch
-          })
-        }
-      )
-
-      // makeAuthenticatedRequest throws on error, success if we reach here
-    } catch (error) {
-      console.error('Failed to create repository README:', error)
-      throw error
-    }
-  }
 
   /**
    * Ensure documents directory exists in repository
@@ -758,37 +684,13 @@ Created: ${new Date().toISOString()}
       }
     }
 
-    // Create documents directory with a README
-    const readmeContent = `# Fantasy Editor Documents
-
-This directory contains documents created with Fantasy Editor.
-
-## About Fantasy Editor
-
-Fantasy Editor is a distraction-free markdown editor designed for creative writers.
-
-- **Offline-first**: Your documents are stored locally and synced to GitHub
-- **Keyboard-focused**: Complete control via command palette (Ctrl+Space)
-- **Writer-friendly**: Optimized for long-form writing and creativity
-
-## Document Format
-
-Documents are stored as markdown files with YAML front matter containing metadata.
-
-## Getting Started
-
-1. Start writing in Fantasy Editor
-2. Use \`:ghp\` to push your documents to this repository
-3. Use \`:ghs\` to sync all documents
-4. Use \`:ghls\` to list documents in this repository
-
-Created: ${new Date().toISOString()}
-`
+    // Create documents directory with minimal .gitkeep file
+    const gitkeepContent = '# Fantasy Editor Documents Folder\n\nThis folder will contain your creative works.\n'
 
     try {
-      // Create README.md in documents directory using GitHub API
-      const filepath = `${this.documentsPath}/README.md`
-      const response = await this.auth.makeAuthenticatedRequest(
+      // Create .gitkeep in documents directory to ensure it exists
+      const filepath = `${this.documentsPath}/.gitkeep`
+      await this.auth.makeAuthenticatedRequest(
         `/repos/${this.owner}/${this.repo}/contents/${filepath}`,
         {
           method: 'PUT',
@@ -796,15 +698,12 @@ Created: ${new Date().toISOString()}
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            message: 'Initialize Fantasy Editor documents directory',
-            content: btoa(unescape(encodeURIComponent(readmeContent))), // Base64 encode UTF-8
+            message: 'Initialize documents directory',
+            content: btoa(unescape(encodeURIComponent(gitkeepContent))),
             branch: this.branch
           })
         }
       )
-
-      // makeAuthenticatedRequest throws on error, success if we reach here
-      // Documents directory created successfully
     } catch (error) {
       console.error('Failed to create documents directory:', error)
       throw error
